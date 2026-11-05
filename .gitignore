@@ -49,3 +49,4 @@ scratch/
 emulator_screen.png
 tests/responsive/screenshots/
 tests/responsive/*.json
+humanizer-main/
