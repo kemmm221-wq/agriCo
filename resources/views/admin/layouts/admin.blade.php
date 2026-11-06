@@ -1159,7 +1159,7 @@
 
         <main
             id="appMainContent"
-            style="flex: 1; min-width: 0; min-height: 100vh; padding: 32px 36px 48px 36px; box-sizing: border-box; transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1); width: 100%;"
+            style="flex: 1; min-width: 0; min-height: 100vh; padding: 32px 36px 48px 36px; box-sizing: border-box; transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; background-color: #E8F5E9 !important;"
         >
 
             {{ $slot }}

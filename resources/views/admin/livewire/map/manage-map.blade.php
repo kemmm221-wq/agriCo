@@ -1,4 +1,4 @@
-<div id="manage-map-root" class="space-y-6">
+<div id="manage-map-root" class="space-y-6" style="background-color: #E8F5E9 !important; color: #0f172a !important; min-height: 100vh;">
     {{-- DIRECT LEAFLET ASSETS INCLUSION --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" data-navigate-track />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" data-navigate-track></script>
@@ -78,10 +78,10 @@
     {{-- PAGE HEADER --}}
     <div class="ui-reveal flex items-center justify-between gap-4 flex-wrap" style="--i:0">
         <div>
-            <h1 class="ui-reveal-text text-3xl font-extrabold text-gray-900" style="--i:0">
+            <h1 class="ui-reveal-text text-3xl font-extrabold" style="--i:0; color: #0f172a !important;">
                 Manage Map
             </h1>
-            <p class="ui-reveal-text text-sm text-gray-500 mt-1" style="--i:0">
+            <p class="ui-reveal-text text-sm mt-1" style="--i:0; color: #64748b !important;">
                 Interactive soil location GIS mapping & geographic distribution
             </p>
         </div>
@@ -296,8 +296,11 @@
             {{-- MAP CANVAS CONTAINER --}}
             <div id="soil-map" wire:ignore style="width: 100%; height: 520px; border-radius: 20px; z-index: 1; overflow: hidden; position: relative; background: #e2e8f0;" class="border border-gray-100 shadow-inner"></div>
 
-            {{-- HIDDEN DATA CONTAINER FOR LIVEWIRE MORPH MAP UPDATES --}}
-            <div id="all-map-locations-json" data-locations='@json($allMapLocations)' style="display: none;"></div>
+            {{-- DATA INJECTION FOR LEAFLET GIS MAP (SAFE JSON) --}}
+            <script>
+                window._agricoAllLocations = {!! json_encode($allMapLocations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
+            </script>
+            <div id="all-map-locations-json" data-locations="{!! htmlspecialchars(json_encode($allMapLocations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') !!}" style="display: none;"></div>
         </div>
     </div>
 
@@ -1777,18 +1780,25 @@
                 }).catch(function(err) { console.log('Lal-lo boundary note:', err); });
             }
 
-            // Load initial markers from the data element
-            var dataEl = document.getElementById('all-map-locations-json');
-            if (dataEl && dataEl.dataset.locations) {
+            // Load initial markers
+            var locs = window._agricoAllLocations;
+            if (!locs) {
+                var dataEl = document.getElementById('all-map-locations-json');
+                if (dataEl && dataEl.dataset.locations) {
+                    try {
+                        locs = JSON.parse(dataEl.dataset.locations);
+                        window._agricoAllLocations = locs;
+                    } catch(e) { console.error('Map data parse error:', e); }
+                }
+            }
+            if (Array.isArray(locs) && locs.length > 0) {
                 try {
-                    var locs = JSON.parse(dataEl.dataset.locations);
-                    window._agricoAllLocations = locs;
                     window.agricoRenderMarkers(locs);
                     if (markersGroup.getLayers().length > 0) {
                         leafMap._agricoOverviewBounds = markersGroup.getBounds();
                         leafMap.fitBounds(markersGroup.getBounds(), { padding: [40, 40], maxZoom: 13 });
                     }
-                } catch(e) { console.error('Map data parse error:', e); }
+                } catch(e) { console.error('Marker render error:', e); }
             }
 
             // Invalidate size across multiple render intervals

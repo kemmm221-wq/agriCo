@@ -105,7 +105,7 @@ class ManageMap extends Component
     public function render()
     {
         // 1. ALL MAP LOCATIONS (Loaded once for Leaflet GIS, searched instantly in browser)
-        $allMapLocations = LocationMapping::whereNotNull('latitude')
+        $rawMapLocations = LocationMapping::whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->select('location_mapping_id', 'latitude', 'longitude', 'barangay', 'status', 'soil_id', 'soil_scan_id')
             ->with([
@@ -129,25 +129,57 @@ class ManageMap extends Component
             })
             ->get();
 
-        $allMapLocations->each(function ($loc) {
-            if ($loc->soil) {
-                $fullCode = $loc->soil->full_code ?? $loc->soil->munsellColor?->full_code ?? '';
-                $munsellSoilType = $loc->soil->effective_soil_type ?: ($loc->soil->munsellColor?->soil_type ?? null);
-                if (!$munsellSoilType && $fullCode) {
-                    $lookup = \App\Services\MunsellLookupService::lookup($fullCode);
-                    $munsellSoilType = $lookup['soil_type'] ?? null;
-                }
-                $loc->soil->setAttribute('soil_type_label', $munsellSoilType ?: 'Leached grayish brown');
+        $allMapLocations = $rawMapLocations->map(function ($loc) {
+            $soil = $loc->soil;
+            $munsell = $soil?->munsellColor;
+
+            $fullCode = $soil?->full_code ?? $munsell?->full_code ?? '';
+            $soilType = $soil?->soil_type ?? $munsell?->soil_type ?? 'Leached grayish brown';
+            $hexColor = $soil?->hex_color ?? $munsell?->hex_code ?? '#8F694E';
+            if ($hexColor && !str_starts_with($hexColor, '#')) {
+                $hexColor = '#' . $hexColor;
             }
-            if (empty($loc->barangay) || strtolower($loc->barangay) === 'lal-lo overall' || strtolower($loc->barangay) === 'all barangays') {
-                $loc->barangay = LocationMapping::resolveNearestBarangay((float) $loc->latitude, (float) $loc->longitude);
+
+            $rawBrgy = $loc->barangay;
+            if (empty($rawBrgy) || strtolower($rawBrgy) === 'lal-lo overall' || strtolower($rawBrgy) === 'all barangays') {
+                $rawBrgy = LocationMapping::resolveNearestBarangay((float) $loc->latitude, (float) $loc->longitude);
             }
-            $covStr = '';
+
+            $covStr = '500 m²';
             if ($loc->soilScan?->scan_note && preg_match('/\[Covered Area:\s*([^\]]+)\]/i', $loc->soilScan->scan_note, $cm)) {
                 $covStr = trim($cm[1]);
             }
-            $loc->setAttribute('coverage', $covStr ?: '500 m²');
-        });
+
+            return [
+                'location_mapping_id' => $loc->location_mapping_id,
+                'id' => $loc->location_mapping_id,
+                'latitude' => (float) $loc->latitude,
+                'longitude' => (float) $loc->longitude,
+                'barangay' => $rawBrgy,
+                'status' => $loc->status ?: 'Active',
+                'coverage' => $covStr,
+                'soil_id' => $loc->soil_id,
+                'soil_scan_id' => $loc->soil_scan_id,
+                'soil' => [
+                    'soil_id' => $soil?->soil_id,
+                    'soil_name' => $soil?->soil_name ?: 'Soil Specimen',
+                    'full_code' => $fullCode,
+                    'soil_type' => $soilType,
+                    'soil_type_label' => $soilType,
+                    'hex_color' => $hexColor,
+                    'munsell_color' => [
+                        'hex_code' => $hexColor,
+                        'color_name' => $munsell?->color_name ?: $soil?->soil_name,
+                        'soil_type' => $soilType,
+                    ],
+                ],
+                'soil_scan' => [
+                    'soil_scan_id' => $loc->soil_scan_id,
+                    'scan_note' => $loc->soilScan?->scan_note ?: '',
+                ],
+                'regions' => [],
+            ];
+        })->values()->toArray();
 
         // 2. TABLE QUERY (Dedicated to records search & filters)
         $searchStr = trim($this->search);
@@ -263,6 +295,6 @@ class ManageMap extends Component
             'selectedDate' => $this->selectedDate,
             'sortField' => $this->sortField,
             'sortDirection' => $this->sortDirection,
-        ]);
+        ])->layout('admin.layouts.app');
     }
 }
