@@ -392,7 +392,11 @@
         >
             <option value="">All Soils</option>
             @foreach($soils as $s)
-                <option value="{{ $s->id }}">{{ $s->soil_name }}</option>
+                @php
+                    $sVal = is_object($s) ? ($s->soil_id ?? $s->id ?? '') : (is_array($s) ? ($s['soil_id'] ?? $s['id'] ?? '') : $s);
+                    $sLabel = is_object($s) ? ($s->soil_name ?? $s->name ?? $sVal) : (is_array($s) ? ($s['soil_name'] ?? $s['name'] ?? $sVal) : $s);
+                @endphp
+                <option value="{{ $sVal }}">{{ $sLabel }}</option>
             @endforeach
         </select>
 

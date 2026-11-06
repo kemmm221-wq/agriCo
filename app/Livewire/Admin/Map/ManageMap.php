@@ -280,7 +280,7 @@ class ManageMap extends Component
             'soils_count' => \Illuminate\Support\Facades\Cache::remember('soils_munsell_count', 300, fn() => Soil::has('munsellColor')->count()),
         ];
 
-        $soils = \Illuminate\Support\Facades\Cache::remember('all_soils_list', 300, fn() => Soil::select('soil_id', 'soil_name', 'full_code')->orderBy('soil_name')->get());
+        $soils = Soil::query()->select('soil_id', 'soil_name', 'full_code')->orderBy('soil_name')->get();
 
         return view('admin.livewire.map.manage-map', [
             'allMapLocations' => $allMapLocations,
