@@ -598,7 +598,7 @@
                             (!empty($sBrgy) && stripos($sBrgy, $cleanSearch ?: $searchTrim) !== false) ||
                             (!empty($sLat) && stripos($sLat, $searchTrim) !== false) ||
                             (!empty($sLng) && stripos($sLng, $searchTrim) !== false) ||
-                            (str_starts_with($searchTrim, '#') && '#' . $map->id === $searchTrim)
+                            (str_starts_with($searchTrim, '#') && '#' . ($map->location_mapping_id ?? $map->id ?? '') === $searchTrim)
                         );
                     @endphp
                     <tr
@@ -721,7 +721,7 @@
                                 {{-- DELETE --}}
                                 <button
                                     type="button"
-                                    @click="$dispatch('delete-mapping',{id:{{ $map->id }}})"
+                                    @click="$dispatch('delete-mapping',{id:{{ $map->location_mapping_id ?? $map->id }}})"
                                     class="agrico-delete-btn"
                                     title="Delete Mapping"
                                 >
