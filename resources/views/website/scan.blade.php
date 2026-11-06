@@ -1744,6 +1744,33 @@
             background: #f1f5f9 !important;
             color: #0f172a !important;
         }
+        html.light-mode #mobileCameraPermissionModal > div {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2) !important;
+            color: #0f172a !important;
+        }
+        html.light-mode #mobileCameraPermissionModal h3 {
+            color: #0f172a !important;
+        }
+        html.light-mode #mobileCameraPermissionModal p {
+            color: #475569 !important;
+        }
+        html.light-mode #mobileCameraPermissionModal .mobile-guide-step {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+        html.light-mode #mobileCameraPermissionModal .mobile-guide-step strong {
+            color: #0f172a !important;
+        }
+        html.light-mode #mobileCameraPermissionModal .mobile-guide-step span {
+            color: #475569 !important;
+        }
+        html.light-mode #mobileCameraAutoNotice {
+            background: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+            color: #065f46 !important;
+        }
 
         html.light-mode .result-header { border-bottom-color: #e2e8f0 !important; }
         html.light-mode .result-header h3 { color: #16a34a !important; font-weight: 800 !important; }
@@ -5315,6 +5342,24 @@
                     </span>
                 </div>
 
+                {{-- Automatic Mobile Camera Notice (Shown ONLY on Mobile Phones/Tablets) --}}
+                <div id="mobileCameraAutoNotice" style="display: none; align-items: center; justify-content: space-between; gap: 10px; margin: 0 16px 14px; padding: 11px 14px; background: rgba(35, 83, 71, 0.45); border: 1.2px solid rgba(142, 182, 155, 0.35); border-radius: 12px; font-size: 12.5px; color: #DAF1DE; backdrop-filter: blur(8px);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" fill="none" stroke="#34d399" stroke-width="2.2" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                            <path d="M12 18h.01M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/>
+                        </svg>
+                        <span id="mobileCameraAutoNoticeText">Tap <strong>Start Camera</strong> and tap <strong>Allow</strong> when prompted.</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                        <button type="button" onclick="showMobileCameraPermissionModal()" style="background: rgba(52, 211, 153, 0.2); border: 1px solid rgba(52, 211, 153, 0.5); color: #34d399; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 4px 8px; cursor: pointer; white-space: nowrap;">
+                            Help / Guide
+                        </button>
+                        <button type="button" onclick="document.getElementById('mobileCameraAutoNotice').style.display='none'" style="background: transparent; border: none; color: #8EB69B; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Dismiss">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+
                 {{-- Viewfinder Canvas --}}
                 <div class="scanner-viewfinder" id="viewfinderArea" style="position: relative;">
                     <div class="image-mask" id="imageMask">
@@ -6163,6 +6208,79 @@
                 </button>
                 <button type="button" class="scanner-btn scanner-btn-secondary" onclick="document.getElementById('cameraInsecureModal').style.display='none'">
                     Cancel / Use Upload Photo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Mobile Phone Camera Permission & Overlay Helper Modal (ONLY shown to Mobile users) --}}
+    <div id="mobileCameraPermissionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 99999; align-items: center; justify-content: center; padding: 18px;">
+        <div style="background: #0B2B26; border: 1.5px solid rgba(52, 211, 153, 0.35); border-radius: 24px; max-width: 440px; width: 100%; padding: 24px 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.7); color: #DAF1DE; text-align: left; position: relative;">
+            <x-close-button onclick="closeMobileCameraPermissionModal()" style="position: absolute; top: 18px; right: 18px; z-index: 10;" title="Close guide" ariaLabel="Close guide" />
+            
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(34, 197, 94, 0.15); border: 1.5px solid rgba(34, 197, 94, 0.4); display: flex; align-items: center; justify-content: center; color: #22c55e; flex-shrink: 0;">
+                    <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 style="font-size: 17px; font-weight: 800; margin: 0 0 4px; color: #DAF1DE;">Allow Phone Camera Access</h3>
+                    <p style="font-size: 12.5px; color: #8EB69B; margin: 0; line-height: 1.4;">Follow these quick steps to scan soil with your phone:</p>
+                </div>
+            </div>
+
+            {{-- Step-by-Step Guide --}}
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <div class="mobile-guide-step" style="display: flex; gap: 12px; background: rgba(5, 31, 32, 0.55); border: 1px solid rgba(142, 182, 155, 0.2); border-radius: 14px; padding: 12px 14px;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #16a34a; color: #fff; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">1</div>
+                    <div>
+                        <strong style="color: #ffffff; font-size: 13px; display: block; margin-bottom: 2px;">Close Floating Bubbles / Overlays</strong>
+                        <span style="color: #94a3b8; font-size: 12px; line-height: 1.4; display: block;">
+                            If Android displays <em>"Close bubbles or overlays"</em>, dismiss any Messenger chat heads, floating game tools, or screen recorder icons.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mobile-guide-step" style="display: flex; gap: 12px; background: rgba(5, 31, 32, 0.55); border: 1px solid rgba(142, 182, 155, 0.2); border-radius: 14px; padding: 12px 14px;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #16a34a; color: #fff; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">2</div>
+                    <div>
+                        <strong style="color: #ffffff; font-size: 13px; display: block; margin-bottom: 2px;">Allow in Browser Settings</strong>
+                        <span style="color: #94a3b8; font-size: 12px; line-height: 1.4; display: block;">
+                            Tap the <strong>Lock (🔒) or Page Settings</strong> icon at top of browser address bar &rarr; <strong>Site settings / Permissions</strong> &rarr; Set <strong>Camera to "Allow"</strong>.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mobile-guide-step" style="display: flex; gap: 12px; background: rgba(5, 31, 32, 0.55); border: 1px solid rgba(142, 182, 155, 0.2); border-radius: 14px; padding: 12px 14px;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">💡</div>
+                    <div>
+                        <strong style="color: #ffffff; font-size: 13px; display: block; margin-bottom: 2px;">Instant Shortcut: Take Photo Directly</strong>
+                        <span style="color: #94a3b8; font-size: 12px; line-height: 1.4; display: block;">
+                            You can also snap a photo right now using your phone's native camera app without needing browser permission!
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Actions --}}
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button type="button" onclick="retryMobileCamera()" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: #ffffff; font-weight: 700; font-size: 14px; padding: 12px 16px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>Try Camera Again</span>
+                </button>
+                <button type="button" onclick="useNativePhoneCamera()" style="background: rgba(35, 83, 71, 0.6); border: 1.5px solid rgba(142, 182, 155, 0.4); color: #DAF1DE; font-weight: 700; font-size: 13.5px; padding: 11px 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    <span>Take Photo with Phone Camera</span>
+                </button>
+                <button type="button" onclick="closeMobileCameraPermissionModal()" style="background: transparent; border: none; color: #8EB69B; font-size: 13px; font-weight: 600; padding: 6px; cursor: pointer; text-align: center;">
+                    Dismiss
                 </button>
             </div>
         </div>
@@ -7027,6 +7145,68 @@
         let currentVideoDeviceId = null;
         const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
 
+        // Strict Phone & Tablet detection (leaves Laptop and Desktop completely unaffected)
+        function isPhoneOrTablet() {
+            const ua = navigator.userAgent || '';
+            const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+            const isDesktopPlatform = /Windows NT|Macintosh|X11|Linux x86_64/i.test(ua) && !(/Android|Mobile/i.test(ua));
+            return isMobileUA && !isDesktopPlatform;
+        }
+
+        window.showMobileCameraPermissionModal = function() {
+            if (!isPhoneOrTablet()) return; // ONLY ON PHONE/TABLET - NEVER ON LAPTOP OR DESKTOP
+            const modal = document.getElementById('mobileCameraPermissionModal');
+            if (modal) modal.style.display = 'flex';
+        };
+
+        window.closeMobileCameraPermissionModal = function() {
+            const modal = document.getElementById('mobileCameraPermissionModal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.retryMobileCamera = function() {
+            closeMobileCameraPermissionModal();
+            if (window.toggleCameraStream) {
+                window.toggleCameraStream();
+            }
+        };
+
+        window.useNativePhoneCamera = function() {
+            closeMobileCameraPermissionModal();
+            const cameraInput = document.getElementById('cameraCaptureInput');
+            if (cameraInput) {
+                cameraInput.click();
+            }
+        };
+
+        function initMobileCameraAutoNotice() {
+            if (!isPhoneOrTablet()) return; // strictly phone only - laptop & desktop untouched
+            const autoNotice = document.getElementById('mobileCameraAutoNotice');
+            if (autoNotice && !isCameraActive) {
+                autoNotice.style.display = 'flex';
+            }
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'camera' }).then(perm => {
+                    const updateNoticeState = () => {
+                        const notice = document.getElementById('mobileCameraAutoNotice');
+                        const noticeTxt = document.getElementById('mobileCameraAutoNoticeText');
+                        if (!notice) return;
+                        if (perm.state === 'denied') {
+                            notice.style.display = 'flex';
+                            if (noticeTxt) noticeTxt.innerHTML = '⚠️ <strong>Camera is blocked on your phone.</strong> Tap Help to allow access.';
+                        } else if (perm.state === 'granted') {
+                            notice.style.display = 'none';
+                            closeMobileCameraPermissionModal();
+                        } else if (perm.state === 'prompt') {
+                            if (!isCameraActive) notice.style.display = 'flex';
+                        }
+                    };
+                    updateNoticeState();
+                    perm.onchange = updateNoticeState;
+                }).catch(() => {});
+            }
+        }
+
         if (!isMobileDevice) {
             currentFacingMode = 'user'; // default to user-facing / webcam on desktop and laptop
         }
@@ -7294,6 +7474,17 @@
                 btnToggleCam.disabled = true;
             }
 
+            // If on phone, update mobile auto notice to prompt user to tap Allow
+            if (isPhoneOrTablet()) {
+                const autoNotice = document.getElementById('mobileCameraAutoNotice');
+                const autoNoticeTxt = document.getElementById('mobileCameraAutoNoticeText');
+                if (autoNotice) {
+                    autoNotice.style.display = 'flex';
+                    if (autoNoticeTxt) autoNoticeTxt.innerHTML = '📷 <strong>Please tap "Allow"</strong> on your phone screen to start camera.';
+                }
+                showScanNotice('📱 Please tap "Allow" if your browser asks for camera permission.');
+            }
+
             try {
                 const stream = await acquireCameraStream();
                 mediaStream = stream;
@@ -7335,6 +7526,13 @@
                 }
                 isCameraActive = true;
 
+                // Hide mobile prompt banner and close modal once camera is running
+                if (isPhoneOrTablet()) {
+                    const autoNotice = document.getElementById('mobileCameraAutoNotice');
+                    if (autoNotice) autoNotice.style.display = 'none';
+                    closeMobileCameraPermissionModal();
+                }
+
                 updateFlashlightVisibility();
                 await updateCameraSwitcherVisibility();
 
@@ -7353,27 +7551,36 @@
                 }
 
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    showScanNotice('Camera permission was blocked. Please click the camera/lock icon in your browser address bar to allow access.');
+                    if (isPhoneOrTablet()) {
+                        // Automatically open dedicated mobile phone permission & overlay guide modal
+                        showMobileCameraPermissionModal();
+                    } else {
+                        // Laptop / Desktop remains completely normal
+                        showScanNotice('Camera permission was blocked. Please click the camera/lock icon in your browser address bar to allow access.');
+                    }
                 } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                    if (isMobileDevice) {
+                    if (isPhoneOrTablet()) {
                         const cameraInput = document.getElementById('cameraCaptureInput');
                         if (cameraInput) cameraInput.click();
                     } else {
                         showScanNotice('No camera detected. Please connect a webcam or use the "Upload Photo" button.');
                     }
                 } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-                    showScanNotice('Camera is currently in use by another application (Zoom, Teams, or another tab). Please close other apps and try again.');
+                    if (isPhoneOrTablet()) {
+                        showMobileCameraPermissionModal();
+                    } else {
+                        showScanNotice('Camera is currently in use by another application (Zoom, Teams, or another tab). Please close other apps and try again.');
+                    }
                 } else if (err.message === 'MEDIA_DEVICES_UNSUPPORTED') {
-                    if (isMobileDevice) {
+                    if (isPhoneOrTablet()) {
                         const cameraInput = document.getElementById('cameraCaptureInput');
                         if (cameraInput) cameraInput.click();
                     } else {
                         showScanNotice(`Camera requires HTTPS or localhost. Please visit http://localhost:${window.location.port || '8080'}/scan`);
                     }
                 } else {
-                    if (isMobileDevice) {
-                        const cameraInput = document.getElementById('cameraCaptureInput');
-                        if (cameraInput) cameraInput.click();
+                    if (isPhoneOrTablet()) {
+                        showMobileCameraPermissionModal();
                     } else {
                         showScanNotice('Could not start camera: ' + (err.message || 'Check camera permissions or connection.'));
                     }
@@ -7485,6 +7692,7 @@
             setTimeout(syncScannerCardHeights, 50);
             setTimeout(syncScannerCardHeights, 200);
             setTimeout(syncScannerCardHeights, 500);
+            initMobileCameraAutoNotice();
         });
 
         // Trigger Analyze handled via onclick attribute on #btnCaptureScan
