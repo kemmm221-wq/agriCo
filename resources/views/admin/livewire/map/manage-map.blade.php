@@ -1,5 +1,23 @@
 <div id="manage-map-root" class="space-y-6">
+    {{-- DIRECT LEAFLET ASSETS INCLUSION --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" data-navigate-track />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" data-navigate-track></script>
+    <script src="{{ asset('js/lallo-boundary.js') }}" data-navigate-track></script>
+    <script src="{{ asset('js/agrico-map-focus.js') }}" data-navigate-track></script>
+    <script src="{{ asset('js/agrico-pin.js') }}" data-navigate-track></script>
+
     <style>
+        #manage-map-root {
+            color: #0f172a !important;
+        }
+        #manage-map-root h1,
+        #manage-map-root h2,
+        #manage-map-root h3 {
+            color: #0f172a !important;
+        }
+        #manage-map-root p {
+            color: #64748b;
+        }
         .leaflet-popup-content-wrapper,
         .agrico-custom-popup .leaflet-popup-content-wrapper {
             background: #ffffff !important;
@@ -63,18 +81,18 @@
             <h1 class="ui-reveal-text text-3xl font-extrabold text-gray-900" style="--i:0">
                 Manage Map
             </h1>
-            <p class="ui-reveal-text text-sm text-gray-400 mt-1" style="--i:0">
+            <p class="ui-reveal-text text-sm text-gray-500 mt-1" style="--i:0">
                 Interactive soil location GIS mapping & geographic distribution
             </p>
         </div>
         <a
             href="{{ route('dashboard') }}"
             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold shadow-sm hover:bg-gray-50 transition"
-            style="color: #334155 !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; text-decoration: none;"
+            style="color: #334155 !important; background: #ffffff !important; border: 1px solid #cbd5e1 !important; text-decoration: none;"
             title="Back to Dashboard"
         >
             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Dashboard
+            <span style="color: #334155 !important; font-weight: 700;">Back to Dashboard</span>
         </a>
     </div>
 
@@ -112,19 +130,19 @@
     </div>
 
     {{-- INTERACTIVE MAP CARD (FULL WIDTH) --}}
-    <div class="ui-reveal bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3" style="--i:4">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3" style="position: relative; z-index: 5;">
         <div class="flex items-center justify-between px-2 pt-1 pb-2 flex-wrap gap-2">
             <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full bg-[#22c55e] animate-pulse"></div>
-                <h2 class="ui-reveal-text text-base font-bold text-gray-900" style="--i:4">Geographic Location Map</h2>
+                <h2 class="text-base font-bold text-gray-900">Geographic Location Map</h2>
             </div>
             <div class="flex items-center gap-3 text-xs font-semibold">
                 <div class="flex items-center gap-1.5">
-                    <span class="w-3 h-3 rounded-sm bg-[#22c55e] border border-[#16a34a] inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#ef4444] border border-[#dc2626] inline-block"></span>
                     <span class="text-gray-700">Approved (Red Pin)</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <span class="w-3 h-3 rounded-sm bg-[#9ca3af] border border-[#6b7280] inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#9ca3af] border border-[#6b7280] inline-block"></span>
                     <span class="text-gray-500">Unapproved (Gray Pin)</span>
                 </div>
             </div>
@@ -276,7 +294,7 @@
             </div>
 
             {{-- MAP CANVAS CONTAINER --}}
-            <div id="soil-map" wire:ignore style="width: 100%; height: 500px; border-radius: 20px; z-index: 1;" class="border border-gray-100"></div>
+            <div id="soil-map" wire:ignore style="width: 100%; height: 520px; border-radius: 20px; z-index: 1; overflow: hidden; position: relative; background: #e2e8f0;" class="border border-gray-100 shadow-inner"></div>
 
             {{-- HIDDEN DATA CONTAINER FOR LIVEWIRE MORPH MAP UPDATES --}}
             <div id="all-map-locations-json" data-locations='@json($allMapLocations)' style="display: none;"></div>
@@ -414,10 +432,10 @@
     </div>
 
     {{-- MAPPED LOCATIONS TABLE CARD (MATCHING USER'S IMAGE DESIGN) --}}
-    <div class="ui-reveal bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden" style="--i:5">
+    <div class="ui-reveal bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden" style="--i:5">
         {{-- CARD HEADER --}}
-        <div class="px-6 py-5 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-            <h2 class="ui-reveal-text text-base font-bold text-gray-900 dark:text-slate-100">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="ui-reveal-text text-base font-bold text-gray-900">
                 Mapped Locations ({{ $tableMappings->total() }})
             </h2>
         </div>
@@ -426,7 +444,7 @@
         <div class="overflow-x-auto map-table-container">
             <table class="w-full map-table">
                 <thead>
-                    <tr class="bg-[#F1FBF1] dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-800">
+                    <tr class="bg-[#F1FBF1] border-b border-gray-100">
 
                         {{-- SOIL NAME --}}
                         <th
@@ -1697,16 +1715,20 @@
             }
         };
 
-        window.agricoInitMap = function() {
+        window.agricoInitMap = function(retryCount) {
+            retryCount = retryCount || 0;
             var mapContainer = document.getElementById('soil-map');
             if (!mapContainer) {
-                // Retry if container not in DOM yet
-                setTimeout(window.agricoInitMap, 200);
+                if (retryCount < 25) {
+                    setTimeout(function() { window.agricoInitMap(retryCount + 1); }, 150);
+                }
                 return;
             }
 
             if (typeof L === 'undefined') {
-                setTimeout(window.agricoInitMap, 200);
+                if (retryCount < 30) {
+                    setTimeout(function() { window.agricoInitMap(retryCount + 1); }, 150);
+                }
                 return;
             }
 
@@ -1724,7 +1746,10 @@
             }
 
             // Create new map
-            var leafMap = L.map('soil-map', { zoomControl: false }).setView([18.1972, 121.6612], 12);
+            var leafMap = L.map('soil-map', {
+                zoomControl: false,
+                scrollWheelZoom: true
+            }).setView([18.1972, 121.6612], 12);
             window._agricoLeafMap = leafMap;
 
             if (window.AgricoMapFocus) {
@@ -1735,6 +1760,7 @@
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
+                subdomains: ['a', 'b', 'c'],
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | AgriCo GIS'
             }).addTo(leafMap);
 
@@ -1746,6 +1772,8 @@
                 window.LalloBoundary.render(leafMap, {
                     showTooltips: true,
                     bringMarkersToFront: markersGroup
+                }).then(function() {
+                    if (window._agricoLeafMap) window._agricoLeafMap.invalidateSize();
                 }).catch(function(err) { console.log('Lal-lo boundary note:', err); });
             }
 
@@ -1763,11 +1791,25 @@
                 } catch(e) { console.error('Map data parse error:', e); }
             }
 
-            setTimeout(function() { if (leafMap) leafMap.invalidateSize(); }, 200);
-            setTimeout(function() {
-                if (leafMap) leafMap.invalidateSize();
-                window._agricoMapReady = true; // NEW: mark ready only after this final resize settles
-            }, 600);
+            // Invalidate size across multiple render intervals
+            [50, 150, 300, 600, 1200].forEach(function(delay) {
+                setTimeout(function() {
+                    if (window._agricoLeafMap) {
+                        window._agricoLeafMap.invalidateSize();
+                    }
+                }, delay);
+            });
+
+            // Watch for container resizes
+            if (typeof ResizeObserver !== 'undefined' && !mapContainer._agricoResizeObserved) {
+                mapContainer._agricoResizeObserved = true;
+                var ro = new ResizeObserver(function() {
+                    if (window._agricoLeafMap) {
+                        window._agricoLeafMap.invalidateSize();
+                    }
+                });
+                ro.observe(mapContainer);
+            }
         };
 
         window.focusMapPin = function(lat, lng, id, attempt) {
@@ -1886,15 +1928,20 @@
 
         // Kick off map initialization
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            setTimeout(window.agricoInitMap, 100);
+            setTimeout(function() { window.agricoInitMap(); }, 50);
         } else {
-            document.addEventListener('DOMContentLoaded', function() { setTimeout(window.agricoInitMap, 100); });
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() { window.agricoInitMap(); }, 50);
+            });
         }
 
         document.addEventListener('livewire:navigated', function() {
-            window._agricoMapInitialized = false;
             window._agricoMapReady = false;
-            window.agricoInitMap();
+            setTimeout(function() { window.agricoInitMap(); }, 50);
+        });
+
+        document.addEventListener('livewire:init', function() {
+            setTimeout(function() { window.agricoInitMap(); }, 50);
         });
     })();
     </script>

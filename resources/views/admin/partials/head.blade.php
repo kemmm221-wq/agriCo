@@ -16,11 +16,19 @@
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 {{-- Leaflet CSS & JS --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ asset('js/lallo-boundary.js') }}"></script>
-<script src="{{ asset('js/agrico-map-focus.js') }}"></script>
-<script src="{{ asset('js/agrico-pin.js') }}"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" data-navigate-track />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" data-navigate-track></script>
+<script src="{{ asset('js/lallo-boundary.js') }}" data-navigate-track></script>
+<script src="{{ asset('js/agrico-map-focus.js') }}" data-navigate-track></script>
+<script src="{{ asset('js/agrico-pin.js') }}" data-navigate-track></script>
+
+<style>
+    html, html.admin-portal, body, body.admin-portal, #appMainContent, .admin-portal {
+        background-color: #E8F5E9 !important;
+        color: #0f172a !important;
+        color-scheme: light !important;
+    }
+</style>
 
 <script>
     try {
@@ -30,7 +38,8 @@
         localStorage.removeItem('flux.appearance');
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.remove('light-mode');
-        document.documentElement.classList.add('light');
+        document.documentElement.classList.add('light', 'admin-portal');
         document.documentElement.style.colorScheme = 'light';
+        document.documentElement.setAttribute('data-theme', 'light');
     } catch(e) {}
 </script>

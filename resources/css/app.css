@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+@variant dark (&:where(.dark, .dark *));
+
+html.admin-portal,
+body.admin-portal,
+.admin-portal #appMainContent,
+.admin-portal {
+  background-color: #E8F5E9 !important;
+  color: #0f172a !important;
+}
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
