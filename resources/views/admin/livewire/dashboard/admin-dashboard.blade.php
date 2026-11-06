@@ -1,4 +1,4 @@
-<div wire:poll.3s class="w-full">
+<div wire:poll.visible.60s class="w-full">
     {{-- Header --}}
     <div class="ui-reveal" style="--i:0; margin-bottom: 24px;">
         <h1 class="ui-reveal-text" style="--i:0; font-size: 32px; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">

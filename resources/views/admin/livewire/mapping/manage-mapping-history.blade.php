@@ -1,4 +1,4 @@
-<div wire:poll.5s class="space-y-6">
+<div wire:poll.visible.60s class="space-y-6">
 
     {{-- HEADER --}}
     <div class="ui-reveal flex items-center justify-between" style="--i:0">

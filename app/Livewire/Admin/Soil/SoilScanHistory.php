@@ -29,9 +29,7 @@ class SoilScanHistory extends Component
 
     public function mount()
     {
-        if (SoilScan::count() === 0) {
-            (new \Database\Seeders\AdminRecordSeeder())->seedSoilScans();
-        }
+        // Seeding handled by database seeder or explicit button click in seedSampleRecords()
     }
 
     public function seedSampleRecords()

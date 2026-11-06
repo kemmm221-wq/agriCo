@@ -26,9 +26,7 @@ class ManageUser extends Component
 
     public function mount()
     {
-        if (User::where('role', 'user')->count() === 0) {
-            (new \Database\Seeders\AdminRecordSeeder())->seedUsers();
-        }
+        // Seeding handled by database seeder
     }
 
     public $search = '';

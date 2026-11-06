@@ -24,9 +24,7 @@ class ManageMappingHistory extends Component
 
     public function mount()
     {
-        if (LocationMapping::count() === 0) {
-            (new \Database\Seeders\AdminRecordSeeder())->seedLocationMappings();
-        }
+        // Seeding handled by database seeder
     }
 
     public function toggleStatus($id)

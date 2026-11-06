@@ -30,9 +30,7 @@ class ManageMap extends Component
 
     public function mount()
     {
-        if (LocationMapping::count() === 0) {
-            (new \Database\Seeders\AdminRecordSeeder())->seedLocationMappings();
-        }
+        // Seeding is handled via database seeders or explicit user action in seedSamplePins()
     }
 
     public function seedSamplePins()
@@ -237,14 +235,20 @@ class ManageMap extends Component
                 ->get();
         }
 
+        $mappingCounts = LocationMapping::selectRaw("
+            count(*) as total,
+            count(case when status = 'Active' then 1 end) as active,
+            count(case when status = 'Inactive' then 1 end) as inactive
+        ")->first();
+
         $stats = [
-            'total' => LocationMapping::count(),
-            'active' => LocationMapping::where('status', 'Active')->count(),
-            'inactive' => LocationMapping::where('status', 'Inactive')->count(),
-            'soils_count' => Soil::has('munsellColor')->count(),
+            'total' => (int) ($mappingCounts->total ?? 0),
+            'active' => (int) ($mappingCounts->active ?? 0),
+            'inactive' => (int) ($mappingCounts->inactive ?? 0),
+            'soils_count' => \Illuminate\Support\Facades\Cache::remember('soils_munsell_count', 300, fn() => Soil::has('munsellColor')->count()),
         ];
 
-        $soils = Soil::all();
+        $soils = \Illuminate\Support\Facades\Cache::remember('all_soils_list', 300, fn() => Soil::select('soil_id', 'soil_name', 'full_code')->orderBy('soil_name')->get());
 
         return view('admin.livewire.map.manage-map', [
             'allMapLocations' => $allMapLocations,
