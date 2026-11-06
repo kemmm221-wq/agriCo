@@ -69,7 +69,8 @@
         </div>
         <a
             href="{{ route('dashboard') }}"
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold text-gray-700 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:text-gray-900 transition"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold shadow-sm hover:bg-gray-50 transition"
+            style="color: #334155 !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; text-decoration: none;"
             title="Back to Dashboard"
         >
             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -1709,37 +1710,17 @@
                 return;
             }
 
-            // Destroy old map instance if container was re-created
-            if (mapContainer._leaflet_id && window._agricoLeafMap) {
-                // Map already exists on this container - just sync markers
-                var dataEl = document.getElementById('all-map-locations-json');
-                if (dataEl && dataEl.dataset.locations) {
-                    try {
-                        var locs = JSON.parse(dataEl.dataset.locations);
-                        window._agricoAllLocations = locs;
-                        window.agricoRenderMarkers(locs);
-                        var mg = window._agricoMarkersGroup;
-                        if (mg && mg.getLayers().length > 0) {
-                            window._agricoLeafMap.fitBounds(mg.getBounds(), { padding: [40, 40], maxZoom: 13 });
-                        }
-                    } catch(e) {}
-                }
-                setTimeout(function() { if (window._agricoLeafMap) window._agricoLeafMap.invalidateSize(); }, 200);
-                setTimeout(function() {
-                    if (window._agricoLeafMap) window._agricoLeafMap.invalidateSize();
-                    window._agricoMapReady = true;
-                }, 600);
-                return;
-            }
-
-            // Clean up any stale instance
+            // Always ensure clean teardown of any previous Leaflet instance on this container
             if (window._agricoLeafMap) {
-                try { window._agricoLeafMap.remove(); } catch(e) {}
+                try {
+                    window._agricoLeafMap.off();
+                    window._agricoLeafMap.remove();
+                } catch(e) {}
                 window._agricoLeafMap = null;
                 window._agricoMarkersGroup = null;
             }
             if (mapContainer._leaflet_id) {
-                mapContainer._leaflet_id = null;
+                delete mapContainer._leaflet_id;
             }
 
             // Create new map
