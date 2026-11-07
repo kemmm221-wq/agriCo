@@ -43,21 +43,13 @@ html {
   overflow-y: auto;
 }
 
-/* Auth Pages: Clean full-viewport lock without forced scrollbars */
+/* Auth Pages: Clean full-viewport presentation with auto-scrolling when content expands */
 html.auth-page,
 html:has(body.auth-body),
 body.auth-body {
   scrollbar-gutter: auto !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-}
-
-@media (min-height: 620px) {
-  html.auth-page,
-  html:has(body.auth-body),
-  body.auth-body {
-    overflow-y: hidden !important;
-  }
 }
 
 /* Modern Standard (Firefox, modern Chromium & Safari) */

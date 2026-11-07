@@ -235,11 +235,11 @@
             display: flex;
             align-items: center;
             width: 100%;
-            height: 42px;
+            height: 36px;
             background: #ffffff !important;
             background-color: #ffffff !important;
             border: 1.5px solid #cbd5e1;
-            border-radius: 10px;
+            border-radius: 9px;
             box-sizing: border-box;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
@@ -261,7 +261,7 @@
         .password-input {
             width: 100%;
             height: 100%;
-            padding: 6px 34px 6px 36px;
+            padding: 4px 34px 4px 36px;
             border: none;
             background: transparent !important;
             background-color: transparent !important;
@@ -438,38 +438,33 @@
         .shake {
             animation: shakeInput 0.4s ease-in-out;
         }
-        /* Universal Zero-Scroll Viewport Lock */
+        /* Universal Fluid Auth Viewport */
         html, body {
-            height: 100% !important;
-            height: 100dvh !important;
-            max-height: 100dvh !important;
+            min-height: 100vh;
+            min-height: 100dvh;
             margin: 0 !important;
             padding: 0 !important;
-            overflow: hidden !important;
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
-        }
-        html::-webkit-scrollbar, body::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
+            overflow-x: hidden !important;
+            scrollbar-width: thin;
         }
 
         /* ==========================================================
            DESKTOP & TABLET MONITOR DESIGN (Default >= 640px)
            ========================================================== */
         body.auth-body {
-            height: 100% !important;
-            height: 100dvh !important;
-            max-height: 100dvh !important;
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+            height: auto !important;
+            max-height: none !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
-            justify-content: center !important;
+            justify-content: flex-start !important;
             position: relative !important;
-            overflow: hidden !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
             margin: 0 !important;
-            padding: 24px 20px !important;
+            padding: 16px 16px !important;
             box-sizing: border-box !important;
             font-family: 'Inter', system-ui, sans-serif !important;
             -webkit-text-size-adjust: 100% !important;
@@ -506,22 +501,22 @@
 
         .auth-brand {
             position: fixed !important;
-            top: 24px !important;
-            left: 32px !important;
+            top: 20px !important;
+            left: 28px !important;
             z-index: 20 !important;
             display: flex !important;
             align-items: center !important;
-            gap: 10px !important;
+            gap: 8px !important;
             text-decoration: none !important;
             max-width: 100% !important;
         }
         .auth-brand img {
-            width: 38px !important;
-            height: 38px !important;
+            width: 34px !important;
+            height: 34px !important;
             object-fit: contain !important;
         }
         .auth-brand .auth-brand-text {
-            font-size: 22px !important;
+            font-size: 20px !important;
             font-weight: 900 !important;
             color: #22c55e !important;
             letter-spacing: -0.02em !important;
@@ -529,67 +524,67 @@
         }
         @media (min-width: 1024px) {
             .auth-brand {
-                top: 32px !important;
-                left: 44px !important;
+                top: 24px !important;
+                left: 36px !important;
             }
             .auth-brand img {
-                width: 42px !important;
-                height: 42px !important;
+                width: 38px !important;
+                height: 38px !important;
             }
             .auth-brand .auth-brand-text {
-                font-size: 24px !important;
+                font-size: 22px !important;
             }
         }
         .auth-card {
-            margin: 0 auto;
+            margin: auto !important;
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 485px !important;
+            max-width: 440px !important;
             background: #ffffff !important;
             border: 1px solid rgba(218, 241, 222, 0.95) !important;
             border-top: 4px solid #22c55e !important;
-            border-radius: 24px !important;
-            padding: 30px 34px !important;
-            box-shadow: 0 20px 50px rgba(21, 128, 61, 0.08), 0 2px 10px rgba(0, 0, 0, 0.02) !important;
+            border-radius: 20px !important;
+            padding: 16px 24px !important;
+            box-shadow: 0 16px 40px rgba(21, 128, 61, 0.08), 0 2px 10px rgba(0, 0, 0, 0.02) !important;
             box-sizing: border-box !important;
         }
 
         .auth-title {
             text-align: center !important;
-            font-size: 1.55rem !important;
+            font-size: 1.25rem !important;
             font-weight: 800 !important;
             color: #0f172a !important;
-            margin: 0 0 4px 0 !important;
+            margin: 0 0 2px 0 !important;
             letter-spacing: -0.02em !important;
         }
 
         .auth-subtitle {
             text-align: center !important;
-            font-size: 0.86rem !important;
+            font-size: 0.78rem !important;
             color: #64748b !important;
-            margin: 0 0 14px 0 !important;
-            line-height: 1.4 !important;
+            margin: 0 0 8px 0 !important;
+            line-height: 1.35 !important;
             font-weight: 400 !important;
         }
 
         .role-selector-wrap {
-            margin-bottom: 8px !important;
+            margin-bottom: 5px !important;
         }
         .role-selector-label {
             display: block !important;
-            font-size: 0.74rem !important;
+            font-size: 0.68rem !important;
             font-weight: 700 !important;
             color: #475569 !important;
-            margin-bottom: 3px !important;
+            margin-bottom: 2px !important;
             text-align: left !important;
         }
         .role-selector-box {
             display: flex !important;
             background: #f1f5f9 !important;
-            padding: 3px !important;
-            border-radius: 9px !important;
-            gap: 4px !important;
+            padding: 2.5px !important;
+            border-radius: 8px !important;
+            gap: 3px !important;
             border: 1px solid #e2e8f0 !important;
         }
         .role-btn {
@@ -597,35 +592,35 @@
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: 5px !important;
-            padding: 5px 8px !important;
-            height: 33px !important;
+            gap: 4px !important;
+            padding: 4px 6px !important;
+            height: 28px !important;
             border: none !important;
-            border-radius: 7px !important;
-            font-size: 0.80rem !important;
+            border-radius: 6px !important;
+            font-size: 0.75rem !important;
             font-weight: 700 !important;
             cursor: pointer !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
         .role-btn svg {
-            width: 14px !important;
-            height: 14px !important;
+            width: 12px !important;
+            height: 12px !important;
         }
 
         .auth-input-group {
             position: relative !important;
             z-index: 2 !important;
-            margin-bottom: 8px !important;
+            margin-bottom: 5px !important;
         }
 
         .floating-input {
             width: 100% !important;
-            height: 42px !important;
-            padding: 7px 42px 7px 44px !important;
+            height: 36px !important;
+            padding: 5px 36px 5px 36px !important;
             background: #ffffff !important;
             border: 1.5px solid #cbd5e1 !important;
-            border-radius: 12px !important;
-            font-size: 0.90rem !important;
+            border-radius: 9px !important;
+            font-size: 0.82rem !important;
             color: #0f172a !important;
             outline: none !important;
             box-sizing: border-box !important;
@@ -638,11 +633,11 @@
 
         .floating-label {
             position: absolute !important;
-            left: 44px !important;
+            left: 36px !important;
             top: 50% !important;
             transform: translateY(-50%) scale(1) !important;
             transform-origin: left center !important;
-            font-size: 0.86rem !important;
+            font-size: 0.78rem !important;
             color: #94a3b8 !important;
             font-weight: 500 !important;
             pointer-events: none !important;
@@ -658,8 +653,8 @@
         .floating-input:autofill ~ .floating-label,
         .floating-input.is-filled ~ .floating-label {
             top: 0px !important;
-            left: 14px !important;
-            transform: translateY(-50%) scale(0.80) !important;
+            left: 12px !important;
+            transform: translateY(-50%) scale(0.75) !important;
             background: #ffffff !important;
             color: #64748b !important;
             font-weight: 700 !important;
@@ -672,7 +667,7 @@
         }
         .floating-input:focus {
             border-color: #64748b !important;
-            box-shadow: 0 0 0 3.5px rgba(100, 116, 139, 0.15) !important;
+            box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15) !important;
         }
 
         .has-error .floating-input {
@@ -681,35 +676,35 @@
 
         .input-icon {
             position: absolute !important;
-            left: 14px !important;
+            left: 11px !important;
             top: 50% !important;
             transform: translateY(-50%) !important;
-            width: 17px !important;
-            height: 17px !important;
+            width: 15px !important;
+            height: 15px !important;
             pointer-events: none !important;
             z-index: 3 !important;
         }
 
         .password-wrap-group {
-            margin-bottom: 7px !important;
+            margin-bottom: 5px !important;
         }
 
         .sec-header {
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
-            margin-bottom: 4px !important;
+            margin-bottom: 2px !important;
             padding: 0 2px !important;
         }
         .sec-header-title {
-            font-size: 0.74rem !important;
+            font-size: 0.68rem !important;
             color: #64748b !important;
             font-weight: 600 !important;
         }
 
         .sec-progress-bar {
-            height: 4px;
-            width: 22px;
+            height: 3px !important;
+            width: 16px !important;
             border-radius: 9999px;
             background: #e2e8f0;
             transition: all 0.3s ease;
@@ -718,19 +713,19 @@
         .req-pill-container {
             display: flex !important;
             flex-direction: column !important;
-            gap: 3px !important;
-            margin: 4px 0 6px 0 !important;
+            gap: 2.5px !important;
+            margin: 2px 0 4px 0 !important;
         }
         .req-pill-row {
             display: flex !important;
             flex-wrap: wrap !important;
-            gap: 4px !important;
+            gap: 3px !important;
         }
         .req-pill {
-            font-size: 0.68rem !important;
-            padding: 2px 7px !important;
-            border-radius: 6px !important;
-            gap: 4px !important;
+            font-size: 0.63rem !important;
+            padding: 2px 5px !important;
+            border-radius: 5px !important;
+            gap: 3px !important;
             display: inline-flex;
             align-items: center;
             background: #f1f5f9;
@@ -747,8 +742,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 13px;
-            height: 13px;
+            width: 10px !important;
+            height: 10px !important;
             border-radius: 50%;
             background: #e2e8f0;
             transition: all 0.2s ease;
@@ -759,24 +754,24 @@
 
         .auth-submit-btn {
             width: 100% !important;
-            height: 44px !important;
+            height: 38px !important;
             background: #22c55e !important;
             color: #ffffff !important;
             border: none !important;
-            border-radius: 14px !important;
-            font-size: 0.95rem !important;
+            border-radius: 10px !important;
+            font-size: 0.88rem !important;
             font-weight: 700 !important;
             cursor: pointer !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35) !important;
+            box-shadow: 0 3px 10px rgba(34, 197, 94, 0.30) !important;
             transition: all 0.2s ease !important;
-            margin-top: 8px !important;
+            margin-top: 4px !important;
         }
         .auth-submit-btn:hover:not(:disabled) {
             background: #16a34a !important;
-            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.45) !important;
+            box-shadow: 0 5px 14px rgba(34, 197, 94, 0.40) !important;
             transform: translateY(-1px) !important;
         }
         .auth-submit-btn:disabled,
@@ -800,14 +795,14 @@
 
         .auth-bottom-wrap {
             text-align: center !important;
-            margin-top: 10px !important;
+            margin-top: 6px !important;
             padding-top: 0 !important;
             border-top: none !important;
         }
         .auth-bottom-link {
-            font-size: 0.82rem !important;
+            font-size: 0.76rem !important;
             color: #64748b !important;
-            margin: 0 0 10px 0 !important;
+            margin: 0 0 3px 0 !important;
         }
         .auth-bottom-link a {
             color: #22c55e !important;
@@ -817,12 +812,12 @@
         }
         .auth-guest-wrap {
             text-align: center !important;
-            margin-top: 10px !important;
-            padding-top: 10px !important;
+            margin-top: 5px !important;
+            padding-top: 5px !important;
             border-top: 1px solid #e2e8f0 !important;
         }
         .auth-guest-link {
-            font-size: 0.82rem !important;
+            font-size: 0.74rem !important;
             font-weight: 600 !important;
             color: #64748b !important;
             text-decoration: none !important;
@@ -840,24 +835,24 @@
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
-            margin-top: 10px !important;
-            margin-bottom: 12px !important;
+            margin-top: 5px !important;
+            margin-bottom: 6px !important;
             text-align: center !important;
         }
         .terms-policy-label {
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: 8px !important;
+            gap: 6px !important;
             cursor: pointer !important;
             user-select: none !important;
-            padding: 3px 2px !important;
+            padding: 2px !important;
             max-width: 100% !important;
         }
         .terms-policy-text {
-            font-size: 0.76rem !important;
+            font-size: 0.72rem !important;
             color: #475569 !important;
-            line-height: 1.35 !important;
+            line-height: 1.3 !important;
             text-align: left !important;
             flex: initial !important;
         }
@@ -872,8 +867,8 @@
         }
         .custom-checkbox-container {
             position: relative !important;
-            width: 18px !important;
-            height: 18px !important;
+            width: 16px !important;
+            height: 16px !important;
             flex-shrink: 0 !important;
             display: inline-block !important;
         }
@@ -889,11 +884,11 @@
             z-index: 5 !important;
         }
         .custom-checkbox-box {
-            width: 18px !important;
-            height: 18px !important;
+            width: 16px !important;
+            height: 16px !important;
             background: #ffffff !important;
             border: 1.5px solid #cbd5e1 !important;
-            border-radius: 5px !important;
+            border-radius: 4px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -911,8 +906,8 @@
             box-shadow: 0 1px 4px rgba(34, 197, 94, 0.3) !important;
         }
         .custom-checkbox-icon {
-            width: 12px !important;
-            height: 12px !important;
+            width: 10px !important;
+            height: 10px !important;
             color: #ffffff !important;
             opacity: 0 !important;
             transform: scale(0.6) !important;
@@ -931,6 +926,7 @@
             border-color: #ef4444 !important;
             box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
         }
+
 
         @keyframes fadeInDown {
             from {
@@ -1494,8 +1490,8 @@
             @enderror
 
             <!-- Submit Button (#22c55e GREEN PILL BUTTON, Disabled by default until terms are agreed) -->
-            <div id="submitBtnWrapper" style="width: 100%; cursor: {{ old('terms_agreed') ? 'default' : 'not-allowed' }}; margin-top: 8px;">
-                <button type="submit" id="submitBtn" class="auth-submit-btn" style="width: 100%; height: 44px; background: #22c55e !important; color: #ffffff !important; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: {{ old('terms_agreed') ? 'pointer' : 'not-allowed' }} !important; display: flex; align-items: center; justify-content: center; box-shadow: {{ old('terms_agreed') ? '0 4px 14px rgba(34, 197, 94, 0.35)' : 'none' }} !important; opacity: {{ old('terms_agreed') ? '1' : '0.55' }} !important; transition: all 0.2s ease; margin-top: 0 !important;" {{ old('terms_agreed') ? '' : 'disabled' }}>
+            <div id="submitBtnWrapper" style="width: 100%; cursor: {{ old('terms_agreed') ? 'default' : 'not-allowed' }}; margin-top: 4px;">
+                <button type="submit" id="submitBtn" class="auth-submit-btn" style="width: 100%; height: 38px; background: #22c55e !important; color: #ffffff !important; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: {{ old('terms_agreed') ? 'pointer' : 'not-allowed' }} !important; display: flex; align-items: center; justify-content: center; box-shadow: {{ old('terms_agreed') ? '0 3px 10px rgba(34, 197, 94, 0.30)' : 'none' }} !important; opacity: {{ old('terms_agreed') ? '1' : '0.55' }} !important; transition: all 0.2s ease; margin-top: 0 !important;" {{ old('terms_agreed') ? '' : 'disabled' }}>
                     Create Account
                 </button>
             </div>
