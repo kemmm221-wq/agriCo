@@ -36,4 +36,18 @@
         caret-color: #0f172a !important;
         transition: background-color 5000s ease-in-out 0s !important;
     }
+
+    /* Prevent forced scrollbars on auth screens when content fits */
+    html.auth-page,
+    html:has(body.auth-body) {
+        scrollbar-gutter: auto !important;
+        overflow-y: auto !important;
+    }
+    @media (min-height: 620px) {
+        html.auth-page,
+        html:has(body.auth-body),
+        body.auth-body {
+            overflow-y: hidden !important;
+        }
+    }
 </style>

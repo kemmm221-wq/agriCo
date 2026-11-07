@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="auth-page">
 
 <head>
     @include('admin.partials.head')
@@ -26,7 +26,7 @@
     </style>
 </head>
 
-<body class="auth-body" style="background: linear-gradient(180deg, #eefbe7 0%, #f0fdf4 45%, #ffffff 100%) !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow-x: hidden; overflow-y: auto; max-width: 100vw; margin: 0; padding: 40px 24px 60px 24px; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif;">
+<body class="auth-body" style="background: linear-gradient(180deg, #eefbe7 0%, #f0fdf4 45%, #ffffff 100%) !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow-x: hidden; overflow-y: auto; max-width: 100vw; margin: 0; padding: 16px 20px; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif;">
 
     <!-- Decorative background layer with strict overflow clipping -->
     <div style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0;">

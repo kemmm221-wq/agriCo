@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="auth-page">
 
 <head>
     @include('website.partials.head')
@@ -23,7 +23,7 @@
             align-items: center;
             justify-content: center;
             background: linear-gradient(180deg, #DAF1DE 0%, #f6faf7 45%, #ffffff 100%);
-            padding: 40px 24px;
+            padding: 16px 20px;
             position: relative;
         }
 
@@ -309,8 +309,11 @@
     </style>
 </head>
 
-<body>
-    <div class="auth-arc"></div>
+<body class="auth-body">
+    <!-- Decorative background layer with strict overflow clipping -->
+    <div style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0;">
+        <div class="auth-arc"></div>
+    </div>
 
     <!-- Responsive AgriCo Header Logo -->
     <a href="{{ route('website.home') }}" class="auth-brand">

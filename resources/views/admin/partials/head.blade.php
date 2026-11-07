@@ -28,6 +28,19 @@
         color: #0f172a !important;
         color-scheme: light !important;
     }
+    /* Prevent forced scrollbars on admin auth screens when content fits */
+    html.auth-page,
+    html:has(body.auth-body) {
+        scrollbar-gutter: auto !important;
+        overflow-y: auto !important;
+    }
+    @media (min-height: 620px) {
+        html.auth-page,
+        html:has(body.auth-body),
+        body.auth-body {
+            overflow-y: hidden !important;
+        }
+    }
 </style>
 
 <script>

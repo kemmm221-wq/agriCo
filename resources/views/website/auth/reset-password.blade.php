@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="auth-page">
 
 <head>
     @php
@@ -291,13 +291,15 @@
     </style>
 </head>
 
-<body style="background: linear-gradient(180deg, #DAF1DE 0%, #f6faf7 45%, #ffffff 100%) !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow-x: hidden; margin: 0; padding: 40px 24px; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif;">
+<body class="auth-body" style="background: linear-gradient(180deg, #DAF1DE 0%, #f6faf7 45%, #ffffff 100%) !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow-x: hidden; margin: 0; padding: 16px 20px; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif;">
 
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Decorative arc -->
-    <div style="position: absolute; width: 640px; height: 640px; border: 1.5px solid rgba(142, 182, 155, 0.4); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0;"></div>
+    <!-- Decorative background layer with strict overflow clipping -->
+    <div style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0;">
+        <div class="auth-arc" style="position: absolute; width: 640px; height: 640px; border: 1.5px solid rgba(142, 182, 155, 0.4); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;"></div>
+    </div>
 
     <!-- Responsive AgriCo Header Logo -->
     <a href="{{ route('website.home') }}" class="auth-brand">

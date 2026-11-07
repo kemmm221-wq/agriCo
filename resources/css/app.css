@@ -37,10 +37,27 @@ body.admin-portal,
   background: transparent !important;
 }
 
-/* Standard & Cross-Browser Permanent Scrollbar Architecture */
+/* Standard & Cross-Browser Dynamic Scrollbar Architecture */
 html {
-  scrollbar-gutter: stable;
-  overflow-y: scroll;
+  scrollbar-gutter: auto;
+  overflow-y: auto;
+}
+
+/* Auth Pages: Clean full-viewport lock without forced scrollbars */
+html.auth-page,
+html:has(body.auth-body),
+body.auth-body {
+  scrollbar-gutter: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+@media (min-height: 620px) {
+  html.auth-page,
+  html:has(body.auth-body),
+  body.auth-body {
+    overflow-y: hidden !important;
+  }
 }
 
 /* Modern Standard (Firefox, modern Chromium & Safari) */
