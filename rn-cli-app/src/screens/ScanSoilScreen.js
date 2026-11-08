@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useContext } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,7 @@ import {
 import { analyzeSoilOffline } from '../services/offlineSoilAnalysis';
 import OFFLINE_MUNSELL_COLORS from '../data/munsellColors.json';
 import { saveLocalScan } from '../services/localScanStore';
+import { AuthContext } from '../context/AuthContext';
 import { FlashlightIcon, GalleryIcon } from '../components/AppIcons';
 import BottomNavBar from '../components/BottomNavBar';
 import PinSoilLocationModal from '../components/PinSoilLocationModal';
@@ -308,6 +309,9 @@ const normalizeBox = (r) => {
 };
 
 export default function ScanSoilScreen({ navigation }) {
+  const { user } = useContext(AuthContext);
+  const currentUserId = user?.user_id || user?.id || null;
+
   // Flashlight / Torch state
   const [isTorchOn, setIsTorchOn] = useState(false);
 
@@ -827,7 +831,7 @@ export default function ScanSoilScreen({ navigation }) {
 
       // Queue for background server synchronization once connectivity is restored
       try {
-        await queueAsyncScan({ scanId, imageUri: photo.uri, ...gps });
+        await queueAsyncScan({ scanId, imageUri: photo.uri, userId: currentUserId, user_id: currentUserId, ...gps });
       } catch (e) {
         console.warn('[ScanSoilScreen] queue failed:', e?.message);
       }
@@ -850,6 +854,7 @@ export default function ScanSoilScreen({ navigation }) {
           id: 'offline_' + scanId,
           scanId,
           soil_scan_id: scanId,
+          user_id: currentUserId,
           munsellCode: offlineSpecimen.munsellCode,
           hue: offlineSpecimen.hueCode,
           colorName: offlineSpecimen.name,
@@ -895,6 +900,8 @@ export default function ScanSoilScreen({ navigation }) {
       const uploadPromise = startScan({
         scanId,
         imageBase64: `data:image/jpeg;base64,${photo.base64}`,
+        userId: currentUserId,
+        user_id: currentUserId,
         ...gps,
       });
       const timeoutPromise = new Promise((_, reject) =>
@@ -931,6 +938,7 @@ export default function ScanSoilScreen({ navigation }) {
         id: 'scan_' + result.scan.soil_scan_id,
         scanId,
         soil_scan_id: result.scan.soil_scan_id,
+        user_id: result.scan.user_id || currentUserId,
         munsellCode: mapped.munsellCode,
         hue: mapped.hueCode,
         colorName: mapped.name,

@@ -2,7 +2,7 @@ import { NativeModules, Linking, Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import api from './api';
 
-export const CURRENT_APP_VERSION = 'v1.0.7';
+export const CURRENT_APP_VERSION = 'v1.0.8';
 
 /**
  * Compare two semver-like version strings (e.g., 'v1.0.1' vs 'v1.0.0').

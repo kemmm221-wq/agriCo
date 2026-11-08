@@ -36,7 +36,24 @@ class SoilScanController extends Controller
 
         // Scope to account scans unless explicit 'all=true' is requested
         if ($targetUserId && !$request->boolean('all')) {
-            $query->where('user_id', $targetUserId);
+            $targetUser = User::where('user_id', $targetUserId)->first();
+            if ($targetUser) {
+                $relatedUserIds = User::where('email', $targetUser->email)
+                    ->orWhere(function ($q) use ($targetUser) {
+                        if ($targetUser->name && strlen($targetUser->name) > 3) {
+                            $q->where('name', $targetUser->name);
+                        }
+                    })
+                    ->pluck('user_id')
+                    ->filter()
+                    ->toArray();
+                if (!in_array($targetUser->user_id, $relatedUserIds)) {
+                    $relatedUserIds[] = $targetUser->user_id;
+                }
+                $query->whereIn('user_id', $relatedUserIds);
+            } else {
+                $query->where('user_id', $targetUserId);
+            }
         }
 
         $perPage = min((int)$request->input('per_page', 100), 200);
@@ -278,27 +295,27 @@ class SoilScanController extends Controller
     public function analyzeAsync(Request $request, SoilMLAnalysisService $mlService)
     {
         $user = $request->user();
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated user.',
-            ], 401);
+        $userId = $user?->user_id ?? $user?->id ?? $request->input('user_id');
+        if (!$userId || !User::where('user_id', $userId)->exists()) {
+            if ($user) {
+                $userId = $user->user_id ?? $user->id;
+            } elseif ($request->filled('user_id') && User::where('user_id', $request->input('user_id'))->exists()) {
+                $userId = $request->input('user_id');
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated user.',
+                ], 401);
+            }
         }
 
-        if (method_exists($user, 'isApproved') && !$user->isApproved()) {
+        $targetUser = $user ?: User::where('user_id', $userId)->first();
+        if ($targetUser && method_exists($targetUser, 'isApproved') && !$targetUser->isApproved()) {
             return response()->json([
                 'success' => false,
                 'error'   => 'ACCOUNT_PENDING_APPROVAL',
                 'message' => 'Your account is awaiting admin approval. Scanning access will be enabled once approved.',
             ], 403);
-        }
-
-        $userId = $user->user_id ?? $user->id;
-        if (!$userId || !User::where('user_id', $userId)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Valid user account required.',
-            ], 401);
         }
 
         $imageInput = null;
@@ -500,10 +517,14 @@ class SoilScanController extends Controller
                             }
                         }
 
+                        $scanUserId = (!empty($locationData['user_id']) && User::where('user_id', $locationData['user_id'])->exists())
+                            ? $locationData['user_id']
+                            : $userId;
+
                         $fullResult = $mlService->persistScanResult(
                             $rawResult,
                             $scanId,
-                            $userId,
+                            $scanUserId,
                             'mobile',
                             $locationData
                         );

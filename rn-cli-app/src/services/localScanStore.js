@@ -8,24 +8,30 @@ let inMemoryScans = null;
  * Retrieve all local scans from persistent file storage.
  * Runs instantly on device even when completely offline.
  */
-export async function getLocalScans() {
-  if (inMemoryScans !== null) {
-    return inMemoryScans;
-  }
-  try {
-    if (await RNFS.exists(STORE_PATH)) {
-      const content = await RNFS.readFile(STORE_PATH, 'utf8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) {
-        inMemoryScans = parsed;
-        return parsed;
+export async function getLocalScans(targetUserId = null) {
+  let all = inMemoryScans;
+  if (all === null) {
+    try {
+      if (await RNFS.exists(STORE_PATH)) {
+        const content = await RNFS.readFile(STORE_PATH, 'utf8');
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+          inMemoryScans = parsed;
+          all = parsed;
+        }
       }
+    } catch (err) {
+      console.warn('[LocalScanStore] Failed to read local scans:', err?.message);
     }
-  } catch (err) {
-    console.warn('[LocalScanStore] Failed to read local scans:', err?.message);
   }
-  inMemoryScans = [];
-  return [];
+  if (!all) {
+    inMemoryScans = [];
+    all = [];
+  }
+  if (targetUserId) {
+    return all.filter((s) => !s.user_id || String(s.user_id) === String(targetUserId));
+  }
+  return all;
 }
 
 /**
@@ -52,22 +58,35 @@ export async function saveLocalScan(scanItem) {
  * Merge remote server scans with any pending offline scans.
  * Ensures offline scans awaiting sync stay visible at the top.
  */
-export async function mergeServerScans(serverScans) {
+export async function mergeServerScans(serverScans, targetUserId = null) {
   try {
     const existing = await getLocalScans();
-    const pendingOffline = existing.filter((s) => s.syncState === 'queued');
+    const pendingOffline = existing.filter((s) => {
+      const isQueued = s.syncState === 'queued';
+      if (!isQueued) return false;
+      if (targetUserId && s.user_id && String(s.user_id) !== String(targetUserId)) {
+        return false;
+      }
+      return true;
+    });
     const serverScanIds = new Set(
-      serverScans.map((s) => s.soil_scan_id || s.id || s.scanId)
+      serverScans.map((s) => String(s.soil_scan_id || s.id || s.scanId))
     );
 
     const stillPending = pendingOffline.filter(
-      (p) => !serverScanIds.has(p.soil_scan_id) && !serverScanIds.has(p.scanId)
+      (p) => !serverScanIds.has(String(p.soil_scan_id)) && !serverScanIds.has(String(p.scanId))
     );
 
-    const merged = [...stillPending, ...serverScans];
-    inMemoryScans = merged;
-    await RNFS.writeFile(STORE_PATH, JSON.stringify(merged), 'utf8');
-    return merged;
+    // Keep other accounts' scans in storage if partitioned, but merge active account scans
+    const otherAccountScans = targetUserId
+      ? existing.filter((s) => s.user_id && String(s.user_id) !== String(targetUserId) && s.syncState !== 'queued')
+      : [];
+
+    const activeMerged = [...stillPending, ...serverScans];
+    const fullStore = [...activeMerged, ...otherAccountScans];
+    inMemoryScans = fullStore;
+    await RNFS.writeFile(STORE_PATH, JSON.stringify(fullStore), 'utf8');
+    return activeMerged;
   } catch (err) {
     console.warn('[LocalScanStore] Failed to merge server scans:', err?.message);
     return serverScans;

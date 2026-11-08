@@ -55,7 +55,7 @@ export async function saveOfflineQueue(queue) {
  * Offline (or upload failed): copy the image out of the picker cache, queue metadata only.
  * Avoids storing large base64 strings in Keychain.
  */
-export async function queueAsyncScan({ scanId, imageUri, latitude, longitude, locationName }) {
+export async function queueAsyncScan({ scanId, imageUri, latitude, longitude, locationName, userId, user_id }) {
   const queue = await getOfflineScans();
   if (queue.some((q) => q.scanId === scanId)) return; // same id -> never duplicate
 
@@ -63,6 +63,8 @@ export async function queueAsyncScan({ scanId, imageUri, latitude, longitude, lo
   const imagePath = `${QUEUE_DIR}/${scanId}.jpg`;
   const cleanUri = decodeURI(imageUri.replace('file://', ''));
   await RNFS.copyFile(cleanUri, imagePath);
+
+  const activeUserId = user_id || userId || null;
 
   queue.unshift({
     id: scanId,
@@ -74,6 +76,8 @@ export async function queueAsyncScan({ scanId, imageUri, latitude, longitude, lo
     latitude: latitude ?? null,
     longitude: longitude ?? null,
     locationName: locationName ?? null,
+    userId: activeUserId,
+    user_id: activeUserId,
     queuedAt: new Date().toISOString(),
   });
   await saveOfflineQueue(queue);
@@ -151,6 +155,8 @@ export async function flushOfflineQueue() {
             latitude: item.latitude,
             longitude: item.longitude,
             locationName: item.locationName,
+            userId: item.userId || item.user_id,
+            user_id: item.userId || item.user_id,
           });
           item.state = 'uploaded';
         }

@@ -2216,9 +2216,12 @@ export default function HomeScreen({ navigation, route }) {
 
   // Fetch full synchronized scan history for the current account from database & local offline store
   const loadScanHistory = useCallback(async () => {
+    const activeUserId = user?.user_id || user?.id;
+    const activeEmail = user?.email;
+
     // 1. Instantly display local store scans (offline-ready, zero lag)
     try {
-      const localScans = await getLocalScans();
+      const localScans = await getLocalScans(activeUserId);
       if (Array.isArray(localScans) && localScans.length > 0) {
         setScanHistory(localScans);
       }
@@ -2229,7 +2232,6 @@ export default function HomeScreen({ navigation, route }) {
       const net = await NetInfo.fetch();
       if (!net.isConnected) return;
 
-      const activeUserId = user?.user_id || user?.id;
       const res = await api.get('/soil-scans', {
         params: {
           per_page: 100,
@@ -2240,13 +2242,16 @@ export default function HomeScreen({ navigation, route }) {
       if (Array.isArray(rawList)) {
         // Guarantee only scans belonging to this account are displayed
         const accountScans = activeUserId
-          ? rawList.filter((s) => !s.user_id || String(s.user_id) === String(activeUserId))
+          ? rawList.filter((s) => !s.user_id || String(s.user_id) === String(activeUserId) || (activeEmail && s.user?.email === activeEmail))
           : rawList;
 
         const mapped = accountScans.map((s) => {
           const hasPin = Boolean(s.location_id || s.location || s.latitude);
           const rawNote = s.scan_note || '';
           const isRealNote = rawNote && !rawNote.startsWith('Determined Soil:') && rawNote !== '—' && rawNote !== '-';
+          const resolvedScanNote = isRealNote
+            ? rawNote
+            : (s.description || s.soil?.effective_description || s.soil?.description || 'Field scan record');
           const fixMediaUrl = (u) => {
             if (!u) return null;
             let str = String(u).trim();
@@ -2313,13 +2318,13 @@ export default function HomeScreen({ navigation, route }) {
           };
         });
 
-        const merged = await mergeServerScans(mapped);
+        const merged = await mergeServerScans(mapped, activeUserId);
         setScanHistory(merged);
       }
     } catch (e) {
       console.log('Error loading scan history from server:', e?.message);
     }
-  }, [user?.user_id, user?.id]);
+  }, [user?.user_id, user?.id, user?.email]);
 
   // Fetch complete 207 Munsell Color Chart directory from backend
   const loadMunsellColors = useCallback(async () => {

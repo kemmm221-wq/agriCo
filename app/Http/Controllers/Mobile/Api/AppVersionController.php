@@ -49,10 +49,10 @@ class AppVersionController extends Controller
     {
         $activeApp = Application::where('status', 'ACTIVE')->orderByDesc('application_id')->first();
 
-        $defaultVersion = 'v1.0.7';
-        $defaultNotes = "• On-Device Real & Fake Soil Reference Datasets (10R, 10YR, 2.5Y, 2.5YR, 5YR, 7.5YR)\n• 100% Offline Mode (⚡): Instant toggle button on camera\n• Fixed Delta E = Infinity bug with pre-bundled 207 Munsell centroids\n• High-resolution PNG Soil Record Card export on Save Copy\n• Resilient Password Reset engine and auto-fill verification code";
-        $defaultSize = '88.3 MB';
-        $defaultUrl = 'https://github.com/kemmm221-wq/agriCo/releases/download/v1.0.7/agrico-app-v1.0.7.apk';
+        $defaultVersion = 'v1.0.8';
+        $defaultNotes = "• Full Scan History account synchronization & persistent cloud linking\n• On-Device Real & Fake Soil Reference Datasets\n• High-resolution PNG Soil Record Card export on Save Copy\n• Fast Password Reset with instant verification code delivery";
+        $defaultSize = '88.5 MB';
+        $defaultUrl = 'https://github.com/kemmm221-wq/agriCo/releases/download/v1.0.8/agrico-app-v1.0.8.apk';
 
         $version = $activeApp?->version ?: $defaultVersion;
 

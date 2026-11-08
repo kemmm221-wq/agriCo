@@ -10,7 +10,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const newScanId = () =>
   `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
-export async function startScan({ scanId, imageBase64, latitude, longitude, locationName }) {
+export async function startScan({ scanId, imageBase64, latitude, longitude, locationName, userId, user_id }) {
+  const activeUserId = user_id || userId || null;
   const { data } = await api.post(
     '/scan/analyze',
     {
@@ -19,6 +20,7 @@ export async function startScan({ scanId, imageBase64, latitude, longitude, loca
       latitude: latitude ?? null,
       longitude: longitude ?? null,
       location_name: locationName ?? null,
+      user_id: activeUserId,
     },
     { timeout: 45000 }
   );
