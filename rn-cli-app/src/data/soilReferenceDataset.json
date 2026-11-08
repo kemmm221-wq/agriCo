@@ -3,9 +3,9 @@
   "name": "AgriCo On-Device Stage 1 Soil Reference Calibration Dataset",
   "gate_config": {
     "min_variance": 8.5,
-    "min_laplacian": 18.0,
+    "min_laplacian": 18,
     "max_skin_ratio": 0.32,
-    "max_delta_e": 30.0,
+    "max_delta_e": 30,
     "allowed_hues": [
       "10R",
       "2.5YR",
@@ -233,13 +233,13 @@
         50
       ],
       "lab": [
-        46.0,
+        46,
         -13.52,
         33.82
       ],
       "hexCode": "#697232",
       "stdDev": 53.57,
-      "skinRatio": 0.0,
+      "skinRatio": 0,
       "assetPath": "soil_references/fake/fake_foliage.jpg"
     },
     {
@@ -276,8 +276,8 @@
         -0.01
       ],
       "hexCode": "#F5F5F5",
-      "stdDev": 1.0,
-      "skinRatio": 0.0,
+      "stdDev": 1,
+      "skinRatio": 0,
       "assetPath": "soil_references/fake/fake_paper.jpg"
     }
   ],
@@ -453,7 +453,7 @@
       "lab": [
         34.76,
         12.73,
-        9.0
+        9
       ],
       "soil_organic_index": "Very High (>8%)",
       "soil_type": "Organic-rich red soil"
@@ -473,7 +473,7 @@
         19.95,
         14.42
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic red soil"
     },
     {
@@ -491,7 +491,7 @@
         24.81,
         17.58
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Iron-rich red soil"
     },
     {
@@ -509,7 +509,7 @@
         26.96,
         19.55
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Ferric/red soil"
     },
     {
@@ -527,7 +527,7 @@
         25.85,
         18.13
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Oxidized red soil"
     },
     {
@@ -545,7 +545,7 @@
         13.23,
         10.13
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic red, moist"
     },
     {
@@ -563,7 +563,7 @@
         20.98,
         20.54
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Red soil with organic coating"
     },
     {
@@ -581,7 +581,7 @@
         31.27,
         20.56
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Red-yellow soil"
     },
     {
@@ -599,7 +599,7 @@
         33.28,
         22.41
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Ferric loam"
     },
     {
@@ -617,7 +617,7 @@
         34.43,
         23.92
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Oxisol/Ultisol-like"
     },
     {
@@ -631,7 +631,7 @@
         24
       ],
       "lab": [
-        25.0,
+        25,
         33.99,
         24.49
       ],
@@ -653,7 +653,7 @@
         10.91,
         8.88
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Weathered red with organic subsoil"
     },
     {
@@ -671,7 +671,7 @@
         18.88,
         17.51
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weakly developed red soil"
     },
     {
@@ -689,7 +689,7 @@
         27.14,
         21.89
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Red-yellow intergrade"
     },
     {
@@ -707,7 +707,7 @@
         29.23,
         23.28
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Red-yellow soil"
     },
     {
@@ -725,7 +725,7 @@
         37.48,
         24.57
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Strongly oxidized"
     },
     {
@@ -761,7 +761,7 @@
         11.24,
         7.7
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered, partially leached"
     },
     {
@@ -779,7 +779,7 @@
         16.15,
         15.77
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Weakly humic red subsoil"
     },
     {
@@ -797,7 +797,7 @@
         23.66,
         20.49
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Subsoil, low organic"
     },
     {
@@ -815,7 +815,7 @@
         26.73,
         20.98
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "B-horizon red soil"
     },
     {
@@ -869,7 +869,7 @@
         10.51,
         7.29
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly weathered, light-colored"
     },
     {
@@ -887,7 +887,7 @@
         14.65,
         11.31
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Weakly developed, light"
     },
     {
@@ -905,7 +905,7 @@
         21.98,
         18.02
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Subsoil, low organic"
     },
     {
@@ -923,7 +923,7 @@
         23.81,
         18.96
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached subsoil"
     },
     {
@@ -977,7 +977,7 @@
         9.68,
         6.33
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly leached, possibly siliceous"
     },
     {
@@ -995,7 +995,7 @@
         12.08,
         9.53
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached, eluvial"
     },
     {
@@ -1013,7 +1013,7 @@
         18.56,
         13.91
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Eluvial/leached horizon"
     },
     {
@@ -1031,7 +1031,7 @@
         20.5,
         17.06
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, dry surface"
     },
     {
@@ -1121,7 +1121,7 @@
         12.71,
         16.33
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Brown topsoil"
     },
     {
@@ -1136,10 +1136,10 @@
       ],
       "lab": [
         26.62,
-        18.0,
+        18,
         27.88
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Yellowish brown loam"
     },
     {
@@ -1157,7 +1157,7 @@
         21.63,
         28.14
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Yellowish brown subsoil"
     },
     {
@@ -1175,7 +1175,7 @@
         3.47,
         6.49
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Moist, organic-influenced"
     },
     {
@@ -1193,7 +1193,7 @@
         6.96,
         16.62
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic yellowish brown"
     },
     {
@@ -1211,7 +1211,7 @@
         12.4,
         25.69
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Yellowish brown soil"
     },
     {
@@ -1229,7 +1229,7 @@
         14.93,
         32.09
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Typical yellowish brown"
     },
     {
@@ -1247,7 +1247,7 @@
         18.59,
         38.63
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Oxidized yellowish brown"
     },
     {
@@ -1265,7 +1265,7 @@
         3.38,
         5.56
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Moist, silty yellowish brown"
     },
     {
@@ -1283,7 +1283,7 @@
         6.2,
         14.52
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered yellowish brown"
     },
     {
@@ -1301,7 +1301,7 @@
         10.31,
         24.02
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Yellowish brown soil"
     },
     {
@@ -1319,7 +1319,7 @@
         12.44,
         32.53
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Yellowish brown subsoil"
     },
     {
@@ -1337,7 +1337,7 @@
         18.91,
         45.79
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Oxidized subsoil"
     },
     {
@@ -1373,7 +1373,7 @@
         4.53,
         6.36
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered, partially leached"
     },
     {
@@ -1391,7 +1391,7 @@
         6.97,
         16.11
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Leached yellowish brown"
     },
     {
@@ -1407,9 +1407,9 @@
       "lab": [
         61.27,
         9.21,
-        24.0
+        24
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Weakly developed"
     },
     {
@@ -1427,7 +1427,7 @@
         13.73,
         32.78
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "B-horizon, dry"
     },
     {
@@ -1445,7 +1445,7 @@
         17.43,
         45.57
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Oxidized subsoil"
     },
     {
@@ -1481,7 +1481,7 @@
         2.72,
         6.12
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly weathered, light"
     },
     {
@@ -1499,7 +1499,7 @@
         4.56,
         13.63
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached, eluvial"
     },
     {
@@ -1517,7 +1517,7 @@
         7.28,
         23.23
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light-colored"
     },
     {
@@ -1535,7 +1535,7 @@
         10.34,
         32.35
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, low organic"
     },
     {
@@ -1589,7 +1589,7 @@
         2.46,
         6.44
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly leached, siliceous"
     },
     {
@@ -1607,7 +1607,7 @@
         4.03,
         10.37
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached horizon"
     },
     {
@@ -1625,7 +1625,7 @@
         6.91,
         19.3
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light surface"
     },
     {
@@ -1643,7 +1643,7 @@
         7.24,
         28.26
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, dry"
     },
     {
@@ -1751,7 +1751,7 @@
         4.82,
         15.96
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic olive soil"
     },
     {
@@ -1769,7 +1769,7 @@
         1.72,
         5.81
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Moist, organic-influenced"
     },
     {
@@ -1787,7 +1787,7 @@
         6.13,
         15.29
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic grayish brown"
     },
     {
@@ -1805,7 +1805,7 @@
         4.37,
         29.09
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Olive-brown soil"
     },
     {
@@ -1823,7 +1823,7 @@
         5.71,
         33.86
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Typical olive soil"
     },
     {
@@ -1841,7 +1841,7 @@
         1.68,
         7.97
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Moist, silty olive"
     },
     {
@@ -1859,7 +1859,7 @@
         2.25,
         15.46
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered olive soil"
     },
     {
@@ -1877,7 +1877,7 @@
         4.16,
         28.04
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Olive subsoil"
     },
     {
@@ -1895,7 +1895,7 @@
         3.26,
         39.73
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Weakly oxidized olive"
     },
     {
@@ -1913,7 +1913,7 @@
         8.06,
         51.53
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Oxidized olive subsoil"
     },
     {
@@ -1931,7 +1931,7 @@
         1.66,
         10.01
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered, leached olive"
     },
     {
@@ -1949,7 +1949,7 @@
         1.95,
         21.79
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Leached grayish brown"
     },
     {
@@ -1967,7 +1967,7 @@
         4.81,
         25.18
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "B-horizon, dry"
     },
     {
@@ -1982,10 +1982,10 @@
       ],
       "lab": [
         60.05,
-        5.0,
+        5,
         33.78
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Oxidized subsoil"
     },
     {
@@ -2003,7 +2003,7 @@
         3.67,
         53.51
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, dry"
     },
     {
@@ -2039,7 +2039,7 @@
         0.48,
         10.41
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly weathered, light"
     },
     {
@@ -2057,7 +2057,7 @@
         2.87,
         13.56
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached, eluvial"
     },
     {
@@ -2075,7 +2075,7 @@
         2.33,
         25.23
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light-colored"
     },
     {
@@ -2093,7 +2093,7 @@
         4.54,
         31.07
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, low organic"
     },
     {
@@ -2147,7 +2147,7 @@
         1.14,
         10.36
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly leached, calcareous/siliceous"
     },
     {
@@ -2165,7 +2165,7 @@
         0.94,
         19.09
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached horizon"
     },
     {
@@ -2183,7 +2183,7 @@
         3.28,
         27.59
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light surface"
     },
     {
@@ -2201,7 +2201,7 @@
         2.32,
         31.55
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, dry"
     },
     {
@@ -2291,7 +2291,7 @@
         17.92,
         15.15
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic red soil"
     },
     {
@@ -2309,7 +2309,7 @@
         22.82,
         15.9
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Red topsoil"
     },
     {
@@ -2345,7 +2345,7 @@
         17.02,
         18.65
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic red soil"
     },
     {
@@ -2363,7 +2363,7 @@
         23.98,
         22.82
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Red-brown loam"
     },
     {
@@ -2381,7 +2381,7 @@
         29.39,
         25.12
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Ferric red soil"
     },
     {
@@ -2399,7 +2399,7 @@
         37.51,
         28.99
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Red-yellow transition"
     },
     {
@@ -2417,7 +2417,7 @@
         10.04,
         3.85
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Moist, organic-influenced red"
     },
     {
@@ -2435,7 +2435,7 @@
         18.17,
         13.02
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Humic red subsoil"
     },
     {
@@ -2453,7 +2453,7 @@
         27.12,
         20.9
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Red-brown subsoil"
     },
     {
@@ -2471,7 +2471,7 @@
         33.26,
         25.29
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Ferric loam"
     },
     {
@@ -2489,7 +2489,7 @@
         43.8,
         32.15
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Oxidized red subsoil"
     },
     {
@@ -2507,7 +2507,7 @@
         49.23,
         38.2
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Strongly oxidized"
     },
     {
@@ -2525,7 +2525,7 @@
         12.8,
         4.94
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Weathered red, moist"
     },
     {
@@ -2543,7 +2543,7 @@
         18.65,
         12.67
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weakly humic red"
     },
     {
@@ -2561,7 +2561,7 @@
         29.13,
         18.22
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Red-yellow soil"
     },
     {
@@ -2579,7 +2579,7 @@
         36.59,
         25.66
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Red-yellow Ultisol-like"
     },
     {
@@ -2597,7 +2597,7 @@
         48.36,
         33.39
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached red soil"
     },
     {
@@ -2633,7 +2633,7 @@
         10.68,
         6.38
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered, light red"
     },
     {
@@ -2651,7 +2651,7 @@
         17.44,
         11.66
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Leached red subsoil"
     },
     {
@@ -2669,7 +2669,7 @@
         26.73,
         20.98
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "B-horizon, low organic"
     },
     {
@@ -2687,7 +2687,7 @@
         31.24,
         28.23
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Red-yellow subsoil"
     },
     {
@@ -2741,7 +2741,7 @@
         9.18,
         7.96
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly weathered, eluvial"
     },
     {
@@ -2759,7 +2759,7 @@
         15.53,
         15.2
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached red soil"
     },
     {
@@ -2777,7 +2777,7 @@
         25.38,
         19.67
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, dry"
     },
     {
@@ -2795,7 +2795,7 @@
         29.58,
         26.43
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Weakly developed"
     },
     {
@@ -2849,7 +2849,7 @@
         9.16,
         6.68
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly leached, quartz-rich"
     },
     {
@@ -2867,7 +2867,7 @@
         10.63,
         10.05
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached horizon"
     },
     {
@@ -2885,7 +2885,7 @@
         16.4,
         15.21
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light-colored surface"
     },
     {
@@ -2903,7 +2903,7 @@
         21.04,
         19.49
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, low organic"
     },
     {
@@ -2993,7 +2993,7 @@
         17.13,
         18.48
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Brown topsoil"
     },
     {
@@ -3011,7 +3011,7 @@
         29.18,
         29.07
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Brown loam"
     },
     {
@@ -3029,7 +3029,7 @@
         4.67,
         5.63
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Moist, organic-influenced"
     },
     {
@@ -3047,7 +3047,7 @@
         10.84,
         12.76
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic brown soil"
     },
     {
@@ -3065,7 +3065,7 @@
         17.21,
         22.06
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Brown loam topsoil"
     },
     {
@@ -3080,10 +3080,10 @@
       ],
       "lab": [
         34.97,
-        29.0,
+        29,
         34.61
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Brown mineral soil"
     },
     {
@@ -3101,7 +3101,7 @@
         37.6,
         44.78
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Brown subsoil"
     },
     {
@@ -3119,7 +3119,7 @@
         5.25,
         5.68
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Moist, silty brown"
     },
     {
@@ -3137,7 +3137,7 @@
         9.82,
         12.43
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered brown soil"
     },
     {
@@ -3155,7 +3155,7 @@
         15.93,
         20.72
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Typical brown soil"
     },
     {
@@ -3173,7 +3173,7 @@
         22.98,
         32.78
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Brown-yellow subsoil"
     },
     {
@@ -3191,7 +3191,7 @@
         32.39,
         43.84
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Oxidized brown soil"
     },
     {
@@ -3227,7 +3227,7 @@
         6.84,
         4.9
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered, partially leached"
     },
     {
@@ -3245,7 +3245,7 @@
         13.82,
         11.94
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Leached brown soil"
     },
     {
@@ -3263,7 +3263,7 @@
         18.11,
         19.19
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Weakly developed"
     },
     {
@@ -3281,7 +3281,7 @@
         25.14,
         29.61
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "B-horizon, dry"
     },
     {
@@ -3299,7 +3299,7 @@
         31.18,
         41.11
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached subsoil"
     },
     {
@@ -3335,7 +3335,7 @@
         6.92,
         3.68
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly weathered, light"
     },
     {
@@ -3353,7 +3353,7 @@
         12.68,
         11.78
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached, eluvial"
     },
     {
@@ -3371,7 +3371,7 @@
         17.95,
         20.95
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light-colored"
     },
     {
@@ -3389,7 +3389,7 @@
         25.3,
         30.06
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, low organic"
     },
     {
@@ -3443,7 +3443,7 @@
         7.53,
         3.29
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly leached, siliceous"
     },
     {
@@ -3461,7 +3461,7 @@
         12.76,
         8.68
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached horizon"
     },
     {
@@ -3479,7 +3479,7 @@
         15.4,
         15.94
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light surface"
     },
     {
@@ -3497,7 +3497,7 @@
         20.98,
         23.37
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, dry"
     },
     {
@@ -3530,7 +3530,7 @@
       ],
       "lab": [
         16.86,
-        8.0,
+        8,
         10.46
       ],
       "soil_organic_index": "Very High (>8%)",
@@ -3605,7 +3605,7 @@
         15.24,
         22.13
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Brown topsoil"
     },
     {
@@ -3623,7 +3623,7 @@
         18.35,
         25.96
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Brown loam"
     },
     {
@@ -3641,7 +3641,7 @@
         4.09,
         6.08
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Moist, organic-rich"
     },
     {
@@ -3659,7 +3659,7 @@
         9.66,
         14.72
       ],
-      "soil_organic_index": "High (6\u20138%)",
+      "soil_organic_index": "High (6–8%)",
       "soil_type": "Humic brown soil"
     },
     {
@@ -3677,7 +3677,7 @@
         14.47,
         21.93
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Brown loam"
     },
     {
@@ -3695,7 +3695,7 @@
         22.45,
         33.96
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Typical brown soil"
     },
     {
@@ -3713,7 +3713,7 @@
         25.22,
         41.93
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Yellowish brown subsoil"
     },
     {
@@ -3731,7 +3731,7 @@
         4.52,
         3.51
       ],
-      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_organic_index": "Moderate–High (4–6%)",
       "soil_type": "Weathered, moist"
     },
     {
@@ -3749,7 +3749,7 @@
         8.26,
         13.06
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered brown soil"
     },
     {
@@ -3767,7 +3767,7 @@
         11.62,
         21.11
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Brown-yellow soil"
     },
     {
@@ -3785,7 +3785,7 @@
         16.22,
         31.35
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Yellowish brown soil"
     },
     {
@@ -3803,7 +3803,7 @@
         22.35,
         46.58
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Oxidized subsoil"
     },
     {
@@ -3839,7 +3839,7 @@
         5.28,
         5.48
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Weathered, light brown"
     },
     {
@@ -3857,7 +3857,7 @@
         10.28,
         13.91
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Leached brown soil"
     },
     {
@@ -3875,7 +3875,7 @@
         13.29,
         20.48
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Weakly developed"
     },
     {
@@ -3893,7 +3893,7 @@
         17.76,
         32.94
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "B-horizon, dry"
     },
     {
@@ -3911,7 +3911,7 @@
         23.14,
         45.44
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Oxidized subsoil"
     },
     {
@@ -3947,7 +3947,7 @@
         4.29,
         4.95
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly weathered, light"
     },
     {
@@ -3965,7 +3965,7 @@
         8.62,
         14.67
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached, eluvial"
     },
     {
@@ -3983,7 +3983,7 @@
         12.29,
         20.67
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light-colored"
     },
     {
@@ -4001,7 +4001,7 @@
         17.71,
         32.07
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, low organic"
     },
     {
@@ -4055,7 +4055,7 @@
         5.99,
         6.61
       ],
-      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_organic_index": "Moderate (3–4%)",
       "soil_type": "Highly leached, siliceous"
     },
     {
@@ -4073,7 +4073,7 @@
         9.55,
         12.44
       ],
-      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_organic_index": "Low–Moderate (2–3%)",
       "soil_type": "Bleached horizon"
     },
     {
@@ -4091,7 +4091,7 @@
         11.83,
         19.46
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Dry, light surface"
     },
     {
@@ -4109,7 +4109,7 @@
         13.67,
         30.15
       ],
-      "soil_organic_index": "Low (1\u20132%)",
+      "soil_organic_index": "Low (1–2%)",
       "soil_type": "Leached, dry"
     },
     {
@@ -4202,7 +4202,7 @@
       "hexCode": "#ECECEC",
       "lab": [
         93.4,
-        0.0,
+        0,
         -0.01
       ],
       "type": "paper"
@@ -4247,7 +4247,7 @@
       "hexCode": "#B0B0B0",
       "lab": [
         71.84,
-        0.0,
+        0,
         -0.01
       ],
       "type": "tile"
@@ -4262,25 +4262,10 @@
       "hexCode": "#DCDCDC",
       "lab": [
         87.76,
-        0.0,
+        0,
         -0.01
       ],
       "type": "tile"
-    },
-    {
-      "name": "Dark Keyboard / Surface",
-      "rgb": [
-        40,
-        40,
-        40
-      ],
-      "hexCode": "#282828",
-      "lab": [
-        16.11,
-        0.0,
-        -0.0
-      ],
-      "type": "plastic"
     },
     {
       "name": "Plant Foliage / Leaf",

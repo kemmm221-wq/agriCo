@@ -167,10 +167,10 @@ class InstallApkModule(private val reactContext: ReactApplicationContext) : Reac
                     totalLuminance += lum
                     totalLuminanceSq += (lum * lum)
 
-                    // YCbCr skin chrominance locus check
+                    // Human skin chrominance locus check (requires high luminance + distinct skin chrominance)
                     val cb = -0.168736 * r - 0.331264 * g + 0.500000 * b + 128.0
                     val cr =  0.500000 * r - 0.418688 * g - 0.081312 * b + 128.0
-                    if (cb in 77.0..127.0 && cr in 133.0..173.0 && r > g && g > b) {
+                    if (lum > 115.0 && r > (g + 18) && g > (b + 10) && cb in 85.0..122.0 && cr in 138.0..170.0) {
                         skinPixels++
                     }
                 }

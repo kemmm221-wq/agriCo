@@ -90,9 +90,8 @@ export async function validateSoilGate({
     };
   }
 
-  // 3. Human skin / hand detection (holding sample or hand in viewfinder)
-  const maxSkinRatio = gateConfig.max_skin_ratio ?? 0.32;
-  if (skinRatio > maxSkinRatio) {
+  // 3. Human skin / hand detection (strictly requires smooth human skin texture without soil grain)
+  if (skinRatio > 0.50 && stdDev < 11.0 && gradVariance < 12.0) {
     return {
       isValid: false,
       reason: 'human_skin_detected',
@@ -100,9 +99,8 @@ export async function validateSoilGate({
     };
   }
 
-  // 4. Uniform / flat surface check (paper, desk, plastic card, wall lacking soil particle texture)
-  const minVar = gateConfig.min_variance ?? 8.5;
-  if (stdDev < minVar && gradVariance < 12.0) {
+  // 4. Uniform / flat surface check (blank paper, plastic card, wall lacking soil particle texture)
+  if (stdDev < 5.0 && gradVariance < 8.0) {
     return {
       isValid: false,
       reason: 'flat_texture',
@@ -193,8 +191,13 @@ export async function validateSoilGate({
     }
   }
 
-  // Reject if closest to a stored fake soil / non-soil reference surface
-  if (closestFake && minFakeDist < 12.0 && minFakeDist < minCentroidDist * 0.85) {
+  // Reject if significantly closer to a stored fake soil / non-soil reference surface
+  if (
+    closestFake &&
+    minFakeDist < 10.0 &&
+    minFakeDist < minCentroidDist * 0.75 &&
+    (stdDev < 12.0 || closestFake.type === 'paper' || closestFake.type === 'skin')
+  ) {
     return {
       isValid: false,
       reason: 'non_soil_surface_matched',
@@ -204,7 +207,7 @@ export async function validateSoilGate({
     };
   }
 
-  const maxDeltaE = gateConfig.max_delta_e ?? 32.0;
+  const maxDeltaE = gateConfig.max_delta_e ?? 36.0;
   if (minCentroidDist > maxDeltaE) {
     return {
       isValid: false,

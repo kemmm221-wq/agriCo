@@ -347,6 +347,7 @@ export default function ScanSoilScreen({ navigation }) {
   const [scanStage, setScanStage] = useState(0);        // 0..6 from the pipeline
   const [progressPct, setProgressPct] = useState(1);    // 1..100 continuous smooth % counter
   const [rejectMsg, setRejectMsg] = useState(null);     // soft-reject message
+  const [isOfflineMode, setIsOfflineMode] = useState(false); // Force on-device offline analysis
   const abortRef = useRef(null);
   const progressTimerRef = useRef(null);
   const currentPctRef = useRef(1);
@@ -872,21 +873,32 @@ export default function ScanSoilScreen({ navigation }) {
       }, 2000);
     };
 
+    // Check user preference or live network status
+    if (isOfflineMode) {
+      await runOfflineAnalysisFlow();
+      return;
+    }
+
     const net = await NetInfo.fetch();
-    if (!net.isConnected) {
+    const isActuallyOnline = Boolean(net.isConnected && net.isInternetReachable !== false);
+    if (!isActuallyOnline) {
       await runOfflineAnalysisFlow();
       return;
     }
 
     abortRef.current = new AbortController();
     try {
-      await startScan({
+      const uploadPromise = startScan({
         scanId,
         imageBase64: `data:image/jpeg;base64,${photo.base64}`,
         ...gps,
       });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('SERVER_TIMEOUT')), 3500)
+      );
+      await Promise.race([uploadPromise, timeoutPromise]);
     } catch (e) {
-      // Server upload unreachable: seamlessly fall back to on-device offline analysis
+      // Server upload unreachable or timed out: seamlessly fall back to on-device offline analysis
       await runOfflineAnalysisFlow();
       return;
     }
@@ -1256,6 +1268,8 @@ export default function ScanSoilScreen({ navigation }) {
           <Text style={styles.hintText}>
             {isScanning
               ? `Processing Stage ${scanStage || 1} of 6… (${progressPct}%)`
+              : isOfflineMode
+              ? '⚡ Offline Mode • Uses on-device real & fake soil dataset'
               : userCustomImage
               ? 'Photo frozen • Adjust resize box & tap Scan Soil'
               : 'Drag handles to resize • Drag inside to move'}
@@ -1271,6 +1285,30 @@ export default function ScanSoilScreen({ navigation }) {
             accessibilityLabel="Open Gallery"
           >
             <GalleryIcon size={22} color="#ffffff" />
+          </TouchableOpacity>
+
+          {/* Offline Mode Toggle Button */}
+          <TouchableOpacity
+            style={[
+              styles.actionCircleBtn,
+              isOfflineMode && { backgroundColor: '#15803d', borderColor: '#86efac', borderWidth: 1.5 },
+            ]}
+            onPress={() => {
+              setIsOfflineMode((prev) => {
+                const next = !prev;
+                ToastAndroid.show(
+                  next
+                    ? '⚡ Offline Mode Active (Using On-Device Soil Dataset)'
+                    : '🌐 Cloud Mode Active',
+                  ToastAndroid.SHORT
+                );
+                return next;
+              });
+            }}
+            activeOpacity={0.8}
+            accessibilityLabel="Toggle Offline Mode"
+          >
+            <Text style={{ fontSize: 18, color: '#ffffff' }}>{isOfflineMode ? '⚡' : '🌐'}</Text>
           </TouchableOpacity>
 
           {/* Flashlight or Retake Button */}
