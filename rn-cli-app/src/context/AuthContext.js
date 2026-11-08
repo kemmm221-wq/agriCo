@@ -10,7 +10,7 @@ import {
   registerUser,
   logoutUser,
 } from '../services/auth';
-import { setUnauthorizedHandler } from '../services/api';
+import { setUnauthorizedHandler, probeBestApiHost } from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -32,6 +32,10 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     setIsLoading(true);
     try {
+      try {
+        await probeBestApiHost();
+      } catch (_) {}
+
       const [token, storedUser] = await Promise.all([
         getStoredToken(),
         getStoredUser(),
@@ -75,6 +79,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signInWithEmail = async (email, password) => {
+    try {
+      await probeBestApiHost();
+    } catch (_) {}
     const { token, user: userData } = await loginWithEmail(email, password);
     setUserToken(token);
     setUser(userData);

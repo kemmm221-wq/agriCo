@@ -31,7 +31,7 @@ import UpdateModal from '../components/UpdateModal';
 import { checkForAppUpdate } from '../services/updateService';
 import { AuthContext } from '../context/AuthContext';
 import BottomNavBar from '../components/BottomNavBar';
-import api from '../services/api';
+import api, { getActiveBaseUrl } from '../services/api';
 import { ENV } from '../config/env';
 import {
   BellIcon,
@@ -1821,7 +1821,8 @@ export default function HomeScreen({ navigation, route }) {
   }, [activeTab, isConnected, fetchAdminLocations]);
 
   // Memoized Leaflet HTML generated with current admin locations and server base
-  const serverBase = ENV.API_URL ? ENV.API_URL.replace(/\/api\/?$/, '') : 'http://10.0.2.2:8080';
+  const activeApi = typeof getActiveBaseUrl === 'function' ? getActiveBaseUrl() : ENV.API_URL;
+  const serverBase = activeApi ? activeApi.replace(/\/api\/?$/, '') : 'http://10.0.2.2:8080';
   const leafletMapHtml = useMemo(
     () => buildLeafletMapHtml(adminLocations, serverBase),
     [adminLocations, serverBase]
@@ -2255,7 +2256,9 @@ export default function HomeScreen({ navigation, route }) {
             if (str.length > 250 && !str.includes('/') && !str.includes('.')) {
               return `data:image/jpeg;base64,${str}`;
             }
-            return `${ENV.API_URL.replace(/\/api\/?$/, '')}${str.startsWith('/') ? '' : '/'}${str}`;
+            const activeApiHost = typeof getActiveBaseUrl === 'function' ? getActiveBaseUrl() : ENV.API_URL;
+            const mediaBase = activeApiHost ? activeApiHost.replace(/\/api\/?$/, '') : 'http://10.0.2.2:8080';
+            return `${mediaBase}${str.startsWith('/') ? '' : '/'}${str}`;
           };
 
           return {

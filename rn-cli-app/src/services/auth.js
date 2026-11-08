@@ -1,5 +1,5 @@
 import * as Keychain from 'react-native-keychain';
-import api from './api';
+import api, { getActiveBaseUrl } from './api';
 import { ENV } from '../config/env';
 
 // The backend returns profile_photo_url with "localhost" as the host,
@@ -8,7 +8,8 @@ import { ENV } from '../config/env';
 const fixPhotoUrl = (user) => {
   if (!user || !user.profile_photo_url) return user;
   try {
-    const serverBase = ENV.API_URL.replace(/\/api\/?$/, ''); // e.g. http://10.0.2.2:8080
+    const activeUrl = typeof getActiveBaseUrl === 'function' ? getActiveBaseUrl() : (ENV.API_URL || 'http://10.0.2.2:8080/api');
+    const serverBase = activeUrl.replace(/\/api\/?$/, ''); // e.g. http://10.0.2.2:8080
     const fixed = user.profile_photo_url
       .replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/g, serverBase)
       .replace(/https?:\/\/10\.0\.2\.2(:\d+)?/g, serverBase); // normalise in case already set

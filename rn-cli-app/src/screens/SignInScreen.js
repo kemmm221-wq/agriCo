@@ -32,7 +32,7 @@ export default function SignInScreen({ navigation }) {
     let hasError = false;
     setEmailError(''); setPasswordError(''); setGeneralError('');
     const e = email.trim();
-    const p = password.trim();
+    const p = password;
 
     if (!e) { setEmailError('The email field is required.'); hasError = true; }
     else if (!validateEmailFormat(e)) { setEmailError('Please enter a valid email address.'); hasError = true; }
@@ -47,7 +47,7 @@ export default function SignInScreen({ navigation }) {
       if (r?.errors?.email) setEmailError(r.errors.email[0]);
       else if (r?.errors?.password) setPasswordError(r.errors.password[0]);
       else if (r?.message) setGeneralError(r.message);
-      else if (!error.response) setGeneralError('Unable to connect to AgriCo server. Please ensure the backend server is running on port 8080.');
+      else if (!error.response) setGeneralError('Unable to connect to AgriCo server. Please ensure the backend server is running.');
       else setGeneralError('These credentials do not match our records.');
     } finally {
       setIsSubmitting(false);
