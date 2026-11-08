@@ -54,14 +54,39 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $email          = trim($request->email);
-        $password       = $request->password;
-        $trimmedPassword = trim($password);
+        $rawEmail = (string) $request->email;
+        $cleanEmail = preg_replace('/^[\s\x{00a0}\x{200b}-\x{200d}\x{feff}]+|[\s\x{00a0}\x{200b}-\x{200d}\x{feff}]+$/u', '', $rawEmail);
+        $cleanEmail = strtolower($cleanEmail);
+
+        $rawPassword = (string) $request->password;
+        $cleanPassword = preg_replace('/^[\s\x{00a0}\x{200b}-\x{200d}\x{feff}]+|[\s\x{00a0}\x{200b}-\x{200d}\x{feff}]+$/u', '', $rawPassword);
+        $normalizedPassword = str_replace(
+            ['！', '＠', '＃', '＄', '％', '＾', '＆', '＊', '（', '）', '·'],
+            ['!',  '@',  '#',  '$',  '%',  '^',  '&',  '*',  '(',  ')',  '.'],
+            $cleanPassword
+        );
+
+        $passwordCandidates = array_unique(array_filter([
+            $rawPassword,
+            trim($rawPassword),
+            $cleanPassword,
+            $normalizedPassword,
+        ]));
 
         // ── 1. Try the users table first ──────────────────────────────────
-        $user = User::where('email', $email)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$cleanEmail])->first();
 
-        if ($user && (Hash::check($password, $user->password) || Hash::check($trimmedPassword, $user->password))) {
+        $userPassMatch = false;
+        if ($user) {
+            foreach ($passwordCandidates as $candidate) {
+                if (Hash::check($candidate, $user->password)) {
+                    $userPassMatch = true;
+                    break;
+                }
+            }
+        }
+
+        if ($user && $userPassMatch) {
             // Account status gate
             $status = strtolower($user->status ?? '');
 
@@ -110,12 +135,21 @@ class AuthController extends Controller
         }
 
         // ── 2. Fallback: check the admins table ───────────────────────────
-        $admin = \App\Models\Admin::where('email', $email)
-            ->first();
+        $admin = \App\Models\Admin::whereRaw('LOWER(email) = ?', [$cleanEmail])->first();
 
-        if ($admin && (Hash::check($password, $admin->password ?? '') || Hash::check($trimmedPassword, $admin->password ?? ''))) {
+        $adminPassMatch = false;
+        if ($admin) {
+            foreach ($passwordCandidates as $candidate) {
+                if (Hash::check($candidate, $admin->password ?? '')) {
+                    $adminPassMatch = true;
+                    break;
+                }
+            }
+        }
+
+        if ($admin && $adminPassMatch) {
             // Ensure a matching user record exists so Sanctum tokens work
-            $userRecord = User::where('email', $email)->first();
+            $userRecord = User::whereRaw('LOWER(email) = ?', [$cleanEmail])->first();
 
             if (!$userRecord) {
                 $targetId = $admin->admin_id;

@@ -9,8 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         $newHash = Hash::make('Password123!');
+        $kentHash = Hash::make('Kent12345*');
         $superEmails = ['agricosite77@gmail.com', 'admin@agrico.com'];
-        $userEmails = ['delacruzwinwin57@gmail.com', 'kent@gmail.com'];
+        $userEmails = ['delacruzwinwin57@gmail.com'];
 
         DB::table('users')
             ->whereIn(DB::raw('LOWER(email)'), $superEmails)
@@ -27,10 +28,23 @@ return new class extends Migration
                 'status'   => 'Active',
             ]);
 
+        DB::table('users')
+            ->where(DB::raw('LOWER(email)'), 'kent@gmail.com')
+            ->update([
+                'password' => $kentHash,
+                'status'   => 'Active',
+            ]);
+
         DB::table('admins')
             ->whereIn(DB::raw('LOWER(email)'), array_merge($superEmails, $userEmails))
             ->update([
                 'password' => $newHash,
+            ]);
+
+        DB::table('admins')
+            ->where(DB::raw('LOWER(email)'), 'kent@gmail.com')
+            ->update([
+                'password' => $kentHash,
             ]);
     }
 
