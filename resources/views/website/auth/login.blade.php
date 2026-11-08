@@ -307,9 +307,6 @@
                         value="{{ $errors->has('password') ? '' : old('email') }}"
                         required
                         autocomplete="username"
-                        readonly
-                        onfocus="unlockCredentials()"
-                        onpointerdown="unlockCredentials()"
                         placeholder=" "
                         class="floating-input {{ $emailHasError ? 'is-invalid' : '' }}"
                         style="width: 100%; height: 44px; padding: 10px 40px 10px 44px; background: #ffffff; border: 1.5px solid {{ $emailHasError ? '#ef4444' : '#cbd5e1' }}; border-radius: 12px; font-size: 0.88rem; color: #0f172a; outline: none; box-sizing: border-box; transition: border-color 0.2s ease, box-shadow 0.2s ease;"
@@ -350,9 +347,6 @@
                         value=""
                         required
                         autocomplete="current-password"
-                        readonly
-                        onfocus="unlockCredentials()"
-                        onpointerdown="unlockCredentials()"
                         placeholder=" "
                         class="floating-input {{ $passwordHasError ? 'is-invalid' : '' }}"
                         style="width: 100%; height: 44px; padding: 10px {{ $passwordHasError ? '66px' : '44px' }} 10px 44px; background: #ffffff; border: 1.5px solid {{ $passwordHasError ? '#ef4444' : '#cbd5e1' }}; border-radius: 12px; font-size: 0.88rem; color: #0f172a; outline: none; box-sizing: border-box; transition: border-color 0.2s ease, box-shadow 0.2s ease;"
