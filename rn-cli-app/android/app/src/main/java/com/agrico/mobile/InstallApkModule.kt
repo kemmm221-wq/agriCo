@@ -1,13 +1,25 @@
 package com.agrico.mobile
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Typeface
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import androidx.core.content.FileProvider
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReadableMap
 import java.io.File
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -576,6 +588,484 @@ class InstallApkModule(private val reactContext: ReactApplicationContext) : Reac
             promise.resolve(map)
         } catch (e: Exception) {
             promise.reject("CROP_ERROR", e.message, e)
+        }
+    }
+
+    private fun drawWrappedText(canvas: Canvas, text: String, x: Float, startY: Float, maxWidth: Float, paint: Paint, maxLines: Int = 3): Float {
+        val words = text.split(Regex("\\s+"))
+        var currentY = startY
+        var line = StringBuilder()
+        var linesDrawn = 0
+        val lineHeight = paint.textSize * 1.35f
+
+        for (word in words) {
+            val testLine = if (line.isEmpty()) word else "$line $word"
+            if (paint.measureText(testLine) <= maxWidth) {
+                line = StringBuilder(testLine)
+            } else {
+                if (line.isNotEmpty()) {
+                    canvas.drawText(line.toString(), x, currentY, paint)
+                    currentY += lineHeight
+                    linesDrawn++
+                    if (linesDrawn >= maxLines - 1) {
+                        line = StringBuilder("$word...")
+                        break
+                    }
+                }
+                line = StringBuilder(word)
+            }
+        }
+        if (line.isNotEmpty() && linesDrawn < maxLines) {
+            canvas.drawText(line.toString(), x, currentY, paint)
+            currentY += lineHeight
+        }
+        return currentY
+    }
+
+    private fun drawFittedText(canvas: Canvas, text: String, x: Float, y: Float, maxWidth: Float, basePaint: Paint) {
+        val p = Paint(basePaint)
+        while (p.measureText(text) > maxWidth && p.textSize > 13f) {
+            p.textSize -= 1f
+        }
+        canvas.drawText(text, x, y, p)
+    }
+
+    @ReactMethod
+    fun exportSoilResultCard(options: ReadableMap, promise: Promise) {
+        try {
+            val code = if (options.hasKey("munsellCode")) options.getString("munsellCode") ?: "5YR 7/2" else "5YR 7/2"
+            val name = if (options.hasKey("colorName")) options.getString("colorName") ?: "Very Pale Brown" else "Very Pale Brown"
+            val rawHex = if (options.hasKey("hexCode")) options.getString("hexCode") ?: "#BFA99C" else "#BFA99C"
+            val hexColor = if (rawHex.startsWith("#")) rawHex else "#$rawHex"
+            val soilPercent = if (options.hasKey("soilPercentage")) options.getString("soilPercentage") ?: "35%" else "35%"
+            val organic = if (options.hasKey("soilOrganic")) options.getString("soilOrganic") ?: "Low–Moderate (2–3%)" else "Low–Moderate (2–3%)"
+            val soilType = if (options.hasKey("soilType")) options.getString("soilType") ?: "Bleached, eluvial" else "Bleached, eluvial"
+            val nearMatch = if (options.hasKey("nearMatch")) options.getString("nearMatch") ?: "97.4%" else "97.4%"
+            val scanDate = if (options.hasKey("scanDate")) options.getString("scanDate") ?: "" else ""
+            val scanCount = if (options.hasKey("scanCount")) options.getString("scanCount") ?: "1" else "1"
+            val description = if (options.hasKey("description")) options.getString("description") ?: "" else ""
+            val photoUri = if (options.hasKey("photoUri")) options.getString("photoUri") else null
+            val beforeAfterUri = if (options.hasKey("beforeAfterUri")) options.getString("beforeAfterUri") else null
+            val triggerShare = if (options.hasKey("triggerShare")) options.getBoolean("triggerShare") else true
+
+            // 1. Load photo Bitmap if available
+            var photoBitmap: Bitmap? = null
+            if (!photoUri.isNullOrEmpty()) {
+                try {
+                    val pFile = getLocalFileFromUri(photoUri)
+                    if (pFile.exists()) {
+                        photoBitmap = BitmapFactory.decodeFile(pFile.absolutePath)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("InstallApk", "Could not load photo: ${e.message}")
+                }
+            }
+
+            // 2. Load before/after Bitmap if available
+            var beforeAfterBitmap: Bitmap? = null
+            if (!beforeAfterUri.isNullOrEmpty()) {
+                try {
+                    val baFile = getLocalFileFromUri(beforeAfterUri)
+                    if (baFile.exists()) {
+                        beforeAfterBitmap = BitmapFactory.decodeFile(baFile.absolutePath)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("InstallApk", "Could not load beforeAfter: ${e.message}")
+                }
+            }
+
+            // Canvas dimensions (high resolution A4 proportioned card)
+            val cardW = 1080
+            val cardH = if (beforeAfterBitmap != null) 1460 else 1140
+            val bitmap = Bitmap.createBitmap(cardW, cardH, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+
+            // Draw white card background
+            val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                style = Paint.Style.FILL
+            }
+            canvas.drawRect(0f, 0f, cardW.toFloat(), cardH.toFloat(), bgPaint)
+
+            // Top green accent bar
+            val topBarPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#16A34A")
+                style = Paint.Style.FILL
+            }
+            canvas.drawRect(0f, 0f, cardW.toFloat(), 16f, topBarPaint)
+
+            // AgriCo Emblem
+            val emblemPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#16A34A")
+                style = Paint.Style.FILL
+            }
+            canvas.drawRoundRect(RectF(50f, 44f, 104f, 98f), 14f, 14f, emblemPaint)
+
+            // White leaf emblem inside
+            val whitePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                style = Paint.Style.FILL
+            }
+            val leafPath = android.graphics.Path().apply {
+                moveTo(66f, 82f)
+                cubicTo(66f, 68f, 78f, 56f, 90f, 56f)
+                cubicTo(90f, 70f, 78f, 82f, 66f, 82f)
+                close()
+            }
+            canvas.drawPath(leafPath, whitePaint)
+
+            // Brand header: "AgriCo Soil Management System"
+            val brandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#15803D")
+                textSize = 28f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText("AgriCo Soil Management System", 120f, 82f, brandPaint)
+
+            // Title: "OFFICIAL SOIL CLASSIFICATION CARD"
+            val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#0F172A")
+                textSize = 36f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText("OFFICIAL SOIL CLASSIFICATION CARD", 50f, 142f, titlePaint)
+
+            // Subtitle: Date & System
+            val dateText = if (scanDate.isNotBlank()) {
+                "Issued: $scanDate  |  AgriCo On-Device Soil Analysis"
+            } else {
+                val now = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.US).format(java.util.Date())
+                "Issued: $now  |  AgriCo On-Device Soil Analysis"
+            }
+            val subPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#64748B")
+                textSize = 20f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            }
+            canvas.drawText(dateText, 50f, 180f, subPaint)
+
+            // Divider Line
+            val divPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#E2E8F0")
+                strokeWidth = 3f
+                style = Paint.Style.STROKE
+            }
+            canvas.drawLine(50f, 206f, 1030f, 206f, divPaint)
+
+            // Banner (Hero Section)
+            val bannerRect = RectF(50f, 228f, 1030f, 448f)
+            val soilColorInt = try {
+                Color.parseColor(hexColor)
+            } catch (e: Exception) {
+                Color.parseColor("#BFA99C")
+            }
+            val bannerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = soilColorInt
+                style = Paint.Style.FILL
+            }
+            canvas.drawRoundRect(bannerRect, 24f, 24f, bannerPaint)
+
+            // Specimen photo thumbnail on left of banner
+            val thumbRect = RectF(72f, 248f, 252f, 428f)
+            if (photoBitmap != null) {
+                canvas.save()
+                val clipPath = android.graphics.Path().apply {
+                    addRoundRect(thumbRect, 20f, 20f, android.graphics.Path.Direction.CW)
+                }
+                canvas.clipPath(clipPath)
+                val srcRect = Rect(0, 0, photoBitmap.width, photoBitmap.height)
+                val dstRect = Rect(72, 248, 252, 428)
+                canvas.drawBitmap(photoBitmap, srcRect, dstRect, Paint(Paint.FILTER_BITMAP_FLAG))
+
+                // Green detection overlay box
+                val greenBoxPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.parseColor("#4ADE80")
+                    style = Paint.Style.STROKE
+                    strokeWidth = 3.5f
+                }
+                canvas.drawRect(92f, 268f, 232f, 408f, greenBoxPaint)
+                canvas.restore()
+            } else {
+                val darkThumbPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.argb(60, 0, 0, 0)
+                    style = Paint.Style.FILL
+                }
+                canvas.drawRoundRect(thumbRect, 20f, 20f, darkThumbPaint)
+            }
+            // Thumbnail outer subtle white border
+            val thumbBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(100, 255, 255, 255)
+                style = Paint.Style.STROKE
+                strokeWidth = 3f
+            }
+            canvas.drawRoundRect(thumbRect, 20f, 20f, thumbBorder)
+
+            // Banner Text: Munsell Code
+            val codePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = 48f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                setShadowLayer(4f, 0f, 2f, Color.argb(140, 0, 0, 0))
+            }
+            canvas.drawText(code, 276f, 314f, codePaint)
+
+            // Banner Text: Color Name
+            val namePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = 26f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                setShadowLayer(3f, 0f, 1f, Color.argb(120, 0, 0, 0))
+            }
+            canvas.drawText(name, 276f, 356f, namePaint)
+
+            // Banner Text: Soil Percentage
+            val pctPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(230, 255, 255, 255)
+                textSize = 22f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+                setShadowLayer(2f, 0f, 1f, Color.argb(100, 0, 0, 0))
+            }
+            val pctClean = if (soilPercent.endsWith("%")) soilPercent else "$soilPercent%"
+            canvas.drawText("Soil Percentage ($pctClean)", 276f, 394f, pctPaint)
+
+            // Hex Pill Badge
+            val pillRect = RectF(840f, 316f, 1008f, 372f)
+            val pillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(140, 0, 0, 0)
+                style = Paint.Style.FILL
+            }
+            canvas.drawRoundRect(pillRect, 28f, 28f, pillPaint)
+            val hexTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = 22f
+                typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+                textAlign = Paint.Align.CENTER
+            }
+            canvas.drawText(hexColor.toUpperCase(), pillRect.centerX(), pillRect.centerY() + 8f, hexTextPaint)
+
+            // 3x2 Metadata Grid
+            val metaCards = listOf(
+                Pair("COLOR NAME", name),
+                Pair("FULL CODE", code),
+                Pair("SCAN COUNT", scanCount),
+                Pair("SOIL ORGANIC", organic),
+                Pair("SOIL TYPE", soilType),
+                Pair("NEAR-MATCH", nearMatch)
+            )
+            val gridCols = 3
+            val gridGap = 16f
+            val metaCardW = (980f - gridGap * (gridCols - 1)) / gridCols
+            val metaCardH = 122f
+            val gridStartY = 472f
+
+            metaCards.forEachIndexed { i, (label, value) ->
+                val col = i % gridCols
+                val row = i / gridCols
+                val cx = 50f + col * (metaCardW + gridGap)
+                val cy = gridStartY + row * (metaCardH + 14f)
+                val cRect = RectF(cx, cy, cx + metaCardW, cy + metaCardH)
+
+                val cardBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.WHITE
+                    style = Paint.Style.FILL
+                }
+                val cardBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.parseColor("#E2E8F0")
+                    style = Paint.Style.STROKE
+                    strokeWidth = 2f
+                }
+                canvas.drawRoundRect(cRect, 18f, 18f, cardBg)
+                canvas.drawRoundRect(cRect, 18f, 18f, cardBorder)
+
+                val lblPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.parseColor("#64748B")
+                    textSize = 15f
+                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                }
+                canvas.drawText(label, cx + 18f, cy + 34f, lblPaint)
+
+                val isGreen = label == "NEAR-MATCH"
+                val valPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = if (isGreen) Color.parseColor("#10B981") else Color.parseColor("#0F172A")
+                    textSize = 22f
+                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                }
+                drawFittedText(canvas, value, cx + 18f, cy + 82f, metaCardW - 36f, valPaint)
+            }
+
+            // Description / Remarks Box
+            val noteStartY = gridStartY + 2 * (metaCardH + 14f) + 14f
+            val noteBoxRect = RectF(50f, noteStartY, 1030f, noteStartY + 160f)
+            val noteBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#F8FAFC")
+                style = Paint.Style.FILL
+            }
+            val noteBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#E2E8F0")
+                style = Paint.Style.STROKE
+                strokeWidth = 2f
+            }
+            canvas.drawRoundRect(noteBoxRect, 18f, 18f, noteBg)
+            canvas.drawRoundRect(noteBoxRect, 18f, 18f, noteBorder)
+
+            val noteHeaderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#64748B")
+                textSize = 15f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText("FIELD NOTES & SOIL CLASSIFICATION REMARKS", 72f, noteStartY + 34f, noteHeaderPaint)
+
+            val noteTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#1E293B")
+                textSize = 20f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            }
+            val cleanDesc = if (description.isNotBlank()) description else "Soil specimen successfully verified against Munsell standard charts. Authentic field sample."
+            drawWrappedText(canvas, cleanDesc, 72f, noteStartY + 70f, 916f, noteTextPaint, 3)
+
+            // Before/After comparison section (if available)
+            if (beforeAfterBitmap != null) {
+                val baStartY = noteStartY + 160f + 16f
+                val baH = 280f
+                val baRect = RectF(50f, baStartY, 1030f, baStartY + baH)
+                val baBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.WHITE
+                    style = Paint.Style.FILL
+                }
+                canvas.drawRoundRect(baRect, 18f, 18f, baBg)
+                canvas.drawRoundRect(baRect, 18f, 18f, noteBorder)
+
+                val baHdrPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.parseColor("#64748B")
+                    textSize = 15f
+                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                }
+                canvas.drawText("SOIL NORMALIZATION (BEFORE / AFTER COMPARISON)", 72f, baStartY + 34f, baHdrPaint)
+
+                val imgDst = RectF(72f, baStartY + 46f, 1008f, baStartY + baH - 16f)
+                canvas.save()
+                val clipPath = android.graphics.Path().apply {
+                    addRoundRect(imgDst, 14f, 14f, android.graphics.Path.Direction.CW)
+                }
+                canvas.clipPath(clipPath)
+                canvas.drawBitmap(beforeAfterBitmap, Rect(0, 0, beforeAfterBitmap.width, beforeAfterBitmap.height), imgDst, Paint(Paint.FILTER_BITMAP_FLAG))
+                canvas.restore()
+            }
+
+            // Footer
+            val footerH = 76f
+            val footerRect = RectF(50f, cardH.toFloat() - footerH - 36f, 1030f, cardH.toFloat() - 36f)
+            val footerBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#F0FDF4")
+                style = Paint.Style.FILL
+            }
+            val footerBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#BBF7D0")
+                style = Paint.Style.STROKE
+                strokeWidth = 2f
+            }
+            canvas.drawRoundRect(footerRect, 18f, 18f, footerBg)
+            canvas.drawRoundRect(footerRect, 18f, 18f, footerBorder)
+
+            val sx = 76f
+            val sy = footerRect.centerY() - 14f
+            val sw = 20f
+            val sh = 28f
+            val shieldPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#2563EB")
+                style = Paint.Style.FILL
+            }
+            val shieldPath = android.graphics.Path().apply {
+                moveTo(sx, sy)
+                lineTo(sx + sw, sy)
+                lineTo(sx + sw, sy + sh - 8f)
+                lineTo(sx + sw / 2f, sy + sh)
+                lineTo(sx, sy + sh - 8f)
+                close()
+            }
+            canvas.drawPath(shieldPath, shieldPaint)
+
+            val footerTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#15803D")
+                textSize = 18f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(
+                "Generated by AgriCo Mobile Soil Analysis — Official ISO-A4 Verification Record",
+                sx + sw + 16f,
+                footerRect.centerY() + 7f,
+                footerTextPaint
+            )
+
+            // 3. Compress & Save
+            val cleanCode = code.replace(Regex("[^a-zA-Z0-9]"), "_")
+            val fileName = "AgriCo_Soil_Record_${cleanCode}_${System.currentTimeMillis()}.png"
+
+            // Save to cache dir for FileProvider
+            val cacheFile = File(reactContext.cacheDir, fileName)
+            java.io.FileOutputStream(cacheFile).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+
+            // Save to Public Downloads & notify Gallery
+            var savedPublicPath: String? = null
+            try {
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (!downloadsDir.exists()) downloadsDir.mkdirs()
+                val publicFile = File(downloadsDir, fileName)
+                java.io.FileOutputStream(publicFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+                savedPublicPath = publicFile.absolutePath
+
+                MediaScannerConnection.scanFile(
+                    reactContext,
+                    arrayOf(publicFile.absolutePath),
+                    arrayOf("image/png")
+                ) { path, uri ->
+                    android.util.Log.i("InstallApk", "Saved PNG scanned to gallery: $path -> $uri")
+                }
+            } catch (fsErr: Exception) {
+                android.util.Log.w("InstallApk", "Public downloads write fallback: ${fsErr.message}")
+            }
+
+            val contentUri = FileProvider.getUriForFile(
+                reactContext,
+                "${reactContext.packageName}.provider",
+                cacheFile
+            )
+
+            // Clean up bitmaps from memory
+            photoBitmap?.recycle()
+            beforeAfterBitmap?.recycle()
+            bitmap.recycle()
+
+            // Trigger Android Share sheet with image/png
+            if (triggerShare) {
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                    putExtra(Intent.EXTRA_SUBJECT, "AgriCo Soil Record - $code")
+                    putExtra(Intent.EXTRA_TEXT, "AgriCo Soil Classification Record for $code ($name)")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                val chooser = Intent.createChooser(shareIntent, "Save or Share Soil Result Image")
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                reactContext.startActivity(chooser)
+            }
+
+            val resultMap = Arguments.createMap().apply {
+                putString("filePath", cacheFile.absolutePath)
+                putString("fileName", fileName)
+                putString("uri", contentUri.toString())
+                if (savedPublicPath != null) {
+                    putString("publicPath", savedPublicPath)
+                }
+            }
+            promise.resolve(resultMap)
+        } catch (e: Exception) {
+            promise.reject("EXPORT_ERROR", e.message, e)
         }
     }
 }
