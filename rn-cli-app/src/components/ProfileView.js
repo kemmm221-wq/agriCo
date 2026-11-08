@@ -656,6 +656,18 @@ export default function ProfileView({
                     ]
                   );
                 }
+              } else if (res?.latestVersion) {
+                Alert.alert(
+                  'AgriCo is Up to Date',
+                  `You are running the latest version (${CURRENT_APP_VERSION}).\n\nWould you like to reload and reinstall the latest build from the server?`,
+                  [
+                    { text: 'Close', style: 'cancel' },
+                    {
+                      text: 'Reload / Reinstall',
+                      onPress: () => onTriggerUpdate?.({ ...res, hasUpdate: true }),
+                    },
+                  ]
+                );
               } else {
                 Alert.alert(
                   'AgriCo is Up to Date',

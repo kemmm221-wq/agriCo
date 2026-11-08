@@ -47,20 +47,14 @@ class AppVersionController extends Controller
      */
     public function checkVersion(Request $request)
     {
-        $activeApp = Application::where('status', 'ACTIVE')->latest()->first();
+        $activeApp = Application::where('status', 'ACTIVE')->orderByDesc('application_id')->first();
 
-        $defaultVersion = 'v1.0.6';
-        $defaultNotes = "• Offline Stage 1 TensorFlow Lite Soil Gate: Native on-device MobileNetV2 neural network strictly verifies real soil vs fake/non-soil\n• Zero-fallback policy: Completely rejects unreadable or non-soil scans instead of defaulting to brown soil\n• Robust camera URI decoding & fast base64 pipeline\n• Updated Munsell spectral reference cache and on-device calibration";
-        $defaultSize = '62.5 MB';
-        $defaultUrl = 'https://github.com/kemmm221-wq/agriCo/releases/download/v1.0.6/agrico-app-v1.0.6.apk';
+        $defaultVersion = 'v1.0.7';
+        $defaultNotes = "• On-Device Real & Fake Soil Reference Datasets (10R, 10YR, 2.5Y, 2.5YR, 5YR, 7.5YR)\n• 100% Offline Mode (⚡): Instant toggle button on camera\n• Fixed Delta E = Infinity bug with pre-bundled 207 Munsell centroids\n• High-resolution PNG Soil Record Card export on Save Copy\n• Resilient Password Reset engine and auto-fill verification code";
+        $defaultSize = '88.3 MB';
+        $defaultUrl = 'https://github.com/kemmm221-wq/agriCo/releases/download/v1.0.7/agrico-app-v1.0.7.apk';
 
         $version = $activeApp?->version ?: $defaultVersion;
-
-        // If client is already on latest version (v1.0.6), do not prompt for update
-        $clientVersion = $request->query('current_version') ?: $request->header('X-App-Version');
-        if ($clientVersion && in_array(strtolower(trim($clientVersion)), ['v1.0.6', '1.0.6'])) {
-            $version = $clientVersion;
-        }
 
         $releaseNotes = $activeApp?->release_notes ?: $defaultNotes;
         $fileSize = $activeApp?->file_size ?: $defaultSize;

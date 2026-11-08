@@ -2433,13 +2433,14 @@ export default function HomeScreen({ navigation, route }) {
     return () => subscription.remove();
   }, [loadScanHistory, loadMostScanned, selectedHue, searchQuery]);
 
-  // Pull-to-refresh handler
+  // Pull-to-refresh handler (reloads data and checks for updates automatically when online)
   const handlePullRefresh = async () => {
     setIsRefreshing(true);
     try {
       await Promise.all([
         loadMostScanned(selectedHue, searchQuery),
         loadScanHistory(),
+        runUpdateCheck(true),
       ]);
     } finally {
       setIsRefreshing(false);
