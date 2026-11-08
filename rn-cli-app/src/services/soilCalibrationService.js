@@ -42,7 +42,7 @@ function reportProgress(callback, text, percent) {
  * Returns cached website data if available, falling back to bundled dataset.
  */
 export async function getActiveCalibration() {
-  if (inMemoryCalibration) {
+  if (inMemoryCalibration && inMemoryCalibration.reference_centroids?.length > 0) {
     return inMemoryCalibration;
   }
 
@@ -50,7 +50,32 @@ export async function getActiveCalibration() {
     if (await RNFS.exists(CACHE_FILE_PATH)) {
       const content = await RNFS.readFile(CACHE_FILE_PATH, 'utf8');
       const parsed = JSON.parse(content);
-      if (parsed && (parsed.gate_config || parsed.reference_centroids)) {
+      if (parsed && typeof parsed === 'object') {
+        // Guarantee reference_centroids has valid spectral color coordinates
+        const hasValidCentroids = Array.isArray(parsed.reference_centroids) &&
+          parsed.reference_centroids.length > 0 &&
+          (parsed.reference_centroids[0].lab || parsed.reference_centroids[0].rgb || parsed.reference_centroids[0].hexCode);
+
+        if (!hasValidCentroids) {
+          parsed.reference_centroids = BUNDLED_CALIBRATION.reference_centroids;
+        }
+
+        if (!Array.isArray(parsed.fake_centroids) || parsed.fake_centroids.length === 0) {
+          parsed.fake_centroids = BUNDLED_CALIBRATION.fake_centroids;
+        }
+
+        if (!Array.isArray(parsed.real_samples) || parsed.real_samples.length === 0) {
+          parsed.real_samples = BUNDLED_CALIBRATION.real_samples;
+        }
+
+        if (!Array.isArray(parsed.fake_samples) || parsed.fake_samples.length === 0) {
+          parsed.fake_samples = BUNDLED_CALIBRATION.fake_samples;
+        }
+
+        if (!parsed.gate_config) {
+          parsed.gate_config = BUNDLED_CALIBRATION.gate_config;
+        }
+
         inMemoryCalibration = parsed;
         return inMemoryCalibration;
       }

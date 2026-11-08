@@ -27,12 +27,22 @@ class InstallApkModule(private val reactContext: ReactApplicationContext) : Reac
         if (interpreterInitAttempted) return null
         interpreterInitAttempted = true
         return try {
-            val afd = reactContext.assets.openFd("soil_gate_model.tflite")
-            val inputStream = FileInputStream(afd.fileDescriptor)
-            val fileChannel = inputStream.channel
-            val startOffset = afd.startOffset
-            val declaredLength = afd.declaredLength
-            val modelBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+            val modelBuffer: ByteBuffer = try {
+                val afd = reactContext.assets.openFd("soil_gate_model.tflite")
+                val inputStream = FileInputStream(afd.fileDescriptor)
+                val fileChannel = inputStream.channel
+                fileChannel.map(FileChannel.MapMode.READ_ONLY, afd.startOffset, afd.declaredLength)
+            } catch (fdErr: Exception) {
+                // If asset is compressed or file descriptor mapping is unavailable, read directly from InputStream
+                reactContext.assets.open("soil_gate_model.tflite").use { input ->
+                    val bytes = input.readBytes()
+                    ByteBuffer.allocateDirect(bytes.size).apply {
+                        order(ByteOrder.nativeOrder())
+                        put(bytes)
+                        rewind()
+                    }
+                }
+            }
             val options = Interpreter.Options().apply {
                 setNumThreads(2)
             }
@@ -78,6 +88,13 @@ class InstallApkModule(private val reactContext: ReactApplicationContext) : Reac
                     input.copyTo(output)
                 }
             }
+            return tempFile
+        }
+        if (uriString.startsWith("data:") || (uriString.length > 500 && !uriString.contains("/"))) {
+            val base64Data = if (uriString.contains(",")) uriString.substringAfter(",") else uriString
+            val decoded = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
+            val tempFile = File(reactContext.cacheDir, "temp_input_${System.currentTimeMillis()}.jpg")
+            tempFile.writeBytes(decoded)
             return tempFile
         }
         val unescaped = try {

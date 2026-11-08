@@ -1,159 +1,4316 @@
 {
-  "version": "2.0.0",
-  "name": "AgriCo Stage 1 Soil Reference Calibration Dataset",
+  "version": "3.0.0",
+  "name": "AgriCo On-Device Stage 1 Soil Reference Calibration Dataset",
   "gate_config": {
     "min_variance": 8.5,
     "min_laplacian": 18.0,
     "max_skin_ratio": 0.32,
     "max_delta_e": 30.0,
-    "allowed_hues": ["10R", "2.5YR", "5YR", "7.5YR", "10YR", "2.5Y", "5Y", "GLEY"],
-    "valid_lum_range": [12, 85]
+    "allowed_hues": [
+      "10R",
+      "2.5YR",
+      "5YR",
+      "7.5YR",
+      "10YR",
+      "2.5Y",
+      "5Y",
+      "GLEY"
+    ],
+    "valid_lum_range": [
+      12,
+      85
+    ]
   },
+  "samples_count": 13,
+  "real_samples_count": 6,
+  "fake_samples_count": 7,
+  "real_samples": [
+    {
+      "filename": "real_10R.jpg",
+      "hue": "10R",
+      "name": "Reddish Black (10R)",
+      "soil_type": "Mineral Clay Subsoil",
+      "rgb": [
+        49,
+        36,
+        36
+      ],
+      "lab": [
+        15.71,
+        6.17,
+        2.37
+      ],
+      "hexCode": "#312424",
+      "stdDev": 30.49,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_10R.jpg"
+    },
+    {
+      "filename": "real_10YR.jpg",
+      "hue": "10YR",
+      "name": "Black Topsoil (10YR)",
+      "soil_type": "Humic Agricultural Loam",
+      "rgb": [
+        122,
+        110,
+        124
+      ],
+      "lab": [
+        47.94,
+        7.44,
+        -6.03
+      ],
+      "hexCode": "#7A6E7C",
+      "stdDev": 33.37,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_10YR.jpg"
+    },
+    {
+      "filename": "real_2_5Y.jpg",
+      "hue": "2.5Y",
+      "name": "Dark Olive Soil (2.5Y)",
+      "soil_type": "Alluvial Silt Loam",
+      "rgb": [
+        137,
+        138,
+        141
+      ],
+      "lab": [
+        57.48,
+        0.23,
+        -1.74
+      ],
+      "hexCode": "#898A8D",
+      "stdDev": 49.87,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_2_5Y.jpg"
+    },
+    {
+      "filename": "real_2_5YR.jpg",
+      "hue": "2.5YR",
+      "name": "Dusky Red (2.5YR)",
+      "soil_type": "Volcanic Clay Loam",
+      "rgb": [
+        39,
+        29,
+        29
+      ],
+      "lab": [
+        11.95,
+        4.88,
+        1.86
+      ],
+      "hexCode": "#271D1D",
+      "stdDev": 24.57,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_2_5YR.jpg"
+    },
+    {
+      "filename": "real_5YR.jpg",
+      "hue": "5YR",
+      "name": "Dark Reddish Brown (5YR)",
+      "soil_type": "Ferrosol Topsoil",
+      "rgb": [
+        99,
+        97,
+        91
+      ],
+      "lab": [
+        41.15,
+        -0.41,
+        3.69
+      ],
+      "hexCode": "#63615B",
+      "stdDev": 55.74,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_5YR.jpg"
+    },
+    {
+      "filename": "real_7_5YR.jpg",
+      "hue": "7.5YR",
+      "name": "Dark Brown (7.5YR)",
+      "soil_type": "Fertile Loamy Topsoil",
+      "rgb": [
+        47,
+        33,
+        29
+      ],
+      "lab": [
+        14.29,
+        6.03,
+        5.33
+      ],
+      "hexCode": "#2F211D",
+      "stdDev": 21.25,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_7_5YR.jpg"
+    }
+  ],
+  "fake_samples": [
+    {
+      "filename": "fake_skin_1.jpg",
+      "name": "Human Skin Tone",
+      "type": "skin",
+      "rgb": [
+        179,
+        131,
+        95
+      ],
+      "lab": [
+        58.64,
+        13.99,
+        26.67
+      ],
+      "hexCode": "#B3835F",
+      "stdDev": 60.17,
+      "skinRatio": 0.45,
+      "assetPath": "soil_references/fake/fake_skin_1.jpg"
+    },
+    {
+      "filename": "fake_skin_2.jpg",
+      "name": "Hand / Skin Surface",
+      "type": "skin",
+      "rgb": [
+        184,
+        144,
+        118
+      ],
+      "lab": [
+        62.88,
+        11.45,
+        19.59
+      ],
+      "hexCode": "#B89076",
+      "stdDev": 64.63,
+      "skinRatio": 0.42,
+      "assetPath": "soil_references/fake/fake_skin_2.jpg"
+    },
+    {
+      "filename": "fake_concrete_tile.jpg",
+      "name": "Gray Concrete / Tile",
+      "type": "tile",
+      "rgb": [
+        173,
+        168,
+        162
+      ],
+      "lab": [
+        69.11,
+        0.7,
+        3.72
+      ],
+      "hexCode": "#ADA8A2",
+      "stdDev": 76.75,
+      "skinRatio": 0.02,
+      "assetPath": "soil_references/fake/fake_concrete_tile.jpg"
+    },
+    {
+      "filename": "fake_wood_desk.jpg",
+      "name": "Office Desk Wood",
+      "type": "furniture",
+      "rgb": [
+        140,
+        131,
+        85
+      ],
+      "lab": [
+        54.52,
+        -3.75,
+        26.1
+      ],
+      "hexCode": "#8C8355",
+      "stdDev": 50.52,
+      "skinRatio": 0.05,
+      "assetPath": "soil_references/fake/fake_wood_desk.jpg"
+    },
+    {
+      "filename": "fake_foliage.jpg",
+      "name": "Plant Foliage / Grass",
+      "type": "foliage",
+      "rgb": [
+        105,
+        114,
+        50
+      ],
+      "lab": [
+        46.0,
+        -13.52,
+        33.82
+      ],
+      "hexCode": "#697232",
+      "stdDev": 53.57,
+      "skinRatio": 0.0,
+      "assetPath": "soil_references/fake/fake_foliage.jpg"
+    },
+    {
+      "filename": "fake_plastic.jpg",
+      "name": "Artificial Plastic / Object",
+      "type": "plastic",
+      "rgb": [
+        121,
+        115,
+        70
+      ],
+      "lab": [
+        47.97,
+        -4.79,
+        25.71
+      ],
+      "hexCode": "#797346",
+      "stdDev": 50.36,
+      "skinRatio": 0.03,
+      "assetPath": "soil_references/fake/fake_plastic.jpg"
+    },
+    {
+      "filename": "fake_paper.jpg",
+      "name": "Blank White Paper",
+      "type": "paper",
+      "rgb": [
+        245,
+        245,
+        245
+      ],
+      "lab": [
+        96.54,
+        0.01,
+        -0.01
+      ],
+      "hexCode": "#F5F5F5",
+      "stdDev": 1.0,
+      "skinRatio": 0.0,
+      "assetPath": "soil_references/fake/fake_paper.jpg"
+    }
+  ],
+  "reference_samples": [
+    {
+      "filename": "real_10R.jpg",
+      "hue": "10R",
+      "name": "Reddish Black (10R)",
+      "soil_type": "Mineral Clay Subsoil",
+      "rgb": [
+        49,
+        36,
+        36
+      ],
+      "lab": [
+        15.71,
+        6.17,
+        2.37
+      ],
+      "hexCode": "#312424",
+      "stdDev": 30.49,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_10R.jpg"
+    },
+    {
+      "filename": "real_10YR.jpg",
+      "hue": "10YR",
+      "name": "Black Topsoil (10YR)",
+      "soil_type": "Humic Agricultural Loam",
+      "rgb": [
+        122,
+        110,
+        124
+      ],
+      "lab": [
+        47.94,
+        7.44,
+        -6.03
+      ],
+      "hexCode": "#7A6E7C",
+      "stdDev": 33.37,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_10YR.jpg"
+    },
+    {
+      "filename": "real_2_5Y.jpg",
+      "hue": "2.5Y",
+      "name": "Dark Olive Soil (2.5Y)",
+      "soil_type": "Alluvial Silt Loam",
+      "rgb": [
+        137,
+        138,
+        141
+      ],
+      "lab": [
+        57.48,
+        0.23,
+        -1.74
+      ],
+      "hexCode": "#898A8D",
+      "stdDev": 49.87,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_2_5Y.jpg"
+    },
+    {
+      "filename": "real_2_5YR.jpg",
+      "hue": "2.5YR",
+      "name": "Dusky Red (2.5YR)",
+      "soil_type": "Volcanic Clay Loam",
+      "rgb": [
+        39,
+        29,
+        29
+      ],
+      "lab": [
+        11.95,
+        4.88,
+        1.86
+      ],
+      "hexCode": "#271D1D",
+      "stdDev": 24.57,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_2_5YR.jpg"
+    },
+    {
+      "filename": "real_5YR.jpg",
+      "hue": "5YR",
+      "name": "Dark Reddish Brown (5YR)",
+      "soil_type": "Ferrosol Topsoil",
+      "rgb": [
+        99,
+        97,
+        91
+      ],
+      "lab": [
+        41.15,
+        -0.41,
+        3.69
+      ],
+      "hexCode": "#63615B",
+      "stdDev": 55.74,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_5YR.jpg"
+    },
+    {
+      "filename": "real_7_5YR.jpg",
+      "hue": "7.5YR",
+      "name": "Dark Brown (7.5YR)",
+      "soil_type": "Fertile Loamy Topsoil",
+      "rgb": [
+        47,
+        33,
+        29
+      ],
+      "lab": [
+        14.29,
+        6.03,
+        5.33
+      ],
+      "hexCode": "#2F211D",
+      "stdDev": 21.25,
+      "type": "real_soil",
+      "assetPath": "soil_references/real/real_7_5YR.jpg"
+    }
+  ],
   "reference_centroids": [
     {
-      "munsellCode": "10R 3/1",
-      "colorName": "Reddish Black",
-      "hexCode": "#6a4a44",
-      "rgb": [106, 74, 68],
-      "lab": [34.5, 12.8, 8.4],
+      "munsellCode": "10R 2.5/1",
+      "colorName": "Dark Red Black",
+      "hue": "10R",
+      "hexCode": "#503030",
+      "rgb": [
+        80,
+        48,
+        48
+      ],
+      "lab": [
+        23.78,
+        14.61,
+        6.13
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Highly organic, wet/forest soil"
+    },
+    {
+      "munsellCode": "10R 2.5/2",
+      "colorName": "Dark Red",
+      "hue": "10R",
+      "hexCode": "#3e2018",
+      "rgb": [
+        62,
+        32,
+        24
+      ],
+      "lab": [
+        16.12,
+        13.51,
+        11.71
+      ],
       "soil_organic_index": "Very High (>8%)",
       "soil_type": "Humic, red derived"
     },
     {
-      "munsellCode": "10R 4/3",
-      "colorName": "Weak Red",
-      "hexCode": "#7a5048",
-      "rgb": [122, 80, 72],
-      "lab": [38.2, 16.4, 11.2],
-      "soil_organic_index": "High (3.8%)",
-      "soil_type": "Mineral Clay Subsoil"
+      "munsellCode": "10R 3/1",
+      "colorName": "Reddish Black",
+      "hue": "10R",
+      "hexCode": "#6a4a44",
+      "rgb": [
+        106,
+        74,
+        68
+      ],
+      "lab": [
+        34.76,
+        12.73,
+        9.0
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Organic-rich red soil"
     },
     {
-      "munsellCode": "2.5YR 3/2",
-      "colorName": "Dusky Red",
-      "hexCode": "#553833",
-      "rgb": [85, 56, 51],
-      "lab": [26.4, 12.1, 8.2],
-      "soil_organic_index": "High (4.0%)",
-      "soil_type": "Volcanic Red Clay Loam"
-    },
-    {
-      "munsellCode": "2.5YR 4/4",
-      "colorName": "Reddish Brown",
-      "hexCode": "#7e4a3b",
-      "rgb": [126, 74, 59],
-      "lab": [37.8, 19.5, 17.8],
-      "soil_organic_index": "Moderate (2.8%)",
-      "soil_type": "Well-drained Ferrosol"
-    },
-    {
-      "munsellCode": "5YR 3/2",
+      "munsellCode": "10R 3/2",
       "colorName": "Dark Reddish Brown",
-      "hexCode": "#56413a",
-      "rgb": [86, 65, 58],
-      "lab": [29.6, 8.3, 7.8],
-      "soil_organic_index": "High (3.5%)",
-      "soil_type": "Alluvial Silt Loam"
+      "hue": "10R",
+      "hexCode": "#5e3028",
+      "rgb": [
+        94,
+        48,
+        40
+      ],
+      "lab": [
+        25.7,
+        19.95,
+        14.42
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic red soil"
     },
     {
-      "munsellCode": "5YR 4/4",
+      "munsellCode": "10R 3/3",
       "colorName": "Reddish Brown",
-      "hexCode": "#7d5543",
-      "rgb": [125, 85, 67],
-      "lab": [40.2, 14.1, 15.6],
-      "soil_organic_index": "Moderate (2.5%)",
-      "soil_type": "Agricultural Clay Loam"
+      "hue": "10R",
+      "hexCode": "#602820",
+      "rgb": [
+        96,
+        40,
+        32
+      ],
+      "lab": [
+        24.03,
+        24.81,
+        17.58
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Iron-rich red soil"
     },
     {
-      "munsellCode": "7.5YR 3/2",
-      "colorName": "Dark Brown",
-      "hexCode": "#54433a",
-      "rgb": [84, 67, 58],
-      "lab": [30.4, 6.2, 8.1],
-      "soil_organic_index": "High (3.6%)",
-      "soil_type": "Organic Surface Horizon"
+      "munsellCode": "10R 3/4",
+      "colorName": "Reddish Brown",
+      "hue": "10R",
+      "hexCode": "#5c2018",
+      "rgb": [
+        92,
+        32,
+        24
+      ],
+      "lab": [
+        21.48,
+        26.96,
+        19.55
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Ferric/red soil"
     },
     {
-      "munsellCode": "7.5YR 4/3",
-      "colorName": "Brown",
-      "hexCode": "#765c4c",
-      "rgb": [118, 92, 76],
-      "lab": [41.5, 8.9, 13.5],
-      "soil_organic_index": "Moderate (2.7%)",
-      "soil_type": "Fertile Loamy Topsoil"
+      "munsellCode": "10R 3/6",
+      "colorName": "Red",
+      "hue": "10R",
+      "hexCode": "#501812",
+      "rgb": [
+        80,
+        24,
+        18
+      ],
+      "lab": [
+        17.47,
+        25.85,
+        18.13
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Oxidized red soil"
+    },
+    {
+      "munsellCode": "10R 4/1",
+      "colorName": "Red Gray",
+      "hue": "10R",
+      "hexCode": "#8c6860",
+      "rgb": [
+        140,
+        104,
+        96
+      ],
+      "lab": [
+        47.39,
+        13.23,
+        10.13
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic red, moist"
+    },
+    {
+      "munsellCode": "10R 4/2",
+      "colorName": "Dark Red",
+      "hue": "10R",
+      "hexCode": "#804a38",
+      "rgb": [
+        128,
+        74,
+        56
+      ],
+      "lab": [
+        37.43,
+        20.98,
+        20.54
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Red soil with organic coating"
+    },
+    {
+      "munsellCode": "10R 4/3",
+      "colorName": "Red Brown",
+      "hue": "10R",
+      "hexCode": "#823830",
+      "rgb": [
+        130,
+        56,
+        48
+      ],
+      "lab": [
+        33.54,
+        31.27,
+        20.56
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Red-yellow soil"
+    },
+    {
+      "munsellCode": "10R 4/4",
+      "colorName": "Red Brown",
+      "hue": "10R",
+      "hexCode": "#7e3028",
+      "rgb": [
+        126,
+        48,
+        40
+      ],
+      "lab": [
+        31.12,
+        33.28,
+        22.41
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Ferric loam"
+    },
+    {
+      "munsellCode": "10R 4/6",
+      "colorName": "Red",
+      "hue": "10R",
+      "hexCode": "#782820",
+      "rgb": [
+        120,
+        40,
+        32
+      ],
+      "lab": [
+        28.42,
+        34.43,
+        23.92
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Oxisol/Ultisol-like"
+    },
+    {
+      "munsellCode": "10R 4/8",
+      "colorName": "Bright Red",
+      "hue": "10R",
+      "hexCode": "#6e2018",
+      "rgb": [
+        110,
+        32,
+        24
+      ],
+      "lab": [
+        25.0,
+        33.99,
+        24.49
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Highly leached, iron-rich"
+    },
+    {
+      "munsellCode": "10R 5/1",
+      "colorName": "Pinkish Gray",
+      "hue": "10R",
+      "hexCode": "#a88880",
+      "rgb": [
+        168,
+        136,
+        128
+      ],
+      "lab": [
+        59.43,
+        10.91,
+        8.88
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Weathered red with organic subsoil"
+    },
+    {
+      "munsellCode": "10R 5/2",
+      "colorName": "Pale Red",
+      "hue": "10R",
+      "hexCode": "#9c6858",
+      "rgb": [
+        156,
+        104,
+        88
+      ],
+      "lab": [
+        49.1,
+        18.88,
+        17.51
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weakly developed red soil"
+    },
+    {
+      "munsellCode": "10R 5/3",
+      "colorName": "Reddish Yellow",
+      "hue": "10R",
+      "hexCode": "#9e5848",
+      "rgb": [
+        158,
+        88,
+        72
+      ],
+      "lab": [
+        45.24,
+        27.14,
+        21.89
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Red-yellow intergrade"
+    },
+    {
+      "munsellCode": "10R 5/4",
+      "colorName": "Reddish Yellow",
+      "hue": "10R",
+      "hexCode": "#9a5040",
+      "rgb": [
+        154,
+        80,
+        64
+      ],
+      "lab": [
+        42.73,
+        29.23,
+        23.28
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Red-yellow soil"
+    },
+    {
+      "munsellCode": "10R 5/6",
+      "colorName": "Red",
+      "hue": "10R",
+      "hexCode": "#923830",
+      "rgb": [
+        146,
+        56,
+        48
+      ],
+      "lab": [
+        36.28,
+        37.48,
+        24.57
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Strongly oxidized"
+    },
+    {
+      "munsellCode": "10R 5/8",
+      "colorName": "Bright Red",
+      "hue": "10R",
+      "hexCode": "#8e3020",
+      "rgb": [
+        142,
+        48,
+        32
+      ],
+      "lab": [
+        33.92,
+        38.92,
+        31.21
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Highly leached, dry"
+    },
+    {
+      "munsellCode": "10R 6/1",
+      "colorName": "Grayish Pink",
+      "hue": "10R",
+      "hexCode": "#bf9e98",
+      "rgb": [
+        191,
+        158,
+        152
+      ],
+      "lab": [
+        67.87,
+        11.24,
+        7.7
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered, partially leached"
+    },
+    {
+      "munsellCode": "10R 6/2",
+      "colorName": "Pale Red",
+      "hue": "10R",
+      "hexCode": "#b88878",
+      "rgb": [
+        184,
+        136,
+        120
+      ],
+      "lab": [
+        60.92,
+        16.15,
+        15.77
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Weakly humic red subsoil"
+    },
+    {
+      "munsellCode": "10R 6/3",
+      "colorName": "Light Reddish Brown",
+      "hue": "10R",
+      "hexCode": "#bc7a68",
+      "rgb": [
+        188,
+        122,
+        104
+      ],
+      "lab": [
+        57.66,
+        23.66,
+        20.49
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Subsoil, low organic"
+    },
+    {
+      "munsellCode": "10R 6/4",
+      "colorName": "Light Reddish Brown",
+      "hue": "10R",
+      "hexCode": "#b87060",
+      "rgb": [
+        184,
+        112,
+        96
+      ],
+      "lab": [
+        54.68,
+        26.73,
+        20.98
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "B-horizon red soil"
+    },
+    {
+      "munsellCode": "10R 6/6",
+      "colorName": "Yellowish Red",
+      "hue": "10R",
+      "hexCode": "#b04840",
+      "rgb": [
+        176,
+        72,
+        64
+      ],
+      "lab": [
+        44.57,
+        41.91,
+        26.33
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Leached, well drained"
+    },
+    {
+      "munsellCode": "10R 6/8",
+      "colorName": "Red",
+      "hue": "10R",
+      "hexCode": "#ac4030",
+      "rgb": [
+        172,
+        64,
+        48
+      ],
+      "lab": [
+        42.23,
+        43.29,
+        32.74
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Exposed, dry, iron-rich"
+    },
+    {
+      "munsellCode": "10R 7/1",
+      "colorName": "Pinkish White",
+      "hue": "10R",
+      "hexCode": "#d8b8b2",
+      "rgb": [
+        216,
+        184,
+        178
+      ],
+      "lab": [
+        77.34,
+        10.51,
+        7.29
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly weathered, light-colored"
+    },
+    {
+      "munsellCode": "10R 7/2",
+      "colorName": "Pale Pink",
+      "hue": "10R",
+      "hexCode": "#d4a89e",
+      "rgb": [
+        212,
+        168,
+        158
+      ],
+      "lab": [
+        72.54,
+        14.65,
+        11.31
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Weakly developed, light"
+    },
+    {
+      "munsellCode": "10R 7/3",
+      "colorName": "Pink",
+      "hue": "10R",
+      "hexCode": "#d89888",
+      "rgb": [
+        216,
+        152,
+        136
+      ],
+      "lab": [
+        68.63,
+        21.98,
+        18.02
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Subsoil, low organic"
+    },
+    {
+      "munsellCode": "10R 7/4",
+      "colorName": "Light Pinkish Brown",
+      "hue": "10R",
+      "hexCode": "#d49080",
+      "rgb": [
+        212,
+        144,
+        128
+      ],
+      "lab": [
+        66.14,
+        23.81,
+        18.96
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached subsoil"
+    },
+    {
+      "munsellCode": "10R 7/6",
+      "colorName": "Yellowish Red",
+      "hue": "10R",
+      "hexCode": "#cc6050",
+      "rgb": [
+        204,
+        96,
+        80
+      ],
+      "lab": [
+        53.8,
+        41.59,
+        29.55
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "10R 7/8",
+      "colorName": "Red",
+      "hue": "10R",
+      "hexCode": "#c85840",
+      "rgb": [
+        200,
+        88,
+        64
+      ],
+      "lab": [
+        51.42,
+        43.04,
+        35.54
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Highly oxidized, dry"
+    },
+    {
+      "munsellCode": "10R 8/1",
+      "colorName": "White",
+      "hue": "10R",
+      "hexCode": "#edcfca",
+      "rgb": [
+        237,
+        207,
+        202
+      ],
+      "lab": [
+        85.45,
+        9.68,
+        6.33
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly leached, possibly siliceous"
+    },
+    {
+      "munsellCode": "10R 8/2",
+      "colorName": "Pale Pink",
+      "hue": "10R",
+      "hexCode": "#ebc5bc",
+      "rgb": [
+        235,
+        197,
+        188
+      ],
+      "lab": [
+        82.5,
+        12.08,
+        9.53
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached, eluvial"
+    },
+    {
+      "munsellCode": "10R 8/3",
+      "colorName": "Very Pale Brown",
+      "hue": "10R",
+      "hexCode": "#f0b8ac",
+      "rgb": [
+        240,
+        184,
+        172
+      ],
+      "lab": [
+        79.49,
+        18.56,
+        13.91
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Eluvial/leached horizon"
+    },
+    {
+      "munsellCode": "10R 8/4",
+      "colorName": "Light Yellowish Brown",
+      "hue": "10R",
+      "hexCode": "#eeb0a0",
+      "rgb": [
+        238,
+        176,
+        160
+      ],
+      "lab": [
+        77.14,
+        20.5,
+        17.06
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, dry surface"
     },
     {
       "munsellCode": "10YR 2/1",
       "colorName": "Black",
-      "hexCode": "#32302e",
-      "rgb": [50, 48, 46],
-      "lab": [20.2, 0.6, 1.4],
-      "soil_organic_index": "Very High (>6%)",
-      "soil_type": "Humic Muck / Peaty Loam"
+      "hue": "10YR",
+      "hexCode": "#2a2423",
+      "rgb": [
+        42,
+        36,
+        35
+      ],
+      "lab": [
+        14.82,
+        2.6,
+        1.7
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Peaty/high organic topsoil"
+    },
+    {
+      "munsellCode": "10YR 2/2",
+      "colorName": "Very Dark Brown",
+      "hue": "10YR",
+      "hexCode": "#2b2120",
+      "rgb": [
+        43,
+        33,
+        32
+      ],
+      "lab": [
+        13.86,
+        4.59,
+        2.49
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic dark topsoil"
+    },
+    {
+      "munsellCode": "10YR 3/1",
+      "colorName": "Very Dark Gray",
+      "hue": "10YR",
+      "hexCode": "#3c312f",
+      "rgb": [
+        60,
+        49,
+        47
+      ],
+      "lab": [
+        21.44,
+        4.56,
+        3.12
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic, moist"
     },
     {
       "munsellCode": "10YR 3/2",
-      "colorName": "Very Dark Grayish Brown",
-      "hexCode": "#52463e",
-      "rgb": [82, 70, 62],
-      "lab": [31.5, 4.2, 6.8],
-      "soil_organic_index": "High (3.8%)",
-      "soil_type": "Mollic Epipedon Loam"
+      "colorName": "Very Dark Brown",
+      "hue": "10YR",
+      "hexCode": "#4c3a2d",
+      "rgb": [
+        76,
+        58,
+        45
+      ],
+      "lab": [
+        26.02,
+        5.83,
+        11.12
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic topsoil"
+    },
+    {
+      "munsellCode": "10YR 3/3",
+      "colorName": "Dark Brown",
+      "hue": "10YR",
+      "hexCode": "#4f2f1f",
+      "rgb": [
+        79,
+        47,
+        31
+      ],
+      "lab": [
+        22.98,
+        12.71,
+        16.33
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Brown topsoil"
+    },
+    {
+      "munsellCode": "10YR 3/4",
+      "colorName": "Dark Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#613314",
+      "rgb": [
+        97,
+        51,
+        20
+      ],
+      "lab": [
+        26.62,
+        18.0,
+        27.88
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Yellowish brown loam"
+    },
+    {
+      "munsellCode": "10YR 3/6",
+      "colorName": "Dark Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#5f2b0f",
+      "rgb": [
+        95,
+        43,
+        15
+      ],
+      "lab": [
+        24.31,
+        21.63,
+        28.14
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Yellowish brown subsoil"
+    },
+    {
+      "munsellCode": "10YR 4/1",
+      "colorName": "Dark Gray",
+      "hue": "10YR",
+      "hexCode": "#5f534b",
+      "rgb": [
+        95,
+        83,
+        75
+      ],
+      "lab": [
+        36.23,
+        3.47,
+        6.49
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Moist, organic-influenced"
     },
     {
       "munsellCode": "10YR 4/2",
-      "colorName": "Dark Grayish Brown",
-      "hexCode": "#6d6056",
-      "rgb": [109, 96, 86],
-      "lab": [42.1, 4.3, 7.9],
-      "soil_organic_index": "Moderate (2.4%)",
-      "soil_type": "Paddy Clay Subsoil"
+      "colorName": "Dark Brown",
+      "hue": "10YR",
+      "hexCode": "#735a44",
+      "rgb": [
+        115,
+        90,
+        68
+      ],
+      "lab": [
+        40.2,
+        6.96,
+        16.62
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic yellowish brown"
     },
     {
       "munsellCode": "10YR 4/3",
       "colorName": "Brown",
-      "hexCode": "#745e4c",
-      "rgb": [116, 94, 76],
-      "lab": [42.0, 7.2, 13.9],
-      "soil_organic_index": "Moderate (2.6%)",
-      "soil_type": "Standard Agricultural Loam"
+      "hue": "10YR",
+      "hexCode": "#7a5332",
+      "rgb": [
+        122,
+        83,
+        50
+      ],
+      "lab": [
+        38.82,
+        12.4,
+        25.69
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Yellowish brown soil"
+    },
+    {
+      "munsellCode": "10YR 4/4",
+      "colorName": "Dark Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#794c22",
+      "rgb": [
+        121,
+        76,
+        34
+      ],
+      "lab": [
+        36.65,
+        14.93,
+        32.09
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Typical yellowish brown"
+    },
+    {
+      "munsellCode": "10YR 4/6",
+      "colorName": "Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#824c18",
+      "rgb": [
+        130,
+        76,
+        24
+      ],
+      "lab": [
+        37.81,
+        18.59,
+        38.63
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Oxidized yellowish brown"
+    },
+    {
+      "munsellCode": "10YR 5/1",
+      "colorName": "Gray",
+      "hue": "10YR",
+      "hexCode": "#7e726b",
+      "rgb": [
+        126,
+        114,
+        107
+      ],
+      "lab": [
+        48.92,
+        3.38,
+        5.56
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Moist, silty yellowish brown"
+    },
+    {
+      "munsellCode": "10YR 5/2",
+      "colorName": "Grayish Brown",
+      "hue": "10YR",
+      "hexCode": "#8e7662",
+      "rgb": [
+        142,
+        118,
+        98
+      ],
+      "lab": [
+        51.37,
+        6.2,
+        14.52
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered yellowish brown"
+    },
+    {
+      "munsellCode": "10YR 5/3",
+      "colorName": "Brown",
+      "hue": "10YR",
+      "hexCode": "#946f4e",
+      "rgb": [
+        148,
+        111,
+        78
+      ],
+      "lab": [
+        49.76,
+        10.31,
+        24.02
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Yellowish brown soil"
     },
     {
       "munsellCode": "10YR 5/4",
       "colorName": "Yellowish Brown",
-      "hexCode": "#8f7354",
-      "rgb": [143, 115, 84],
-      "lab": [50.8, 7.5, 20.4],
-      "soil_organic_index": "Low-Moderate (1.8%)",
-      "soil_type": "Sandy Clay Loam"
+      "hue": "10YR",
+      "hexCode": "#95693b",
+      "rgb": [
+        149,
+        105,
+        59
+      ],
+      "lab": [
+        48.02,
+        12.44,
+        32.53
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Yellowish brown subsoil"
+    },
+    {
+      "munsellCode": "10YR 5/6",
+      "colorName": "Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#a46724",
+      "rgb": [
+        164,
+        103,
+        36
+      ],
+      "lab": [
+        49.16,
+        18.91,
+        45.79
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Oxidized subsoil"
+    },
+    {
+      "munsellCode": "10YR 5/8",
+      "colorName": "Deep Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#a5610e",
+      "rgb": [
+        165,
+        97,
+        14
+      ],
+      "lab": [
+        47.73,
+        22.07,
+        52.51
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Leached, well drained"
+    },
+    {
+      "munsellCode": "10YR 6/1",
+      "colorName": "Light Gray",
+      "hue": "10YR",
+      "hexCode": "#a5958d",
+      "rgb": [
+        165,
+        149,
+        141
+      ],
+      "lab": [
+        62.86,
+        4.53,
+        6.36
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered, partially leached"
+    },
+    {
+      "munsellCode": "10YR 6/2",
+      "colorName": "Pale Brown",
+      "hue": "10YR",
+      "hexCode": "#ae927b",
+      "rgb": [
+        174,
+        146,
+        123
+      ],
+      "lab": [
+        62.5,
+        6.97,
+        16.11
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Leached yellowish brown"
+    },
+    {
+      "munsellCode": "10YR 6/3",
+      "colorName": "Pale Brown",
+      "hue": "10YR",
+      "hexCode": "#b28d6a",
+      "rgb": [
+        178,
+        141,
+        106
+      ],
+      "lab": [
+        61.27,
+        9.21,
+        24.0
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Weakly developed"
+    },
+    {
+      "munsellCode": "10YR 6/4",
+      "colorName": "Light Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#b68455",
+      "rgb": [
+        182,
+        132,
+        85
+      ],
+      "lab": [
+        59.07,
+        13.73,
+        32.78
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "B-horizon, dry"
+    },
+    {
+      "munsellCode": "10YR 6/6",
+      "colorName": "Light Yellowish Brown",
+      "hue": "10YR",
+      "hexCode": "#b87b37",
+      "rgb": [
+        184,
+        123,
+        55
+      ],
+      "lab": [
+        56.72,
+        17.43,
+        45.57
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Oxidized subsoil"
+    },
+    {
+      "munsellCode": "10YR 6/8",
+      "colorName": "Reddish Yellow",
+      "hue": "10YR",
+      "hexCode": "#be7a21",
+      "rgb": [
+        190,
+        122,
+        33
+      ],
+      "lab": [
+        57.05,
+        19.66,
+        55.5
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached"
+    },
+    {
+      "munsellCode": "10YR 7/1",
+      "colorName": "Very Pale Gray",
+      "hue": "10YR",
+      "hexCode": "#beb2a9",
+      "rgb": [
+        190,
+        178,
+        169
+      ],
+      "lab": [
+        73.32,
+        2.72,
+        6.12
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly weathered, light"
+    },
+    {
+      "munsellCode": "10YR 7/2",
+      "colorName": "Very Pale Brown",
+      "hue": "10YR",
+      "hexCode": "#c7b19c",
+      "rgb": [
+        199,
+        177,
+        156
+      ],
+      "lab": [
+        73.54,
+        4.56,
+        13.63
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached, eluvial"
+    },
+    {
+      "munsellCode": "10YR 7/3",
+      "colorName": "Very Pale Brown",
+      "hue": "10YR",
+      "hexCode": "#cba985",
+      "rgb": [
+        203,
+        169,
+        133
+      ],
+      "lab": [
+        71.4,
+        7.28,
+        23.23
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light-colored"
+    },
+    {
+      "munsellCode": "10YR 7/4",
+      "colorName": "Very Pale Brown",
+      "hue": "10YR",
+      "hexCode": "#cea16f",
+      "rgb": [
+        206,
+        161,
+        111
+      ],
+      "lab": [
+        69.3,
+        10.34,
+        32.35
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, low organic"
+    },
+    {
+      "munsellCode": "10YR 7/6",
+      "colorName": "Pale Yellow",
+      "hue": "10YR",
+      "hexCode": "#d39650",
+      "rgb": [
+        211,
+        150,
+        80
+      ],
+      "lab": [
+        66.7,
+        15.76,
+        45.34
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "10YR 7/8",
+      "colorName": "Pale Yellow",
+      "hue": "10YR",
+      "hexCode": "#d9923c",
+      "rgb": [
+        217,
+        146,
+        60
+      ],
+      "lab": [
+        66.24,
+        19.3,
+        54.48
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Dry, exposed"
+    },
+    {
+      "munsellCode": "10YR 8/1",
+      "colorName": "White",
+      "hue": "10YR",
+      "hexCode": "#dbcfc5",
+      "rgb": [
+        219,
+        207,
+        197
+      ],
+      "lab": [
+        83.82,
+        2.46,
+        6.44
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly leached, siliceous"
+    },
+    {
+      "munsellCode": "10YR 8/2",
+      "colorName": "Very Pale Brown",
+      "hue": "10YR",
+      "hexCode": "#decbbb",
+      "rgb": [
+        222,
+        203,
+        187
+      ],
+      "lab": [
+        82.82,
+        4.03,
+        10.37
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached horizon"
+    },
+    {
+      "munsellCode": "10YR 8/3",
+      "colorName": "Pale Yellow",
+      "hue": "10YR",
+      "hexCode": "#e2c2a4",
+      "rgb": [
+        226,
+        194,
+        164
+      ],
+      "lab": [
+        80.42,
+        6.91,
+        19.3
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light surface"
+    },
+    {
+      "munsellCode": "10YR 8/4",
+      "colorName": "Pale Yellow",
+      "hue": "10YR",
+      "hexCode": "#e6c092",
+      "rgb": [
+        230,
+        192,
+        146
+      ],
+      "lab": [
+        79.95,
+        7.24,
+        28.26
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, dry"
+    },
+    {
+      "munsellCode": "10YR 8/6",
+      "colorName": "Pale Yellow",
+      "hue": "10YR",
+      "hexCode": "#ebb675",
+      "rgb": [
+        235,
+        182,
+        117
+      ],
+      "lab": [
+        77.52,
+        11.52,
+        40.28
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "10YR 8/8",
+      "colorName": "Bright Yellow",
+      "hue": "10YR",
+      "hexCode": "#f0ab48",
+      "rgb": [
+        240,
+        171,
+        72
+      ],
+      "lab": [
+        74.9,
+        16.26,
+        59.02
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Exposed, highly oxidized"
+    },
+    {
+      "munsellCode": "2.5Y 2.5/1",
+      "colorName": "Black",
+      "hue": "2.5Y",
+      "hexCode": "#2a2520",
+      "rgb": [
+        42,
+        37,
+        32
+      ],
+      "lab": [
+        15.06,
+        1.27,
+        4.18
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic, wet/grassland"
+    },
+    {
+      "munsellCode": "2.5Y 3/1",
+      "colorName": "Very Dark Gray",
+      "hue": "2.5Y",
+      "hexCode": "#3c3028",
+      "rgb": [
+        60,
+        48,
+        40
+      ],
+      "lab": [
+        20.93,
+        3.97,
+        7.17
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic, moist"
+    },
+    {
+      "munsellCode": "2.5Y 3/2",
+      "colorName": "Very Dark Grayish Brown",
+      "hue": "2.5Y",
+      "hexCode": "#403018",
+      "rgb": [
+        64,
+        48,
+        24
+      ],
+      "lab": [
+        21.09,
+        3.82,
+        18.02
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic dark soil"
+    },
+    {
+      "munsellCode": "2.5Y 3/3",
+      "colorName": "Dark Olive Brown",
+      "hue": "2.5Y",
+      "hexCode": "#342410",
+      "rgb": [
+        52,
+        36,
+        16
+      ],
+      "lab": [
+        15.64,
+        4.82,
+        15.96
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic olive soil"
+    },
+    {
+      "munsellCode": "2.5Y 4/1",
+      "colorName": "Dark Gray",
+      "hue": "2.5Y",
+      "hexCode": "#605850",
+      "rgb": [
+        96,
+        88,
+        80
+      ],
+      "lab": [
+        37.92,
+        1.72,
+        5.81
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Moist, organic-influenced"
     },
     {
       "munsellCode": "2.5Y 4/2",
       "colorName": "Dark Grayish Brown",
-      "hexCode": "#6c6356",
-      "rgb": [108, 99, 86],
-      "lab": [43.1, 2.3, 8.8],
-      "soil_organic_index": "Moderate (2.1%)",
-      "soil_type": "Poorly Drained Alluvial Soil"
+      "hue": "2.5Y",
+      "hexCode": "#66503c",
+      "rgb": [
+        102,
+        80,
+        60
+      ],
+      "lab": [
+        35.77,
+        6.13,
+        15.29
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic grayish brown"
+    },
+    {
+      "munsellCode": "2.5Y 4/3",
+      "colorName": "Olive Brown",
+      "hue": "2.5Y",
+      "hexCode": "#6c5428",
+      "rgb": [
+        108,
+        84,
+        40
+      ],
+      "lab": [
+        37.27,
+        4.37,
+        29.09
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Olive-brown soil"
+    },
+    {
+      "munsellCode": "2.5Y 4/4",
+      "colorName": "Olive Brown",
+      "hue": "2.5Y",
+      "hexCode": "#705420",
+      "rgb": [
+        112,
+        84,
+        32
+      ],
+      "lab": [
+        37.64,
+        5.71,
+        33.86
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Typical olive soil"
+    },
+    {
+      "munsellCode": "2.5Y 5/1",
+      "colorName": "Gray",
+      "hue": "2.5Y",
+      "hexCode": "#82786c",
+      "rgb": [
+        130,
+        120,
+        108
+      ],
+      "lab": [
+        50.99,
+        1.68,
+        7.97
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Moist, silty olive"
+    },
+    {
+      "munsellCode": "2.5Y 5/2",
+      "colorName": "Grayish Brown",
+      "hue": "2.5Y",
+      "hexCode": "#887860",
+      "rgb": [
+        136,
+        120,
+        96
+      ],
+      "lab": [
+        51.28,
+        2.25,
+        15.46
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered olive soil"
+    },
+    {
+      "munsellCode": "2.5Y 5/3",
+      "colorName": "Light Olive Brown",
+      "hue": "2.5Y",
+      "hexCode": "#8e7448",
+      "rgb": [
+        142,
+        116,
+        72
+      ],
+      "lab": [
+        50.35,
+        4.16,
+        28.04
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Olive subsoil"
     },
     {
       "munsellCode": "2.5Y 5/4",
-      "colorName": "Light Olive Brown",
-      "hexCode": "#8e7c5c",
-      "rgb": [142, 124, 92],
-      "lab": [53.2, 3.8, 19.4],
-      "soil_organic_index": "Low (1.5%)",
-      "soil_type": "Silty Clay Subsoil"
+      "colorName": "Pale Olive",
+      "hue": "2.5Y",
+      "hexCode": "#8e7230",
+      "rgb": [
+        142,
+        114,
+        48
+      ],
+      "lab": [
+        49.49,
+        3.26,
+        39.73
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Weakly oxidized olive"
+    },
+    {
+      "munsellCode": "2.5Y 5/6",
+      "colorName": "Light Yellowish Brown",
+      "hue": "2.5Y",
+      "hexCode": "#946c10",
+      "rgb": [
+        148,
+        108,
+        16
+      ],
+      "lab": [
+        48.33,
+        8.06,
+        51.53
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Oxidized olive subsoil"
+    },
+    {
+      "munsellCode": "2.5Y 6/1",
+      "colorName": "Light Gray",
+      "hue": "2.5Y",
+      "hexCode": "#a49888",
+      "rgb": [
+        164,
+        152,
+        136
+      ],
+      "lab": [
+        63.45,
+        1.66,
+        10.01
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered, leached olive"
+    },
+    {
+      "munsellCode": "2.5Y 6/2",
+      "colorName": "Pale Brown",
+      "hue": "2.5Y",
+      "hexCode": "#a89470",
+      "rgb": [
+        168,
+        148,
+        112
+      ],
+      "lab": [
+        62.23,
+        1.95,
+        21.79
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Leached grayish brown"
+    },
+    {
+      "munsellCode": "2.5Y 6/3",
+      "colorName": "Pale Yellowish Brown",
+      "hue": "2.5Y",
+      "hexCode": "#ac9068",
+      "rgb": [
+        172,
+        144,
+        104
+      ],
+      "lab": [
+        61.41,
+        4.81,
+        25.18
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "B-horizon, dry"
+    },
+    {
+      "munsellCode": "2.5Y 6/4",
+      "colorName": "Light Yellowish Brown",
+      "hue": "2.5Y",
+      "hexCode": "#ac8c55",
+      "rgb": [
+        172,
+        140,
+        85
+      ],
+      "lab": [
+        60.05,
+        5.0,
+        33.78
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Oxidized subsoil"
+    },
+    {
+      "munsellCode": "2.5Y 6/6",
+      "colorName": "Light Yellowish Brown",
+      "hue": "2.5Y",
+      "hexCode": "#b49030",
+      "rgb": [
+        180,
+        144,
+        48
+      ],
+      "lab": [
+        61.54,
+        3.67,
+        53.51
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, dry"
+    },
+    {
+      "munsellCode": "2.5Y 6/8",
+      "colorName": "Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#be8c08",
+      "rgb": [
+        190,
+        140,
+        8
+      ],
+      "lab": [
+        61.41,
+        9.23,
+        65.1
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "2.5Y 7/1",
+      "colorName": "Very Pale Gray",
+      "hue": "2.5Y",
+      "hexCode": "#c2b8a6",
+      "rgb": [
+        194,
+        184,
+        166
+      ],
+      "lab": [
+        75.14,
+        0.48,
+        10.41
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly weathered, light"
+    },
+    {
+      "munsellCode": "2.5Y 7/2",
+      "colorName": "Very Pale Brown",
+      "hue": "2.5Y",
+      "hexCode": "#c6b49e",
+      "rgb": [
+        198,
+        180,
+        158
+      ],
+      "lab": [
+        74.26,
+        2.87,
+        13.56
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached, eluvial"
+    },
+    {
+      "munsellCode": "2.5Y 7/3",
+      "colorName": "Very Pale Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#c8b085",
+      "rgb": [
+        200,
+        176,
+        133
+      ],
+      "lab": [
+        72.91,
+        2.33,
+        25.23
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light-colored"
+    },
+    {
+      "munsellCode": "2.5Y 7/4",
+      "colorName": "Pale Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#ccac78",
+      "rgb": [
+        204,
+        172,
+        120
+      ],
+      "lab": [
+        72.03,
+        4.54,
+        31.07
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, low organic"
+    },
+    {
+      "munsellCode": "2.5Y 7/6",
+      "colorName": "Pale Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#d0b055",
+      "rgb": [
+        208,
+        176,
+        85
+      ],
+      "lab": [
+        72.97,
+        0.88,
+        50.04
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "2.5Y 7/8",
+      "colorName": "Bright Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#d8a838",
+      "rgb": [
+        216,
+        168,
+        56
+      ],
+      "lab": [
+        71.48,
+        6.87,
+        61.35
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Exposed, dry"
+    },
+    {
+      "munsellCode": "2.5Y 8/1",
+      "colorName": "White",
+      "hue": "2.5Y",
+      "hexCode": "#e2d6c4",
+      "rgb": [
+        226,
+        214,
+        196
+      ],
+      "lab": [
+        86.13,
+        1.14,
+        10.36
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly leached, calcareous/siliceous"
+    },
+    {
+      "munsellCode": "2.5Y 8/2",
+      "colorName": "White",
+      "hue": "2.5Y",
+      "hexCode": "#e6d4b2",
+      "rgb": [
+        230,
+        212,
+        178
+      ],
+      "lab": [
+        85.57,
+        0.94,
+        19.09
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached horizon"
+    },
+    {
+      "munsellCode": "2.5Y 8/3",
+      "colorName": "Pale Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#edd0a0",
+      "rgb": [
+        237,
+        208,
+        160
+      ],
+      "lab": [
+        84.82,
+        3.28,
+        27.59
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light surface"
+    },
+    {
+      "munsellCode": "2.5Y 8/4",
+      "colorName": "Pale Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#edd098",
+      "rgb": [
+        237,
+        208,
+        152
+      ],
+      "lab": [
+        84.68,
+        2.32,
+        31.55
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, dry"
+    },
+    {
+      "munsellCode": "2.5Y 8/6",
+      "colorName": "Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#edcc70",
+      "rgb": [
+        237,
+        204,
+        112
+      ],
+      "lab": [
+        83.1,
+        0.41,
+        49.67
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "2.5Y 8/8",
+      "colorName": "Bright Yellow",
+      "hue": "2.5Y",
+      "hexCode": "#f0c840",
+      "rgb": [
+        240,
+        200,
+        64
+      ],
+      "lab": [
+        81.95,
+        0.72,
+        69.3
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Exposed, highly oxidized"
+    },
+    {
+      "munsellCode": "2.5YR 2.5/1",
+      "colorName": "Blackish Red",
+      "hue": "2.5YR",
+      "hexCode": "#2e2020",
+      "rgb": [
+        46,
+        32,
+        32
+      ],
+      "lab": [
+        13.93,
+        6.77,
+        2.64
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic, dark red topsoil"
+    },
+    {
+      "munsellCode": "2.5YR 2.5/2",
+      "colorName": "Dark Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#341810",
+      "rgb": [
+        52,
+        24,
+        16
+      ],
+      "lab": [
+        12.1,
+        13.07,
+        11.3
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic red soil"
+    },
+    {
+      "munsellCode": "2.5YR 2.5/3",
+      "colorName": "Dark Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#3a1408",
+      "rgb": [
+        58,
+        20,
+        8
+      ],
+      "lab": [
+        12.07,
+        17.92,
+        15.15
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic red soil"
+    },
+    {
+      "munsellCode": "2.5YR 2.5/4",
+      "colorName": "Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#401008",
+      "rgb": [
+        64,
+        16,
+        8
+      ],
+      "lab": [
+        12.47,
+        22.82,
+        15.9
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Red topsoil"
+    },
+    {
+      "munsellCode": "2.5YR 3/1",
+      "colorName": "Dark Reddish Gray",
+      "hue": "2.5YR",
+      "hexCode": "#4a3030",
+      "rgb": [
+        74,
+        48,
+        48
+      ],
+      "lab": [
+        22.94,
+        11.88,
+        4.82
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Moist, high organic"
+    },
+    {
+      "munsellCode": "2.5YR 3/2",
+      "colorName": "Dark Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#502818",
+      "rgb": [
+        80,
+        40,
+        24
+      ],
+      "lab": [
+        21.17,
+        17.02,
+        18.65
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic red soil"
+    },
+    {
+      "munsellCode": "2.5YR 3/3",
+      "colorName": "Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#562010",
+      "rgb": [
+        86,
+        32,
+        16
+      ],
+      "lab": [
+        20.24,
+        23.98,
+        22.82
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Red-brown loam"
+    },
+    {
+      "munsellCode": "2.5YR 3/4",
+      "colorName": "Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#5c1a0c",
+      "rgb": [
+        92,
+        26,
+        12
+      ],
+      "lab": [
+        20.21,
+        29.39,
+        25.12
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Ferric red soil"
+    },
+    {
+      "munsellCode": "2.5YR 3/6",
+      "colorName": "Yellowish Red",
+      "hue": "2.5YR",
+      "hexCode": "#782015",
+      "rgb": [
+        120,
+        32,
+        21
+      ],
+      "lab": [
+        26.96,
+        37.51,
+        28.99
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Red-yellow transition"
+    },
+    {
+      "munsellCode": "2.5YR 4/1",
+      "colorName": "Reddish Gray",
+      "hue": "2.5YR",
+      "hexCode": "#685050",
+      "rgb": [
+        104,
+        80,
+        80
+      ],
+      "lab": [
+        36.48,
+        10.04,
+        3.85
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Moist, organic-influenced red"
+    },
+    {
+      "munsellCode": "2.5YR 4/2",
+      "colorName": "Dark Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#6c4038",
+      "rgb": [
+        108,
+        64,
+        56
+      ],
+      "lab": [
+        32.12,
+        18.17,
+        13.02
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Humic red subsoil"
+    },
+    {
+      "munsellCode": "2.5YR 4/3",
+      "colorName": "Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#743428",
+      "rgb": [
+        116,
+        52,
+        40
+      ],
+      "lab": [
+        30.21,
+        27.12,
+        20.9
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Red-brown subsoil"
+    },
+    {
+      "munsellCode": "2.5YR 4/4",
+      "colorName": "Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#7a2c20",
+      "rgb": [
+        122,
+        44,
+        32
+      ],
+      "lab": [
+        29.52,
+        33.26,
+        25.29
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Ferric loam"
+    },
+    {
+      "munsellCode": "2.5YR 4/6",
+      "colorName": "Yellowish Red",
+      "hue": "2.5YR",
+      "hexCode": "#8a2018",
+      "rgb": [
+        138,
+        32,
+        24
+      ],
+      "lab": [
+        30.65,
+        43.8,
+        32.15
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Oxidized red subsoil"
+    },
+    {
+      "munsellCode": "2.5YR 4/8",
+      "colorName": "Red",
+      "hue": "2.5YR",
+      "hexCode": "#941810",
+      "rgb": [
+        148,
+        24,
+        16
+      ],
+      "lab": [
+        31.78,
+        49.23,
+        38.2
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Strongly oxidized"
+    },
+    {
+      "munsellCode": "2.5YR 5/1",
+      "colorName": "Pinkish Gray",
+      "hue": "2.5YR",
+      "hexCode": "#886868",
+      "rgb": [
+        136,
+        104,
+        104
+      ],
+      "lab": [
+        47.15,
+        12.8,
+        4.94
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Weathered red, moist"
+    },
+    {
+      "munsellCode": "2.5YR 5/2",
+      "colorName": "Pale Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#8c5c54",
+      "rgb": [
+        140,
+        92,
+        84
+      ],
+      "lab": [
+        44.05,
+        18.65,
+        12.67
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weakly humic red"
+    },
+    {
+      "munsellCode": "2.5YR 5/3",
+      "colorName": "Reddish Yellow",
+      "hue": "2.5YR",
+      "hexCode": "#985048",
+      "rgb": [
+        152,
+        80,
+        72
+      ],
+      "lab": [
+        42.58,
+        29.13,
+        18.22
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Red-yellow soil"
+    },
+    {
+      "munsellCode": "2.5YR 5/4",
+      "colorName": "Reddish Yellow",
+      "hue": "2.5YR",
+      "hexCode": "#9e4438",
+      "rgb": [
+        158,
+        68,
+        56
+      ],
+      "lab": [
+        40.72,
+        36.59,
+        25.66
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Red-yellow Ultisol-like"
+    },
+    {
+      "munsellCode": "2.5YR 5/6",
+      "colorName": "Yellowish Red",
+      "hue": "2.5YR",
+      "hexCode": "#a83028",
+      "rgb": [
+        168,
+        48,
+        40
+      ],
+      "lab": [
+        38.88,
+        48.36,
+        33.39
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached red soil"
+    },
+    {
+      "munsellCode": "2.5YR 5/8",
+      "colorName": "Red",
+      "hue": "2.5YR",
+      "hexCode": "#b83020",
+      "rgb": [
+        184,
+        48,
+        32
+      ],
+      "lab": [
+        41.86,
+        53.29,
+        41.79
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Highly leached, dry"
+    },
+    {
+      "munsellCode": "2.5YR 6/1",
+      "colorName": "Pale Reddish Gray",
+      "hue": "2.5YR",
+      "hexCode": "#aa8c88",
+      "rgb": [
+        170,
+        140,
+        136
+      ],
+      "lab": [
+        60.85,
+        10.68,
+        6.38
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered, light red"
+    },
+    {
+      "munsellCode": "2.5YR 6/2",
+      "colorName": "Pale Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#b08078",
+      "rgb": [
+        176,
+        128,
+        120
+      ],
+      "lab": [
+        58.06,
+        17.44,
+        11.66
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Leached red subsoil"
+    },
+    {
+      "munsellCode": "2.5YR 6/3",
+      "colorName": "Light Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#b87060",
+      "rgb": [
+        184,
+        112,
+        96
+      ],
+      "lab": [
+        54.68,
+        26.73,
+        20.98
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "B-horizon, low organic"
+    },
+    {
+      "munsellCode": "2.5YR 6/4",
+      "colorName": "Light Reddish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#bc6850",
+      "rgb": [
+        188,
+        104,
+        80
+      ],
+      "lab": [
+        53.14,
+        31.24,
+        28.23
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Red-yellow subsoil"
+    },
+    {
+      "munsellCode": "2.5YR 6/6",
+      "colorName": "Yellowish Red",
+      "hue": "2.5YR",
+      "hexCode": "#c05040",
+      "rgb": [
+        192,
+        80,
+        64
+      ],
+      "lab": [
+        48.65,
+        43.94,
+        31.94
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Well drained, leached"
+    },
+    {
+      "munsellCode": "2.5YR 6/8",
+      "colorName": "Red",
+      "hue": "2.5YR",
+      "hexCode": "#c84030",
+      "rgb": [
+        200,
+        64,
+        48
+      ],
+      "lab": [
+        47.18,
+        53.01,
+        39.61
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Dry, exposed red soil"
+    },
+    {
+      "munsellCode": "2.5YR 7/1",
+      "colorName": "Pinkish White",
+      "hue": "2.5YR",
+      "hexCode": "#cdb0a8",
+      "rgb": [
+        205,
+        176,
+        168
+      ],
+      "lab": [
+        74.1,
+        9.18,
+        7.96
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly weathered, eluvial"
+    },
+    {
+      "munsellCode": "2.5YR 7/2",
+      "colorName": "Pale Pink",
+      "hue": "2.5YR",
+      "hexCode": "#d0a090",
+      "rgb": [
+        208,
+        160,
+        144
+      ],
+      "lab": [
+        69.87,
+        15.53,
+        15.2
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached red soil"
+    },
+    {
+      "munsellCode": "2.5YR 7/3",
+      "colorName": "Very Pale Brown",
+      "hue": "2.5YR",
+      "hexCode": "#d89080",
+      "rgb": [
+        216,
+        144,
+        128
+      ],
+      "lab": [
+        66.6,
+        25.38,
+        19.67
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, dry"
+    },
+    {
+      "munsellCode": "2.5YR 7/4",
+      "colorName": "Very Pale Brown",
+      "hue": "2.5YR",
+      "hexCode": "#dc8870",
+      "rgb": [
+        220,
+        136,
+        112
+      ],
+      "lab": [
+        64.96,
+        29.58,
+        26.43
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Weakly developed"
+    },
+    {
+      "munsellCode": "2.5YR 7/6",
+      "colorName": "Light Yellowish Red",
+      "hue": "2.5YR",
+      "hexCode": "#d86050",
+      "rgb": [
+        216,
+        96,
+        80
+      ],
+      "lab": [
+        55.63,
+        46.02,
+        32.24
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached"
+    },
+    {
+      "munsellCode": "2.5YR 7/8",
+      "colorName": "Yellowish Red",
+      "hue": "2.5YR",
+      "hexCode": "#d85040",
+      "rgb": [
+        216,
+        80,
+        64
+      ],
+      "lab": [
+        52.63,
+        52.44,
+        37.62
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Dry, oxidized"
+    },
+    {
+      "munsellCode": "2.5YR 8/1",
+      "colorName": "White",
+      "hue": "2.5YR",
+      "hexCode": "#edd0ca",
+      "rgb": [
+        237,
+        208,
+        202
+      ],
+      "lab": [
+        85.7,
+        9.16,
+        6.68
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly leached, quartz-rich"
+    },
+    {
+      "munsellCode": "2.5YR 8/2",
+      "colorName": "Pale Pink",
+      "hue": "2.5YR",
+      "hexCode": "#edcabf",
+      "rgb": [
+        237,
+        202,
+        191
+      ],
+      "lab": [
+        83.97,
+        10.63,
+        10.05
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached horizon"
+    },
+    {
+      "munsellCode": "2.5YR 8/3",
+      "colorName": "Very Pale Brown",
+      "hue": "2.5YR",
+      "hexCode": "#f2beae",
+      "rgb": [
+        242,
+        190,
+        174
+      ],
+      "lab": [
+        81.16,
+        16.4,
+        15.21
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light-colored surface"
+    },
+    {
+      "munsellCode": "2.5YR 8/4",
+      "colorName": "Pale Yellowish Brown",
+      "hue": "2.5YR",
+      "hexCode": "#f5b4a0",
+      "rgb": [
+        245,
+        180,
+        160
+      ],
+      "lab": [
+        78.81,
+        21.04,
+        19.49
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, low organic"
+    },
+    {
+      "munsellCode": "5YR 2.5/1",
+      "colorName": "Black",
+      "hue": "5YR",
+      "hexCode": "#292322",
+      "rgb": [
+        41,
+        35,
+        34
+      ],
+      "lab": [
+        14.34,
+        2.61,
+        1.7
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic topsoil"
+    },
+    {
+      "munsellCode": "5YR 2.5/2",
+      "colorName": "Dark Brown",
+      "hue": "5YR",
+      "hexCode": "#2f221f",
+      "rgb": [
+        47,
+        34,
+        31
+      ],
+      "lab": [
+        14.66,
+        5.67,
+        4.42
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic topsoil"
+    },
+    {
+      "munsellCode": "5YR 3/1",
+      "colorName": "Very Dark Gray",
+      "hue": "5YR",
+      "hexCode": "#423632",
+      "rgb": [
+        66,
+        54,
+        50
+      ],
+      "lab": [
+        23.76,
+        4.57,
+        4.5
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic, moist"
+    },
+    {
+      "munsellCode": "5YR 3/2",
+      "colorName": "Very Dark Brown",
+      "hue": "5YR",
+      "hexCode": "#4a3128",
+      "rgb": [
+        74,
+        49,
+        40
+      ],
+      "lab": [
+        23.02,
+        10.05,
+        10.31
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic brown forest soil"
+    },
+    {
+      "munsellCode": "5YR 3/3",
+      "colorName": "Dark Brown",
+      "hue": "5YR",
+      "hexCode": "#562d1d",
+      "rgb": [
+        86,
+        45,
+        29
+      ],
+      "lab": [
+        23.49,
+        17.13,
+        18.48
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Brown topsoil"
+    },
+    {
+      "munsellCode": "5YR 3/4",
+      "colorName": "Dark Brown",
+      "hue": "5YR",
+      "hexCode": "#63200a",
+      "rgb": [
+        99,
+        32,
+        10
+      ],
+      "lab": [
+        22.68,
+        29.18,
+        29.07
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Brown loam"
+    },
+    {
+      "munsellCode": "5YR 4/1",
+      "colorName": "Dark Gray",
+      "hue": "5YR",
+      "hexCode": "#62544e",
+      "rgb": [
+        98,
+        84,
+        78
+      ],
+      "lab": [
+        36.91,
+        4.67,
+        5.63
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Moist, organic-influenced"
+    },
+    {
+      "munsellCode": "5YR 4/2",
+      "colorName": "Dark Brown",
+      "hue": "5YR",
+      "hexCode": "#694b3e",
+      "rgb": [
+        105,
+        75,
+        62
+      ],
+      "lab": [
+        34.77,
+        10.84,
+        12.76
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic brown soil"
+    },
+    {
+      "munsellCode": "5YR 4/3",
+      "colorName": "Brown",
+      "hue": "5YR",
+      "hexCode": "#74462f",
+      "rgb": [
+        116,
+        70,
+        47
+      ],
+      "lab": [
+        34.6,
+        17.21,
+        22.06
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Brown loam topsoil"
+    },
+    {
+      "munsellCode": "5YR 4/4",
+      "colorName": "Brown",
+      "hue": "5YR",
+      "hexCode": "#863d1b",
+      "rgb": [
+        134,
+        61,
+        27
+      ],
+      "lab": [
+        34.97,
+        29.0,
+        34.61
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Brown mineral soil"
+    },
+    {
+      "munsellCode": "5YR 4/6",
+      "colorName": "Dark Yellowish Brown",
+      "hue": "5YR",
+      "hexCode": "#953708",
+      "rgb": [
+        149,
+        55,
+        8
+      ],
+      "lab": [
+        36.25,
+        37.6,
+        44.78
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Brown subsoil"
+    },
+    {
+      "munsellCode": "5YR 5/1",
+      "colorName": "Gray",
+      "hue": "5YR",
+      "hexCode": "#7a6a64",
+      "rgb": [
+        122,
+        106,
+        100
+      ],
+      "lab": [
+        46.13,
+        5.25,
+        5.68
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Moist, silty brown"
+    },
+    {
+      "munsellCode": "5YR 5/2",
+      "colorName": "Brown",
+      "hue": "5YR",
+      "hexCode": "#886a5c",
+      "rgb": [
+        136,
+        106,
+        92
+      ],
+      "lab": [
+        47.39,
+        9.82,
+        12.43
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered brown soil"
+    },
+    {
+      "munsellCode": "5YR 5/3",
+      "colorName": "Brown",
+      "hue": "5YR",
+      "hexCode": "#8d5f48",
+      "rgb": [
+        141,
+        95,
+        72
+      ],
+      "lab": [
+        44.68,
+        15.93,
+        20.72
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Typical brown soil"
+    },
+    {
+      "munsellCode": "5YR 5/4",
+      "colorName": "Yellowish Brown",
+      "hue": "5YR",
+      "hexCode": "#9e5d37",
+      "rgb": [
+        158,
+        93,
+        55
+      ],
+      "lab": [
+        46.14,
+        22.98,
+        32.78
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Brown-yellow subsoil"
+    },
+    {
+      "munsellCode": "5YR 5/6",
+      "colorName": "Yellowish Brown",
+      "hue": "5YR",
+      "hexCode": "#aa5321",
+      "rgb": [
+        170,
+        83,
+        33
+      ],
+      "lab": [
+        45.42,
+        32.39,
+        43.84
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Oxidized brown soil"
+    },
+    {
+      "munsellCode": "5YR 5/8",
+      "colorName": "Strong Brown",
+      "hue": "5YR",
+      "hexCode": "#bf500e",
+      "rgb": [
+        191,
+        80,
+        14
+      ],
+      "lab": [
+        48.06,
+        41.78,
+        54.54
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Leached, well drained"
+    },
+    {
+      "munsellCode": "5YR 6/1",
+      "colorName": "Light Gray",
+      "hue": "5YR",
+      "hexCode": "#9e8a86",
+      "rgb": [
+        158,
+        138,
+        134
+      ],
+      "lab": [
+        59.13,
+        6.84,
+        4.9
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered, partially leached"
+    },
+    {
+      "munsellCode": "5YR 6/2",
+      "colorName": "Pale Brown",
+      "hue": "5YR",
+      "hexCode": "#a88075",
+      "rgb": [
+        168,
+        128,
+        117
+      ],
+      "lab": [
+        57.12,
+        13.82,
+        11.94
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Leached brown soil"
+    },
+    {
+      "munsellCode": "5YR 6/3",
+      "colorName": "Pale Brown",
+      "hue": "5YR",
+      "hexCode": "#b07b67",
+      "rgb": [
+        176,
+        123,
+        103
+      ],
+      "lab": [
+        56.46,
+        18.11,
+        19.19
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Weakly developed"
+    },
+    {
+      "munsellCode": "5YR 6/4",
+      "colorName": "Light Yellowish Brown",
+      "hue": "5YR",
+      "hexCode": "#ba7252",
+      "rgb": [
+        186,
+        114,
+        82
+      ],
+      "lab": [
+        55.16,
+        25.14,
+        29.61
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "B-horizon, dry"
+    },
+    {
+      "munsellCode": "5YR 6/6",
+      "colorName": "Light Yellowish Brown",
+      "hue": "5YR",
+      "hexCode": "#c26a3b",
+      "rgb": [
+        194,
+        106,
+        59
+      ],
+      "lab": [
+        54.13,
+        31.18,
+        41.11
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached subsoil"
+    },
+    {
+      "munsellCode": "5YR 6/8",
+      "colorName": "Reddish Yellow",
+      "hue": "5YR",
+      "hexCode": "#d0642b",
+      "rgb": [
+        208,
+        100,
+        43
+      ],
+      "lab": [
+        54.76,
+        39.19,
+        50.23
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached"
+    },
+    {
+      "munsellCode": "5YR 7/1",
+      "colorName": "Very Pale Gray",
+      "hue": "5YR",
+      "hexCode": "#b9a5a3",
+      "rgb": [
+        185,
+        165,
+        163
+      ],
+      "lab": [
+        69.38,
+        6.92,
+        3.68
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly weathered, light"
+    },
+    {
+      "munsellCode": "5YR 7/2",
+      "colorName": "Very Pale Brown",
+      "hue": "5YR",
+      "hexCode": "#c39c90",
+      "rgb": [
+        195,
+        156,
+        144
+      ],
+      "lab": [
+        67.57,
+        12.68,
+        11.78
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached, eluvial"
+    },
+    {
+      "munsellCode": "5YR 7/3",
+      "colorName": "Very Pale Brown",
+      "hue": "5YR",
+      "hexCode": "#ce967e",
+      "rgb": [
+        206,
+        150,
+        126
+      ],
+      "lab": [
+        66.86,
+        17.95,
+        20.95
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light-colored"
+    },
+    {
+      "munsellCode": "5YR 7/4",
+      "colorName": "Very Pale Brown",
+      "hue": "5YR",
+      "hexCode": "#d88c6a",
+      "rgb": [
+        216,
+        140,
+        106
+      ],
+      "lab": [
+        65.28,
+        25.3,
+        30.06
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, low organic"
+    },
+    {
+      "munsellCode": "5YR 7/6",
+      "colorName": "Pale Yellow",
+      "hue": "5YR",
+      "hexCode": "#e38558",
+      "rgb": [
+        227,
+        133,
+        88
+      ],
+      "lab": [
+        64.81,
+        31.99,
+        39.47
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "5YR 7/8",
+      "colorName": "Pale Yellow",
+      "hue": "5YR",
+      "hexCode": "#e8814d",
+      "rgb": [
+        232,
+        129,
+        77
+      ],
+      "lab": [
+        64.48,
+        35.36,
+        44.97
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Dry, exposed"
+    },
+    {
+      "munsellCode": "5YR 8/1",
+      "colorName": "White",
+      "hue": "5YR",
+      "hexCode": "#dfc9c8",
+      "rgb": [
+        223,
+        201,
+        200
+      ],
+      "lab": [
+        82.72,
+        7.53,
+        3.29
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly leached, siliceous"
+    },
+    {
+      "munsellCode": "5YR 8/2",
+      "colorName": "White",
+      "hue": "5YR",
+      "hexCode": "#ebc4bd",
+      "rgb": [
+        235,
+        196,
+        189
+      ],
+      "lab": [
+        82.28,
+        12.76,
+        8.68
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached horizon"
+    },
+    {
+      "munsellCode": "5YR 8/3",
+      "colorName": "Pale Yellow",
+      "hue": "5YR",
+      "hexCode": "#efbdab",
+      "rgb": [
+        239,
+        189,
+        171
+      ],
+      "lab": [
+        80.56,
+        15.4,
+        15.94
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light surface"
+    },
+    {
+      "munsellCode": "5YR 8/4",
+      "colorName": "Pale Yellow",
+      "hue": "5YR",
+      "hexCode": "#f7b499",
+      "rgb": [
+        247,
+        180,
+        153
+      ],
+      "lab": [
+        78.88,
+        20.98,
+        23.37
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, dry"
+    },
+    {
+      "munsellCode": "7.5YR 2.5/1",
+      "colorName": "Black",
+      "hue": "7.5YR",
+      "hexCode": "#312420",
+      "rgb": [
+        49,
+        36,
+        32
+      ],
+      "lab": [
+        15.59,
+        5.44,
+        5.04
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic topsoil"
+    },
+    {
+      "munsellCode": "7.5YR 2.5/2",
+      "colorName": "Very Dark Brown",
+      "hue": "7.5YR",
+      "hexCode": "#39251b",
+      "rgb": [
+        57,
+        37,
+        27
+      ],
+      "lab": [
+        16.86,
+        8.0,
+        10.46
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic dark topsoil"
+    },
+    {
+      "munsellCode": "7.5YR 2.5/3",
+      "colorName": "Very Dark Brown",
+      "hue": "7.5YR",
+      "hexCode": "#432315",
+      "rgb": [
+        67,
+        35,
+        21
+      ],
+      "lab": [
+        17.69,
+        13.7,
+        15.9
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Dark brown forest soil"
+    },
+    {
+      "munsellCode": "7.5YR 3/1",
+      "colorName": "Very Dark Grayish Brown",
+      "hue": "7.5YR",
+      "hexCode": "#443530",
+      "rgb": [
+        68,
+        53,
+        48
+      ],
+      "lab": [
+        23.63,
+        5.8,
+        5.69
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "High organic, moist"
+    },
+    {
+      "munsellCode": "7.5YR 3/2",
+      "colorName": "Very Dark Brown",
+      "hue": "7.5YR",
+      "hexCode": "#4c3420",
+      "rgb": [
+        76,
+        52,
+        32
+      ],
+      "lab": [
+        23.99,
+        8.1,
+        16.87
+      ],
+      "soil_organic_index": "Very High (>8%)",
+      "soil_type": "Humic topsoil"
+    },
+    {
+      "munsellCode": "7.5YR 3/3",
+      "colorName": "Dark Brown",
+      "hue": "7.5YR",
+      "hexCode": "#522c15",
+      "rgb": [
+        82,
+        44,
+        21
+      ],
+      "lab": [
+        22.48,
+        15.24,
+        22.13
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Brown topsoil"
+    },
+    {
+      "munsellCode": "7.5YR 3/4",
+      "colorName": "Dark Brown",
+      "hue": "7.5YR",
+      "hexCode": "#592c11",
+      "rgb": [
+        89,
+        44,
+        17
+      ],
+      "lab": [
+        23.56,
+        18.35,
+        25.96
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Brown loam"
+    },
+    {
+      "munsellCode": "7.5YR 4/1",
+      "colorName": "Dark Grayish Brown",
+      "hue": "7.5YR",
+      "hexCode": "#5f524b",
+      "rgb": [
+        95,
+        82,
+        75
+      ],
+      "lab": [
+        35.94,
+        4.09,
+        6.08
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Moist, organic-rich"
+    },
+    {
+      "munsellCode": "7.5YR 4/2",
+      "colorName": "Dark Brown",
+      "hue": "7.5YR",
+      "hexCode": "#6e5140",
+      "rgb": [
+        110,
+        81,
+        64
+      ],
+      "lab": [
+        37.06,
+        9.66,
+        14.72
+      ],
+      "soil_organic_index": "High (6\u20138%)",
+      "soil_type": "Humic brown soil"
+    },
+    {
+      "munsellCode": "7.5YR 4/3",
+      "colorName": "Brown",
+      "hue": "7.5YR",
+      "hexCode": "#744b32",
+      "rgb": [
+        116,
+        75,
+        50
+      ],
+      "lab": [
+        35.94,
+        14.47,
+        21.93
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Brown loam"
+    },
+    {
+      "munsellCode": "7.5YR 4/4",
+      "colorName": "Brown",
+      "hue": "7.5YR",
+      "hexCode": "#7b4019",
+      "rgb": [
+        123,
+        64,
+        25
+      ],
+      "lab": [
+        33.87,
+        22.45,
+        33.96
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Typical brown soil"
+    },
+    {
+      "munsellCode": "7.5YR 4/6",
+      "colorName": "Dark Yellowish Brown",
+      "hue": "7.5YR",
+      "hexCode": "#86430d",
+      "rgb": [
+        134,
+        67,
+        13
+      ],
+      "lab": [
+        36.2,
+        25.22,
+        41.93
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Yellowish brown subsoil"
+    },
+    {
+      "munsellCode": "7.5YR 5/1",
+      "colorName": "Grayish Brown",
+      "hue": "7.5YR",
+      "hexCode": "#7c6f6c",
+      "rgb": [
+        124,
+        111,
+        108
+      ],
+      "lab": [
+        47.93,
+        4.52,
+        3.51
+      ],
+      "soil_organic_index": "Moderate\u2013High (4\u20136%)",
+      "soil_type": "Weathered, moist"
+    },
+    {
+      "munsellCode": "7.5YR 5/2",
+      "colorName": "Brown",
+      "hue": "7.5YR",
+      "hexCode": "#856a5a",
+      "rgb": [
+        133,
+        106,
+        90
+      ],
+      "lab": [
+        47.02,
+        8.26,
+        13.06
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered brown soil"
+    },
+    {
+      "munsellCode": "7.5YR 5/3",
+      "colorName": "Brown",
+      "hue": "7.5YR",
+      "hexCode": "#8f694e",
+      "rgb": [
+        143,
+        105,
+        78
+      ],
+      "lab": [
+        47.61,
+        11.62,
+        21.11
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Brown-yellow soil"
+    },
+    {
+      "munsellCode": "7.5YR 5/4",
+      "colorName": "Yellowish Brown",
+      "hue": "7.5YR",
+      "hexCode": "#97643b",
+      "rgb": [
+        151,
+        100,
+        59
+      ],
+      "lab": [
+        46.99,
+        16.22,
+        31.35
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Yellowish brown soil"
+    },
+    {
+      "munsellCode": "7.5YR 5/6",
+      "colorName": "Strong Brown",
+      "hue": "7.5YR",
+      "hexCode": "#a15e1c",
+      "rgb": [
+        161,
+        94,
+        28
+      ],
+      "lab": [
+        46.53,
+        22.35,
+        46.58
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Oxidized subsoil"
+    },
+    {
+      "munsellCode": "7.5YR 5/8",
+      "colorName": "Yellowish Red",
+      "hue": "7.5YR",
+      "hexCode": "#ae5b05",
+      "rgb": [
+        174,
+        91,
+        5
+      ],
+      "lab": [
+        47.61,
+        29.15,
+        55.14
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Leached, well drained"
+    },
+    {
+      "munsellCode": "7.5YR 6/1",
+      "colorName": "Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#a2918b",
+      "rgb": [
+        162,
+        145,
+        139
+      ],
+      "lab": [
+        61.48,
+        5.28,
+        5.48
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Weathered, light brown"
+    },
+    {
+      "munsellCode": "7.5YR 6/2",
+      "colorName": "Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#b08e7d",
+      "rgb": [
+        176,
+        142,
+        125
+      ],
+      "lab": [
+        61.7,
+        10.28,
+        13.91
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Leached brown soil"
+    },
+    {
+      "munsellCode": "7.5YR 6/3",
+      "colorName": "Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#b4886e",
+      "rgb": [
+        180,
+        136,
+        110
+      ],
+      "lab": [
+        60.28,
+        13.29,
+        20.48
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Weakly developed"
+    },
+    {
+      "munsellCode": "7.5YR 6/4",
+      "colorName": "Light Yellowish Brown",
+      "hue": "7.5YR",
+      "hexCode": "#b67c50",
+      "rgb": [
+        182,
+        124,
+        80
+      ],
+      "lab": [
+        57.02,
+        17.76,
+        32.94
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "B-horizon, dry"
+    },
+    {
+      "munsellCode": "7.5YR 6/6",
+      "colorName": "Light Yellowish Brown",
+      "hue": "7.5YR",
+      "hexCode": "#c07738",
+      "rgb": [
+        192,
+        119,
+        56
+      ],
+      "lab": [
+        56.77,
+        23.14,
+        45.44
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Oxidized subsoil"
+    },
+    {
+      "munsellCode": "7.5YR 6/8",
+      "colorName": "Reddish Yellow",
+      "hue": "7.5YR",
+      "hexCode": "#cc6d21",
+      "rgb": [
+        204,
+        109,
+        33
+      ],
+      "lab": [
+        55.97,
+        32.63,
+        55.28
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached"
+    },
+    {
+      "munsellCode": "7.5YR 7/1",
+      "colorName": "Very Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#c7b8b2",
+      "rgb": [
+        199,
+        184,
+        178
+      ],
+      "lab": [
+        75.85,
+        4.29,
+        4.95
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly weathered, light"
+    },
+    {
+      "munsellCode": "7.5YR 7/2",
+      "colorName": "Very Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#c9a995",
+      "rgb": [
+        201,
+        169,
+        149
+      ],
+      "lab": [
+        71.53,
+        8.62,
+        14.67
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached, eluvial"
+    },
+    {
+      "munsellCode": "7.5YR 7/3",
+      "colorName": "Very Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#d2a68a",
+      "rgb": [
+        210,
+        166,
+        138
+      ],
+      "lab": [
+        71.43,
+        12.29,
+        20.67
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light-colored"
+    },
+    {
+      "munsellCode": "7.5YR 7/4",
+      "colorName": "Very Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#d79a6e",
+      "rgb": [
+        215,
+        154,
+        110
+      ],
+      "lab": [
+        68.52,
+        17.71,
+        32.07
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, low organic"
+    },
+    {
+      "munsellCode": "7.5YR 7/6",
+      "colorName": "Pale Yellow",
+      "hue": "7.5YR",
+      "hexCode": "#e1934e",
+      "rgb": [
+        225,
+        147,
+        78
+      ],
+      "lab": [
+        67.59,
+        23.1,
+        47.78
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
+    },
+    {
+      "munsellCode": "7.5YR 7/8",
+      "colorName": "Pale Yellow",
+      "hue": "7.5YR",
+      "hexCode": "#e48a3b",
+      "rgb": [
+        228,
+        138,
+        59
+      ],
+      "lab": [
+        65.74,
+        28.13,
+        54.84
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Dry, exposed"
+    },
+    {
+      "munsellCode": "7.5YR 8/1",
+      "colorName": "White",
+      "hue": "7.5YR",
+      "hexCode": "#e4cfc7",
+      "rgb": [
+        228,
+        207,
+        199
+      ],
+      "lab": [
+        84.61,
+        5.99,
+        6.61
+      ],
+      "soil_organic_index": "Moderate (3\u20134%)",
+      "soil_type": "Highly leached, siliceous"
+    },
+    {
+      "munsellCode": "7.5YR 8/2",
+      "colorName": "Very Pale Brown",
+      "hue": "7.5YR",
+      "hexCode": "#eac8b8",
+      "rgb": [
+        234,
+        200,
+        184
+      ],
+      "lab": [
+        83.05,
+        9.55,
+        12.44
+      ],
+      "soil_organic_index": "Low\u2013Moderate (2\u20133%)",
+      "soil_type": "Bleached horizon"
+    },
+    {
+      "munsellCode": "7.5YR 8/3",
+      "colorName": "Pale Yellow",
+      "hue": "7.5YR",
+      "hexCode": "#f0c4a9",
+      "rgb": [
+        240,
+        196,
+        169
+      ],
+      "lab": [
+        82.31,
+        11.83,
+        19.46
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Dry, light surface"
+    },
+    {
+      "munsellCode": "7.5YR 8/4",
+      "colorName": "Pale Yellow",
+      "hue": "7.5YR",
+      "hexCode": "#f4be91",
+      "rgb": [
+        244,
+        190,
+        145
+      ],
+      "lab": [
+        80.8,
+        13.67,
+        30.15
+      ],
+      "soil_organic_index": "Low (1\u20132%)",
+      "soil_type": "Leached, dry"
+    },
+    {
+      "munsellCode": "7.5YR 8/6",
+      "colorName": "Bright Yellow",
+      "hue": "7.5YR",
+      "hexCode": "#f9b36c",
+      "rgb": [
+        249,
+        179,
+        108
+      ],
+      "lab": [
+        78.15,
+        18.03,
+        45.94
+      ],
+      "soil_organic_index": "Very Low (<1%)",
+      "soil_type": "Strongly leached, dry"
     }
   ],
   "fake_centroids": [
-    { "name": "Human Skin Tone 1", "rgb": [225, 175, 150], "hexCode": "#E1AF96", "type": "skin" },
-    { "name": "Human Skin Tone 2", "rgb": [185, 130, 105], "hexCode": "#B98269", "type": "skin" },
-    { "name": "Blank White Paper", "rgb": [245, 245, 245], "hexCode": "#F5F5F5", "type": "paper" },
-    { "name": "Office Desk Brown", "rgb": [175, 120, 75], "hexCode": "#AF784B", "type": "furniture" },
-    { "name": "Gray Concrete / Tile", "rgb": [180, 180, 180], "hexCode": "#B4B4B4", "type": "tile" },
-    { "name": "Dark Keyboard / Surface", "rgb": [35, 35, 35], "hexCode": "#232323", "type": "plastic" },
-    { "name": "Plant Foliage / Leaf", "rgb": [45, 160, 40], "hexCode": "#2DA028", "type": "foliage" },
-    { "name": "Blue Cloth / Object", "rgb": [45, 115, 205], "hexCode": "#2D73CD", "type": "artificial" }
+    {
+      "name": "Human Skin Tone Light",
+      "rgb": [
+        225,
+        175,
+        150
+      ],
+      "hexCode": "#E1AF96",
+      "lab": [
+        75.37,
+        14.8,
+        19.81
+      ],
+      "type": "skin"
+    },
+    {
+      "name": "Human Skin Tone Medium",
+      "rgb": [
+        197,
+        140,
+        107
+      ],
+      "hexCode": "#C58C6B",
+      "lab": [
+        63.08,
+        17.7,
+        26.22
+      ],
+      "type": "skin"
+    },
+    {
+      "name": "Human Skin Tone Dark",
+      "rgb": [
+        141,
+        85,
+        56
+      ],
+      "hexCode": "#8D5538",
+      "lab": [
+        41.92,
+        20.25,
+        26.57
+      ],
+      "type": "skin"
+    },
+    {
+      "name": "Blank White Paper",
+      "rgb": [
+        245,
+        245,
+        245
+      ],
+      "hexCode": "#F5F5F5",
+      "lab": [
+        96.54,
+        0.01,
+        -0.01
+      ],
+      "type": "paper"
+    },
+    {
+      "name": "Lined Notebook Paper",
+      "rgb": [
+        236,
+        236,
+        236
+      ],
+      "hexCode": "#ECECEC",
+      "lab": [
+        93.4,
+        0.0,
+        -0.01
+      ],
+      "type": "paper"
+    },
+    {
+      "name": "Office Desk Wood Light",
+      "rgb": [
+        210,
+        180,
+        140
+      ],
+      "hexCode": "#D2B48C",
+      "lab": [
+        74.97,
+        5.02,
+        24.42
+      ],
+      "type": "furniture"
+    },
+    {
+      "name": "Office Desk Brown",
+      "rgb": [
+        139,
+        90,
+        43
+      ],
+      "hexCode": "#8B5A2B",
+      "lab": [
+        42.73,
+        15.5,
+        34.69
+      ],
+      "type": "furniture"
+    },
+    {
+      "name": "Gray Concrete / Tile",
+      "rgb": [
+        176,
+        176,
+        176
+      ],
+      "hexCode": "#B0B0B0",
+      "lab": [
+        71.84,
+        0.0,
+        -0.01
+      ],
+      "type": "tile"
+    },
+    {
+      "name": "Ceramic Floor Tile",
+      "rgb": [
+        220,
+        220,
+        220
+      ],
+      "hexCode": "#DCDCDC",
+      "lab": [
+        87.76,
+        0.0,
+        -0.01
+      ],
+      "type": "tile"
+    },
+    {
+      "name": "Dark Keyboard / Surface",
+      "rgb": [
+        40,
+        40,
+        40
+      ],
+      "hexCode": "#282828",
+      "lab": [
+        16.11,
+        0.0,
+        -0.0
+      ],
+      "type": "plastic"
+    },
+    {
+      "name": "Plant Foliage / Leaf",
+      "rgb": [
+        46,
+        139,
+        87
+      ],
+      "hexCode": "#2E8B57",
+      "lab": [
+        51.54,
+        -39.71,
+        20.05
+      ],
+      "type": "foliage"
+    },
+    {
+      "name": "Blue Cloth / Object",
+      "rgb": [
+        46,
+        109,
+        164
+      ],
+      "hexCode": "#2E6DA4",
+      "lab": [
+        44.52,
+        -1.29,
+        -35.43
+      ],
+      "type": "artificial"
+    }
   ]
 }

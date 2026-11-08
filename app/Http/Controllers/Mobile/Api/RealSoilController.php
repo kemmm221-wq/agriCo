@@ -42,6 +42,22 @@ class RealSoilController extends Controller
                 'hex_code', 'soil_organic_index', 'soil_type', 'description'
             ])->get();
 
+            $referenceCentroids = $munsellColors->map(function ($c) {
+                $hex = ltrim($c->hex_code ?? '#5A4643', '#');
+                $r = hexdec(substr($hex, 0, 2));
+                $g = hexdec(substr($hex, 2, 2));
+                $b = hexdec(substr($hex, 4, 2));
+                return [
+                    'munsellCode'        => $c->full_code,
+                    'colorName'          => $c->color_name,
+                    'hue'                => $c->hue,
+                    'hexCode'            => $c->hex_code,
+                    'rgb'                => [$r, $g, $b],
+                    'soil_organic_index' => $c->soil_organic_index,
+                    'soil_type'          => $c->soil_type,
+                ];
+            });
+
             // Reference non-soil centroids (skin, paper, desks, walls, plastics) for offline rejection
             $fakeCentroids = [
                 ['name' => 'Human Skin Tone 1', 'rgb' => [225, 175, 150], 'hexCode' => '#E1AF96', 'type' => 'skin'],
@@ -55,26 +71,27 @@ class RealSoilController extends Controller
             ];
 
             return [
-                'status'            => 'success',
-                'model_version'     => '2.1.0',
-                'engine'            => 'Stage 1-6 Soil Gate & Munsell Spectral Analyzer',
-                'gate_config'       => [
+                'status'              => 'success',
+                'model_version'       => '3.0.0',
+                'engine'              => 'Stage 1-6 Soil Gate & Munsell Spectral Analyzer',
+                'gate_config'         => [
                     'min_variance'    => 8.5,
                     'min_laplacian'   => 18.0,
                     'max_skin_ratio'  => 0.32,
-                    'max_delta_e'     => 30.0,
+                    'max_delta_e'     => 32.0,
                     'allowed_hues'    => ['10R', '2.5YR', '5YR', '7.5YR', '10YR', '2.5Y', '5Y', 'GLEY'],
                     'valid_lum_range' => [12, 85],
                 ],
-                'samples_count'     => count($realSamples) + count($fakeSamples),
-                'real_samples_count'=> count($realSamples),
-                'fake_samples_count'=> count($fakeSamples),
-                'real_samples'      => $realSamples,
-                'fake_samples'      => $fakeSamples,
-                'fake_centroids'    => $fakeCentroids,
-                'reference_samples' => $realSamples, // Backwards compatibility
-                'munsell_colors'    => $munsellColors,
-                'updated_at'        => now()->toIso8601String(),
+                'samples_count'       => count($realSamples) + count($fakeSamples),
+                'real_samples_count'  => count($realSamples),
+                'fake_samples_count'  => count($fakeSamples),
+                'real_samples'        => $realSamples,
+                'fake_samples'        => $fakeSamples,
+                'reference_centroids' => $referenceCentroids,
+                'fake_centroids'      => $fakeCentroids,
+                'reference_samples'   => $realSamples, // Backwards compatibility
+                'munsell_colors'      => $munsellColors,
+                'updated_at'          => now()->toIso8601String(),
             ];
         });
 
