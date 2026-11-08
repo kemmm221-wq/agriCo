@@ -20,7 +20,8 @@ class AppVersionController extends Controller
             $githubUrl = str_replace('agrico-releases', 'agrico', $githubUrl);
         }
 
-        return Cache::remember('resolved_direct_apk_' . md5($githubUrl), 1800, function () use ($githubUrl) {
+        // Keep cache short (60s) because Azure SAS tokens have limited lifespans
+        return Cache::remember('resolved_direct_apk_' . md5($githubUrl), 60, function () use ($githubUrl) {
             try {
                 $ch = curl_init($githubUrl);
                 curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -51,7 +52,7 @@ class AppVersionController extends Controller
         $defaultVersion = 'v1.0.6';
         $defaultNotes = "• Offline Stage 1 TensorFlow Lite Soil Gate: Native on-device MobileNetV2 neural network strictly verifies real soil vs fake/non-soil\n• Zero-fallback policy: Completely rejects unreadable or non-soil scans instead of defaulting to brown soil\n• Robust camera URI decoding & fast base64 pipeline\n• Updated Munsell spectral reference cache and on-device calibration";
         $defaultSize = '62.5 MB';
-        $defaultUrl = 'https://github.com/agricosite77-oss/agrico/releases/download/v1.0.6/agrico-app-v1.0.6.apk';
+        $defaultUrl = 'https://github.com/kemmm221-wq/agriCo/releases/download/v1.0.6/agrico-app-v1.0.6.apk';
 
         $version = $activeApp?->version ?: $defaultVersion;
 

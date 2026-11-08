@@ -1,2 +1,4 @@
 *
 !.gitignore
+!applications/
+!applications/agrico-app-v1.0.6.apk

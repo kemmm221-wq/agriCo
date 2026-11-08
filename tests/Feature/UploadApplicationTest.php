@@ -58,4 +58,74 @@ class UploadApplicationTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_guest_can_download_application_directly(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('applications/agrico-app-v1.0.6.apk', 'PK-dummy-apk-content');
+
+        Application::create([
+            'application_name' => 'AgriCo Mobile App',
+            'version'          => 'v1.0.6',
+            'filename'         => 'agrico-app-v1.0.6.apk',
+            'file_size'        => '62.5 MB',
+            'release_notes'    => 'Test release',
+            'status'           => 'ACTIVE',
+            'uploaded_by'      => 'Admin',
+            'file_path'        => 'applications/agrico-app-v1.0.6.apk',
+        ]);
+
+        $response = $this->get(route('website.download'));
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.android.package-archive');
+    }
+
+    public function test_approved_user_download_route_handles_download(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('applications/agrico-app-v1.0.6.apk', 'PK-dummy-apk-content');
+
+        Application::create([
+            'application_name' => 'AgriCo Mobile App',
+            'version'          => 'v1.0.6',
+            'filename'         => 'agrico-app-v1.0.6.apk',
+            'file_size'        => '62.5 MB',
+            'release_notes'    => 'Test release',
+            'status'           => 'ACTIVE',
+            'uploaded_by'      => 'Admin',
+            'file_path'        => 'applications/agrico-app-v1.0.6.apk',
+        ]);
+
+        $user = User::factory()->create([
+            'role'   => 'user',
+            'status' => 'approved',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('website.download'));
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.android.package-archive');
+    }
+
+    public function test_download_redirect_mode_redirects_to_canonical_github_url(): void
+    {
+        Application::create([
+            'application_name' => 'AgriCo Mobile App',
+            'version'          => 'v1.0.6',
+            'filename'         => 'agrico-app-v1.0.6.apk',
+            'file_size'        => '62.5 MB',
+            'release_notes'    => 'Test release',
+            'status'           => 'ACTIVE',
+            'uploaded_by'      => 'Admin',
+            'file_path'        => 'https://github.com/agricosite77-oss/agrico/releases/download/v1.0.6/agrico-app-v1.0.6.apk',
+        ]);
+
+        $user = User::factory()->create([
+            'role'   => 'user',
+            'status' => 'approved',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('website.download', ['mode' => 'redirect']));
+        $response->assertRedirect('https://github.com/agricosite77-oss/agrico/releases/download/v1.0.6/agrico-app-v1.0.6.apk');
+    }
 }
+

@@ -972,19 +972,7 @@ class WebsiteController extends Controller
             $authUser = User::where('user_id', session('admin_id'))->first();
         }
 
-        if (!$authUser) {
-            if (request()->wantsJson() || request()->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'error'   => 'AUTH_REQUIRED',
-                    'message' => 'Please log in or create an account to download the mobile application.',
-                ], 401);
-            }
-
-            return redirect()->route('website.home')->with('login_required_download', true);
-        }
-
-        if (method_exists($authUser, 'isApproved') && !$authUser->isApproved()) {
+        if ($authUser && method_exists($authUser, 'isApproved') && !$authUser->isApproved()) {
             if (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -1009,29 +997,135 @@ class WebsiteController extends Controller
             ]);
         } catch (\Throwable $e) {}
 
-        // 1. If local APK exists for active version, download it directly with correct MIME type
         $activeFilename = $activeApp?->filename ?: 'agrico-app-v1.0.6.apk';
-        $localApk = 'applications/' . $activeFilename;
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($localApk)) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->download($localApk, $activeFilename, [
-                'Content-Type' => 'application/vnd.android.package-archive',
-            ]);
+        if (!str_ends_with(strtolower($activeFilename), '.apk')) {
+            $activeFilename .= '.apk';
         }
 
-        // Check fallback v1.0.6 on server disk
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists('applications/agrico-app-v1.0.6.apk')) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->download('applications/agrico-app-v1.0.6.apk', 'agrico-app-v1.0.6.apk', [
-                'Content-Type' => 'application/vnd.android.package-archive',
-            ]);
-        }
-
-        // 2. Otherwise redirect to the active GitHub release URL (or direct CDN)
+        // Resolve release URL & resilient GitHub API asset fallback
         $releaseUrl = ($activeApp && $activeApp->file_path && (str_starts_with($activeApp->file_path, 'http://') || str_starts_with($activeApp->file_path, 'https://')))
             ? $activeApp->file_path
-            : 'https://github.com/agricosite77-oss/agrico/releases/download/v1.0.6/agrico-app-v1.0.6.apk';
+            : 'https://github.com/kemmm221-wq/agriCo/releases/download/v1.0.6/agrico-app-v1.0.6.apk';
 
-        $directUrl = \App\Http\Controllers\Mobile\Api\AppVersionController::resolveDirectAssetUrl($releaseUrl);
-        return redirect()->away($directUrl);
+        if (str_contains($releaseUrl, 'agrico-releases')) {
+            $releaseUrl = str_replace('agrico-releases', 'agriCo', $releaseUrl);
+        }
+
+        // If client explicitly requests direct redirect, send to canonical GitHub URL
+        if (request()->query('mode') === 'redirect') {
+            return redirect()->away($releaseUrl);
+        }
+
+        // 1. If local APK exists on disk, download it directly with correct MIME type and range support
+        $candidatePaths = [
+            storage_path('app/public/applications/' . $activeFilename),
+            storage_path('app/public/applications/agrico-app-v1.0.6.apk'),
+            public_path('storage/applications/' . $activeFilename),
+            public_path('storage/applications/agrico-app-v1.0.6.apk'),
+            public_path('applications/' . $activeFilename),
+            public_path('applications/agrico-app-v1.0.6.apk'),
+        ];
+
+        foreach ($candidatePaths as $candidate) {
+            if (file_exists($candidate) && filesize($candidate) > 1048576) {
+                return response()->download($candidate, $activeFilename, [
+                    'Content-Type'        => 'application/vnd.android.package-archive',
+                    'Content-Disposition' => 'attachment; filename="' . $activeFilename . '"',
+                ]);
+            }
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists('applications/' . $activeFilename)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->download('applications/' . $activeFilename, $activeFilename, [
+                'Content-Type'        => 'application/vnd.android.package-archive',
+                'Content-Disposition' => 'attachment; filename="' . $activeFilename . '"',
+            ]);
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists('applications/agrico-app-v1.0.6.apk')) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->download('applications/agrico-app-v1.0.6.apk', 'agrico-app-v1.0.6.apk', [
+                'Content-Type'        => 'application/vnd.android.package-archive',
+                'Content-Disposition' => 'attachment; filename="agrico-app-v1.0.6.apk"',
+            ]);
+        }
+
+        // 2. Stream candidates in order of reliability:
+        //    a) kemmm221-wq/agriCo release URL
+        //    b) Verified GitHub API asset endpoint for v1.0.6 (bypasses GitHub web 504 Gateway Time-out)
+        //    c) General release URL
+        $streamUrls = [
+            'https://github.com/kemmm221-wq/agriCo/releases/download/v1.0.6/agrico-app-v1.0.6.apk',
+            'https://api.github.com/repos/agricosite77-oss/agrico/releases/assets/674167976',
+            $releaseUrl,
+        ];
+
+
+        foreach ($streamUrls as $url) {
+            try {
+                $ctx = stream_context_create([
+                    'http' => [
+                        'follow_location' => 1,
+                        'max_redirects'   => 5,
+                        'user_agent'      => 'Mozilla/5.0 (Android; Mobile; rv:130.0) AgriCo-Downloader/1.0',
+                        'header'          => "Accept: application/octet-stream\r\n",
+                        'timeout'         => 30,
+                    ],
+                    'ssl' => [
+                        'verify_peer'      => true,
+                        'verify_peer_name' => true,
+                    ],
+                ]);
+
+                $stream = @fopen($url, 'rb', false, $ctx);
+                if ($stream) {
+                    $contentLength = null;
+                    if (isset($http_response_header) && is_array($http_response_header)) {
+                        // Check if the stream returned an HTTP error (such as 504 or 404)
+                        $statusLine = $http_response_header[0] ?? '';
+                        if (str_contains($statusLine, '504') || str_contains($statusLine, '502') || str_contains($statusLine, '404')) {
+                            fclose($stream);
+                            continue;
+                        }
+
+                        foreach ($http_response_header as $hdr) {
+                            if (stripos($hdr, 'content-length:') === 0) {
+                                $len = trim(substr($hdr, 15));
+                                if (is_numeric($len) && (int)$len > 0) {
+                                    $contentLength = (int)$len;
+                                }
+                            }
+                        }
+                    }
+
+                    $headers = [
+                        'Content-Type'        => 'application/vnd.android.package-archive',
+                        'Content-Disposition' => 'attachment; filename="' . $activeFilename . '"',
+                        'Cache-Control'       => 'public, max-age=3600',
+                        'Accept-Ranges'       => 'bytes',
+                    ];
+                    if ($contentLength) {
+                        $headers['Content-Length'] = (string) $contentLength;
+                    }
+
+                    return response()->stream(function () use ($stream) {
+                        while (!feof($stream) && !connection_aborted()) {
+                            $chunk = fread($stream, 1024 * 128);
+                            if ($chunk === false) break;
+                            echo $chunk;
+                            flush();
+                        }
+                        fclose($stream);
+                    }, 200, $headers);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[WebsiteController] Direct stream failed for ' . $url . ': ' . $e->getMessage());
+            }
+        }
+
+        // Fallback: redirect directly to canonical GitHub release URL
+        return redirect()->away($releaseUrl);
+
+
     }
 
 
