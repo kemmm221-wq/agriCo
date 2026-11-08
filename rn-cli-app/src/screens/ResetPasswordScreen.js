@@ -12,6 +12,7 @@ import {
   ShieldIcon,
 } from '../components/AuthUI';
 import { ENV } from '../config/env';
+import api from '../services/api';
 
 export default function ResetPasswordScreen({ route, navigation }) {
   const { email, code } = route.params || { email: '', code: '' };
@@ -62,25 +63,12 @@ export default function ResetPasswordScreen({ route, navigation }) {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`${ENV.API_URL}/forgot-password/reset`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true',
-        },
-        body: JSON.stringify({
-          email,
-          code,
-          password,
-          password_confirmation: passwordConfirmation,
-        }),
+      const { data } = await api.post('/forgot-password/reset', {
+        email,
+        code,
+        password,
+        password_confirmation: passwordConfirmation,
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Could not reset password. Please try again.');
-      }
 
       Alert.alert(
         'Password Reset Successful',

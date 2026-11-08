@@ -185,7 +185,7 @@ class NotificationService
                 $mailable = new AccountApprovedMail(
                     user: $user,
                     adminId: $adminId,
-                    loginUrl: 'https://agrico-production-1eb3.up.railway.app/login',
+                    loginUrl: 'https://agrico-web-production.up.railway.app/login',
                     userName: $userName,
                     userEmail: $userEmail
                 );
@@ -194,7 +194,7 @@ class NotificationService
                     'userName'  => $userName,
                     'userEmail' => $userEmail,
                     'adminId'   => $adminId,
-                    'loginUrl'  => 'https://agrico-production-1eb3.up.railway.app/login',
+                    'loginUrl'  => 'https://agrico-web-production.up.railway.app/login',
                 ])->render();
 
                 self::sendEmail(
@@ -310,15 +310,29 @@ class NotificationService
             $resendKey = trim($resendKey, " \t\n\r\0\x0B\"'");
         }
 
-        // 1. Try configured Laravel Mail driver (e.g. Gmail SMTP) first
+        // 1. Try configured Laravel Mail driver (e.g. Gmail SMTP) first with fast pre-check
         $mailDefault = config('mail.default', 'smtp');
         if ($mailDefault === 'smtp' && !empty(config('mail.mailers.smtp.host'))) {
-            try {
-                Mail::to($toEmail)->send($mailable);
-                $sent = true;
-                Log::info("[NotificationService] Email sent via Mail driver ({$mailDefault}) to {$toEmail}: {$subject}");
-            } catch (\Throwable $e) {
-                Log::warning("[NotificationService] Mail driver ({$mailDefault}) failed for {$toEmail}: " . $e->getMessage());
+            $smtpHost = config('mail.mailers.smtp.host');
+            $smtpPort = config('mail.mailers.smtp.port', 587);
+            $canConnect = false;
+
+            $socket = @fsockopen($smtpHost, (int) $smtpPort, $errno, $errstr, 3);
+            if ($socket) {
+                $canConnect = true;
+                fclose($socket);
+            }
+
+            if ($canConnect) {
+                try {
+                    Mail::to($toEmail)->send($mailable);
+                    $sent = true;
+                    Log::info("[NotificationService] Email sent via Mail driver ({$mailDefault}) to {$toEmail}: {$subject}");
+                } catch (\Throwable $e) {
+                    Log::warning("[NotificationService] Mail driver ({$mailDefault}) failed for {$toEmail}: " . $e->getMessage());
+                }
+            } else {
+                Log::warning("[NotificationService] Outbound SMTP port {$smtpPort} to {$smtpHost} unreachable or blocked by cloud network. Skipping blocking SMTP send.");
             }
         }
 
@@ -340,7 +354,7 @@ class NotificationService
         }
 
         // 3. Final fallback to default Mail driver if not yet attempted
-        if (!$sent) {
+        if (!$sent && !empty($canConnect)) {
             try {
                 Mail::to($toEmail)->send($mailable);
                 $sent = true;

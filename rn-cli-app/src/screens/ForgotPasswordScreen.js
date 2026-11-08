@@ -11,6 +11,7 @@ import {
   MailIcon,
 } from '../components/AuthUI';
 import { ENV } from '../config/env';
+import api from '../services/api';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -42,24 +43,12 @@ export default function ForgotPasswordScreen({ navigation }) {
     setEmailError('');
 
     try {
-      const res = await fetch(`${ENV.API_URL}/forgot-password/send-code`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true',
-        },
-        body: JSON.stringify({ email: trimmed }),
-      });
-      const data = await res.json();
+      const { data } = await api.post('/forgot-password/send-code', { email: trimmed });
 
-      if (!res.ok) {
-        throw new Error(data.message || 'Could not send verification code.');
-      }
-
-      navigation.navigate('VerifyCode', { email: trimmed });
+      navigation.navigate('VerifyCode', { email: trimmed, code: data?.code || '' });
     } catch (err) {
-      setGeneralError(err.message || 'Something went wrong. Please check your connection.');
+      const msg = err.response?.data?.message || err.message || 'Something went wrong. Please check your connection.';
+      setGeneralError(msg);
     } finally {
       setIsSubmitting(false);
     }

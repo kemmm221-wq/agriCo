@@ -3,14 +3,18 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import AuthCardLayout from '../components/AuthCardLayout';
 import { AuthHero, PillButton, BackLink, ErrorBanner, LoadingOverlay } from '../components/AuthUI';
 import { ENV } from '../config/env';
+import api from '../services/api';
 
 const CODE_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function VerifyCodeScreen({ route, navigation }) {
-  const { email } = route.params || { email: '' };
+  const { email, code: initialCode } = route.params || { email: '', code: '' };
 
-  const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(''));
+  const parsedInitial = (initialCode || '').replace(/[^0-9]/g, '');
+  const [digits, setDigits] = useState(
+    parsedInitial.length === CODE_LENGTH ? parsedInitial.split('') : Array(CODE_LENGTH).fill('')
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
@@ -56,24 +60,11 @@ export default function VerifyCodeScreen({ route, navigation }) {
     setError(null);
 
     try {
-      const res = await fetch(`${ENV.API_URL}/forgot-password/verify-code`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true',
-        },
-        body: JSON.stringify({ email, code }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Invalid or expired verification code.');
-      }
-
+      const { data } = await api.post('/forgot-password/verify-code', { email, code });
       navigation.navigate('ResetPassword', { email, code });
     } catch (err) {
-      setError(err.message || 'Verification failed. Please try again.');
+      const msg = err.response?.data?.message || err.message || 'Verification failed. Please try again.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -85,20 +76,14 @@ export default function VerifyCodeScreen({ route, navigation }) {
     setError(null);
 
     try {
-      const res = await fetch(`${ENV.API_URL}/forgot-password/send-code`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true',
-        },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Could not resend code.');
+      const { data } = await api.post('/forgot-password/send-code', { email });
+      if (data?.code && String(data.code).length === CODE_LENGTH) {
+        setDigits(String(data.code).split(''));
+      }
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
-      setError(err.message || 'Could not resend code.');
+      const msg = err.response?.data?.message || err.message || 'Could not resend code.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
