@@ -340,6 +340,11 @@ export default function ScanSoilScreen({ navigation }) {
   const [toastMessage, setToastMessage] = useState('');
   const [pinnedLocation, setPinnedLocation] = useState(null);
   const [isSavedCopy, setIsSavedCopy] = useState(false);
+  const [selectedOverlayColorIndex, setSelectedOverlayColorIndex] = useState(null);
+
+  useEffect(() => {
+    setSelectedOverlayColorIndex(null);
+  }, [currentSpecimen?.scanId, currentSpecimen?.id]);
 
   // Layout & Bounds
   const [camBounds, setCamBounds] = useState({ x: 0, y: 0, width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
@@ -2117,28 +2122,81 @@ export default function ScanSoilScreen({ navigation }) {
                           style={styles.soilNormImage}
                           resizeMode="cover"
                         />
-                        {/* Overlaid ROI bounding boxes — colored with each region's real detected soil color */}
-                        {specimenNormBoxes.map((b, idx) => (
-                          <View
-                            key={`norm_box_${idx}`}
-                            style={{
-                              position: 'absolute',
-                              left: `${b.splitLeftPct}%`,
-                              top: `${b.splitTopPct}%`,
-                              width: `${b.splitWidthPct}%`,
-                              height: `${b.splitHeightPct}%`,
-                              borderWidth: 2.5,
-                              borderColor: b.hex,
-                              borderRadius: 4,
-                            }}
-                          >
-                            <View style={[styles.normRoleBadge, { backgroundColor: b.hex, borderColor: 'rgba(0,0,0,0.3)', borderWidth: 1 }]}>
-                              <Text style={[styles.normRoleBadgeText, { color: '#fff', textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 2 }]}>
-                                {b.roleLabel}{b.munsellCode ? ` · ${b.munsellCode}` : ''}{b.percent != null ? ` (${b.percent}%)` : ''}
-                              </Text>
+                        {/* Whole-image multi-color segmentation overlay */}
+                        {(currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png) ? (
+                          <>
+                            {selectedOverlayColorIndex === null ? (
+                              <Image
+                                source={{ uri: `data:image/png;base64,${currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png}` }}
+                                style={{
+                                  position: 'absolute',
+                                  left: '50%',
+                                  top: '7.41%',
+                                  width: '50%',
+                                  height: '92.59%',
+                                  opacity: 0.55,
+                                }}
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <>
+                                {specimenNormRegions[selectedOverlayColorIndex]?.mask_png && (
+                                  <Image
+                                    source={{ uri: `data:image/png;base64,${specimenNormRegions[selectedOverlayColorIndex].mask_png}` }}
+                                    style={{
+                                      position: 'absolute',
+                                      left: '50%',
+                                      top: '7.41%',
+                                      width: '50%',
+                                      height: '92.59%',
+                                      tintColor: specimenNormRegions[selectedOverlayColorIndex].overlay_hex || '#ff4040',
+                                      opacity: 0.70,
+                                    }}
+                                    resizeMode="cover"
+                                  />
+                                )}
+                                {Array.isArray(specimenNormRegions[selectedOverlayColorIndex]?.blobs) && specimenNormRegions[selectedOverlayColorIndex].blobs.map((blob, bIdx) => (
+                                  <View
+                                    key={`sel_blob_${bIdx}`}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${50.0 + blob.norm_x * 50.0}%`,
+                                      top: `${7.41 + blob.norm_y * 92.59}%`,
+                                      width: `${blob.norm_w * 50.0}%`,
+                                      height: `${blob.norm_h * 92.59}%`,
+                                      borderWidth: 1.5,
+                                      borderColor: specimenNormRegions[selectedOverlayColorIndex]?.overlay_hex || '#ffffff',
+                                      borderRadius: 2,
+                                    }}
+                                  />
+                                ))}
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          /* Fallback bounding box display for older scans */
+                          specimenNormBoxes.map((b, idx) => (
+                            <View
+                              key={`norm_box_${idx}`}
+                              style={{
+                                position: 'absolute',
+                                left: `${b.splitLeftPct}%`,
+                                top: `${b.splitTopPct}%`,
+                                width: `${b.splitWidthPct}%`,
+                                height: `${b.splitHeightPct}%`,
+                                borderWidth: 2.5,
+                                borderColor: b.hex,
+                                borderRadius: 4,
+                              }}
+                            >
+                              <View style={[styles.normRoleBadge, { backgroundColor: b.hex, borderColor: 'rgba(0,0,0,0.3)', borderWidth: 1 }]}>
+                                <Text style={[styles.normRoleBadgeText, { color: '#fff', textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 2 }]}>
+                                  {b.roleLabel}{b.munsellCode ? ` · ${b.munsellCode}` : ''}{b.percent != null ? ` (${b.percent}%)` : ''}
+                                </Text>
+                              </View>
                             </View>
-                          </View>
-                        ))}
+                          ))
+                        )}
                       </View>
                     ) : currentSpecimen.scanImage || userCustomImage || croppedSpecimenUri ? (
                       /* Simulated split Before / After frame if before_after is not yet rendered */
@@ -2162,28 +2220,79 @@ export default function ScanSoilScreen({ navigation }) {
                               style={{ width: '100%', height: '100%' }}
                               resizeMode="cover"
                             />
-                            {/* Overlaid detected soil color boxes at actual detected locations */}
-                            {specimenNormBoxes.map((b, idx) => (
-                              <View
-                                key={`sim_norm_box_${idx}`}
-                                style={{
-                                  position: 'absolute',
-                                  left: `${b.boxLeftPct}%`,
-                                  top: `${b.boxTopPct}%`,
-                                  width: `${b.boxWidthPct}%`,
-                                  height: `${b.boxHeightPct}%`,
-                                  borderWidth: 2,
-                                  borderColor: b.hex,
-                                  borderRadius: 4,
-                                }}
-                              >
-                                <View style={[styles.normRoleBadge, { backgroundColor: b.hex, borderColor: 'rgba(0,0,0,0.3)', borderWidth: 1 }]}>
-                                  <Text style={[styles.normRoleBadgeText, { color: '#fff', textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 2 }]}>
-                                    {b.roleLabel}{b.munsellCode ? ` · ${b.munsellCode}` : ''}{b.percent != null ? ` (${b.percent}%)` : ''}
-                                  </Text>
+                            {/* Whole-image multi-color segmentation overlay */}
+                            {(currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png) ? (
+                              <>
+                                {selectedOverlayColorIndex === null ? (
+                                  <Image
+                                    source={{ uri: `data:image/png;base64,${currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png}` }}
+                                    style={{
+                                      position: 'absolute',
+                                      inset: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      opacity: 0.55,
+                                    }}
+                                    resizeMode="cover"
+                                  />
+                                ) : (
+                                  <>
+                                    {specimenNormRegions[selectedOverlayColorIndex]?.mask_png && (
+                                      <Image
+                                        source={{ uri: `data:image/png;base64,${specimenNormRegions[selectedOverlayColorIndex].mask_png}` }}
+                                        style={{
+                                          position: 'absolute',
+                                          inset: 0,
+                                          width: '100%',
+                                          height: '100%',
+                                          tintColor: specimenNormRegions[selectedOverlayColorIndex].overlay_hex || '#ff4040',
+                                          opacity: 0.70,
+                                        }}
+                                        resizeMode="cover"
+                                      />
+                                    )}
+                                    {Array.isArray(specimenNormRegions[selectedOverlayColorIndex]?.blobs) && specimenNormRegions[selectedOverlayColorIndex].blobs.map((blob, bIdx) => (
+                                      <View
+                                        key={`sim_sel_blob_${bIdx}`}
+                                        style={{
+                                          position: 'absolute',
+                                          left: `${blob.norm_x * 100.0}%`,
+                                          top: `${blob.norm_y * 100.0}%`,
+                                          width: `${blob.norm_w * 100.0}%`,
+                                          height: `${blob.norm_h * 100.0}%`,
+                                          borderWidth: 1.5,
+                                          borderColor: specimenNormRegions[selectedOverlayColorIndex]?.overlay_hex || '#ffffff',
+                                          borderRadius: 2,
+                                        }}
+                                      />
+                                    ))}
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              /* Fallback boxes */
+                              specimenNormBoxes.map((b, idx) => (
+                                <View
+                                  key={`sim_norm_box_${idx}`}
+                                  style={{
+                                    position: 'absolute',
+                                    left: `${b.boxLeftPct}%`,
+                                    top: `${b.boxTopPct}%`,
+                                    width: `${b.boxWidthPct}%`,
+                                    height: `${b.boxHeightPct}%`,
+                                    borderWidth: 2,
+                                    borderColor: b.hex,
+                                    borderRadius: 4,
+                                  }}
+                                >
+                                  <View style={[styles.normRoleBadge, { backgroundColor: b.hex, borderColor: 'rgba(0,0,0,0.3)', borderWidth: 1 }]}>
+                                    <Text style={[styles.normRoleBadgeText, { color: '#fff', textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 2 }]}>
+                                      {b.roleLabel}{b.munsellCode ? ` · ${b.munsellCode}` : ''}{b.percent != null ? ` (${b.percent}%)` : ''}
+                                    </Text>
+                                  </View>
                                 </View>
-                              </View>
-                            ))}
+                              ))
+                            )}
                           </View>
                         </View>
                       </View>
@@ -2242,38 +2351,68 @@ export default function ScanSoilScreen({ navigation }) {
                     )}
                   </View>
 
-                  {/* Swatch Capsule Pills — each shows its REAL detected Stage 3/4 soil color */}
-                  <View style={styles.normSwatchesRow}>
-                    {specimenNormRegions.map((r, idx) => {
-                      let rHex = r.hex || r.hex_color || null;
-                      if (!rHex && Array.isArray(r.rgb) && r.rgb.length >= 3) {
-                        rHex = `#${r.rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`;
-                      }
-                      if (!rHex && specimenNormRegions.length === 1) {
-                        rHex = currentSpecimen.hexColor || currentSpecimen.hex || '#8F694E';
-                      }
-                      rHex = (rHex || '#888888');
-                      if (!rHex.startsWith('#')) rHex = `#${rHex}`;
+                  {/* Interactive Multi-Color Segmentation Legend */}
+                  <View style={{ marginTop: 10 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                        Soil Color Coverage Map
+                      </Text>
+                      {selectedOverlayColorIndex !== null && (
+                        <TouchableOpacity
+                          onPress={() => setSelectedOverlayColorIndex(null)}
+                          style={{ paddingHorizontal: 8, paddingVertical: 2.5, backgroundColor: '#f1f5f9', borderRadius: 6, borderWidth: 1, borderColor: '#cbd5e1' }}
+                        >
+                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#0d9488' }}>Show all colors ↺</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    <View style={styles.normSwatchesRow}>
+                      {specimenNormRegions.map((r, idx) => {
+                        let rHex = r.hex || r.hex_color || null;
+                        if (!rHex && Array.isArray(r.rgb) && r.rgb.length >= 3) {
+                          rHex = `#${r.rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`;
+                        }
+                        if (!rHex && specimenNormRegions.length === 1) {
+                          rHex = currentSpecimen.hexColor || currentSpecimen.hex || '#8F694E';
+                        }
+                        rHex = (rHex || '#888888');
+                        if (!rHex.startsWith('#')) rHex = `#${rHex}`;
 
-                      const rCode = r.munsell_code || r.munsell || r.notation || null;
-                      const displayCode = rCode || (specimenNormRegions.length === 1
-                        ? (currentSpecimen.munsellCode || currentSpecimen.fullCode || '')
-                        : '');
+                        const rCode = r.munsell_code || r.munsell || r.notation || null;
+                        const displayCode = rCode || (specimenNormRegions.length === 1
+                          ? (currentSpecimen.munsellCode || currentSpecimen.fullCode || '')
+                          : '');
 
-                      const rPct = r.percent !== undefined
-                        ? Math.round(r.percent)
-                        : (r.proportion !== undefined
-                            ? Math.round(r.proportion * 100)
-                            : (specimenNormRegions.length === 1 ? (currentSpecimen.soilPercentage || 100) : null));
-                      return (
-                        <View key={`swatch_pill_${idx}`} style={styles.soilSwatchCapsulePill}>
-                          <View style={[styles.capsulePillSwatch, { backgroundColor: rHex }]} />
-                          <Text style={styles.capsulePillHex}>{rHex.toUpperCase()}</Text>
-                          {displayCode ? <Text style={styles.capsulePillCode}>({displayCode})</Text> : null}
-                          {rPct != null ? <Text style={styles.capsulePillPct}>{rPct}%</Text> : null}
-                        </View>
-                      );
-                    })}
+                        const rPct = r.percent !== undefined
+                          ? Math.round(r.percent)
+                          : (r.proportion !== undefined
+                              ? Math.round(r.proportion * 100)
+                              : (specimenNormRegions.length === 1 ? (currentSpecimen.soilPercentage || 100) : null));
+
+                        const overlayColorHex = r.overlay_hex || '#ff4040';
+                        const isSelected = selectedOverlayColorIndex === idx;
+                        const isDimmed = selectedOverlayColorIndex !== null && !isSelected;
+
+                        return (
+                          <TouchableOpacity
+                            key={`swatch_pill_${idx}`}
+                            activeOpacity={0.75}
+                            onPress={() => setSelectedOverlayColorIndex(isSelected ? null : idx)}
+                            style={[
+                              styles.soilSwatchCapsulePill,
+                              isSelected && { borderColor: overlayColorHex, borderWidth: 1.5, backgroundColor: '#ffffff' },
+                              isDimmed && { opacity: 0.45 },
+                            ]}
+                          >
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: overlayColorHex, marginRight: 2 }} />
+                            <View style={[styles.capsulePillSwatch, { backgroundColor: rHex }]} />
+                            <Text style={styles.capsulePillHex}>{rHex.toUpperCase()}</Text>
+                            {displayCode ? <Text style={styles.capsulePillCode}>({displayCode})</Text> : null}
+                            {rPct != null ? <Text style={styles.capsulePillPct}>{rPct}%</Text> : null}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
                   </View>
 
                   {/* Top Metadata Row (Inside Before & After Card - Updated with 12-hr AM/PM Time) */}

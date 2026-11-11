@@ -27,6 +27,7 @@ Public API:
     ) -> list[dict]
 """
 
+import base64
 import io
 import os
 from typing import List, Optional, Tuple
@@ -49,32 +50,60 @@ FINAL_MIN = float(os.environ.get("STAGE3_FINAL_MIN", "0.05"))  # after merging, 
 TRIM_PCT = int(os.environ.get("STAGE3_TRIM_PCT", "10"))        # ignore darkest/lightest 10% when computing true color
 
 # ── High-Contrast Bright Overlay Colors (Stands out sharply on earthy brown soil) ─
-BRIGHT_OVERLAY_COLORS = [
-    {"name": "Red",     "rgb": (239, 68, 68),   "hex": "#ef4444"},   # Dominant color
-    {"name": "Blue",    "rgb": (59, 130, 246),  "hex": "#3b82f6"},   # Secondary color
-    {"name": "Yellow",  "rgb": (234, 179, 8),   "hex": "#eab308"},   # 3rd color
-    {"name": "Green",   "rgb": (34, 197, 94),   "hex": "#22c55e"},   # 4th color
-    {"name": "Magenta", "rgb": (168, 85, 247),  "hex": "#a855f7"},   # 5th color
-    {"name": "Cyan",    "rgb": (6, 182, 212),   "hex": "#06b6d4"},   # 6th color
-]
+OVERLAY_PALETTE = [(255, 64, 64), (40, 120, 255), (255, 214, 0),
+                   (0, 200, 120), (190, 80, 255), (255, 140, 0)]  # distinct from soil browns
+OVERLAY_MAX_SIDE = 640
+SMOOTH_KSIZE = 7  # odd number; removes salt-and-pepper speckle in the color map
 
 
-def smooth_label_map(label_map: np.ndarray, kernel_size: int = 3) -> np.ndarray:
+def _png_b64(arr: np.ndarray, mode: str) -> str:
+    buf = io.BytesIO()
+    Image.fromarray(arr, mode=mode).save(buf, format="PNG", optimize=True)
+    return base64.b64encode(buf.getvalue()).decode("ascii")
+
+
+def smooth_label_map(roi_group: np.ndarray) -> np.ndarray:
+    """roi_group: int16 map, -1 = unclassified. Median-filter so each color forms solid areas."""
+    lab = (roi_group + 1).astype(np.uint8)          # 0 = unclassified
+    lab = cv2.medianBlur(lab, SMOOTH_KSIZE)
+    return lab.astype(np.int16) - 1
+
+
+def extract_blobs(mask: np.ndarray, min_area_frac: float = 0.003, max_blobs: int = 10) -> list:
+    """ALL meaningful areas of one color, in normalized coordinates. NO size clamping."""
+    H, W = mask.shape
+    m = cv2.morphologyEx(mask.astype(np.uint8) * 255, cv2.MORPH_CLOSE,
+                         cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+    n, _, stats, _ = cv2.connectedComponentsWithStats(m)
+    blobs = []
+    for i in range(1, n):
+        x, y, w, h, area = [int(v) for v in stats[i]]
+        if area < min_area_frac * H * W:
+            continue
+        blobs.append({"norm_x": round(x / W, 4), "norm_y": round(y / H, 4),
+                      "norm_w": round(w / W, 4), "norm_h": round(h / H, 4),
+                      "area_share": round(area / (H * W), 4)})
+    blobs.sort(key=lambda b: b["area_share"], reverse=True)
+    return blobs[:max_blobs]
+
+
+def render_color_map(full_group: np.ndarray, n_colors: int, alpha: float = 0.5):
     """
-    Applies a median filter to the discrete integer label map (cluster assignments).
-    Turns scattered speckles, pebbles, and tiny grain clumps into solid, cohesive areas,
-    preventing noisy single-pixel salt-and-pepper artifacts and producing clean overlay masks.
+    full_group: (H, W) int16 label map for the WHOLE image (-1 = not classified).
+    Returns (combined_overlay_png_b64, [per_color_mask_png_b64 ...]) at <=640px.
     """
-    if kernel_size <= 1:
-        return label_map
-    try:
-        from scipy.ndimage import median_filter
-        return median_filter(label_map, size=kernel_size)
-    except ImportError:
-        shifted = np.where(label_map < 0, 255, label_map).astype(np.uint8)
-        k = kernel_size if kernel_size % 2 == 1 else kernel_size + 1
-        blurred = cv2.medianBlur(shifted, k)
-        return np.where(blurred == 255, -1, blurred.astype(label_map.dtype))
+    H, W = full_group.shape
+    s = min(1.0, OVERLAY_MAX_SIDE / max(H, W))
+    small = cv2.resize(full_group, (max(1, int(W * s)), max(1, int(H * s))),
+                       interpolation=cv2.INTER_NEAREST)
+    rgba = np.zeros(small.shape + (4,), dtype=np.uint8)
+    masks = []
+    for gi in range(n_colors):
+        m = small == gi
+        r, g, b = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
+        rgba[m] = (r, g, b, int(255 * alpha))
+        masks.append(_png_b64((m.astype(np.uint8) * 255), "L"))
+    return _png_b64(rgba, "RGBA"), masks
 
 
 def detect_border_padding(arr: np.ndarray, max_check: int = 12) -> Tuple[int, int, int, int]:
@@ -337,11 +366,8 @@ def detect_color_regions(
         for c in groups[a]:
             lut[c] = gi
     small_group = lut[labels].reshape(sh, sw)
-
-    # Apply median filter on label map to turn scattered pebbles/speckles into solid areas
-    small_group = smooth_label_map(small_group, kernel_size=3)
     roi_group = cv2.resize(small_group, (Wc, Hc), interpolation=cv2.INTER_NEAREST)
-    roi_group = smooth_label_map(roi_group, kernel_size=3)
+    roi_group = smooth_label_map(roi_group)
     classified = max(int((roi_group >= 0).sum()), 1)
 
     full_arr = np.asarray(img_rgb, dtype=np.uint8)
@@ -350,6 +376,10 @@ def detect_color_regions(
     roi_y0 = int(round(H * (1.0 - roi_fraction) / 2.0)) + pad_t
     lab2d = lab.reshape(sh, sw, 3)
     labels2d = labels.reshape(sh, sw)
+
+    full_group = np.full((H, W), -1, dtype=np.int16)
+    full_group[roi_y0: roi_y0 + Hc, roi_x0: roi_x0 + Wc] = roi_group
+    combined_overlay_b64, per_color_masks_b64 = render_color_map(full_group, len(anchors), alpha=0.5)
 
     regions = []
     for gi, a in enumerate(anchors):
@@ -383,7 +413,10 @@ def detect_color_regions(
         full_mask[roi_y0: roi_y0 + Hc, roi_x0: roi_x0 + Wc] = roi_mask
         box_data = locate_color_box(full_arr, rgb, pixel_mask=full_mask)
 
-        overlay_info = BRIGHT_OVERLAY_COLORS[gi % len(BRIGHT_OVERLAY_COLORS)]
+        r, g, b = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
+        overlay_hex = f"#{r:02x}{g:02x}{b:02x}"
+        blobs = extract_blobs(full_mask)
+        mask_png_b64 = per_color_masks_b64[gi] if gi < len(per_color_masks_b64) else ""
 
         regions.append({
             "rgb": rgb,
@@ -395,12 +428,15 @@ def detect_color_regions(
             "bounding_box": box_data,
             "box": {"x": box_data["norm_x"], "y": box_data["norm_y"],
                     "w": box_data["norm_w"], "h": box_data["norm_h"]},
-            "overlay_color": overlay_info["rgb"],
-            "overlay_hex": overlay_info["hex"],
-            "overlay_color_name": overlay_info["name"],
+            "overlay_color": (r, g, b),
+            "overlay_hex": overlay_hex,
+            "blobs": blobs,
+            "mask_png": mask_png_b64,
         })
 
     regions.sort(key=lambda r: r["proportion"], reverse=True)
+    if regions:
+        regions[0]["color_map_png"] = combined_overlay_b64
     return regions
 
 

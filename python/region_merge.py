@@ -16,7 +16,7 @@ import re
 import sys
 from typing import List, Optional
 import numpy as np
-from color_detector import locate_color_box
+from color_detector import locate_color_box, extract_blobs
 
 # ── Tunable Settings ───────────────────────────────────────────────────────────
 MUNSELL_MAX_VALUE_GAP = 2.0    # Value steps apart allowed (shadow vs light)
@@ -130,12 +130,13 @@ def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
         if c_idx is not None and c_idx not in target.get("merged_from", []):
             target["merged_from"].append(c_idx)
 
-        # Recompute representative bounding box on the merged soil surface
+        # Recompute representative bounding box and blobs on the merged soil surface
         if target.get("pixel_mask") is not None:
             box = locate_color_box(img_arr, target["rgb"], pixel_mask=target["pixel_mask"])
             target["bounding_box"] = box
             target["box"] = {"x": box["norm_x"], "y": box["norm_y"],
                              "w": box["norm_w"], "h": box["norm_h"]}
+            target["blobs"] = extract_blobs(target["pixel_mask"])
 
         merge_events.append((r.get("color_index"), target.get("color_index"), _munsell_code(r), _munsell_code(target)))
 

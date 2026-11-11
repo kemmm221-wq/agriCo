@@ -307,11 +307,23 @@ def main() -> int:
                 "overlay_color": r.get("overlay_color"),
                 "overlay_hex": r.get("overlay_hex"),
                 "overlay_color_name": r.get("overlay_color_name"),
+                "blobs": r.get("blobs", []),
+                "mask_png": r.get("mask_png", ""),
             })
 
         output = build_output(record, result, api_regions)
         if has_lighting_warning:
             output["lighting_warning"] = True
+
+        output["color_map_png"] = getattr(result, "color_map_png", None) or (result.regions[0].get("color_map_png") if result.regions else None)
+        output["rejected_regions"] = [
+            {
+                "proportion": round(float(rej.get("proportion", 0.0)), 4),
+                "reason": "Non-soil debris, glare, or organic texture rejected by Stage 4 patch gate",
+                "blobs": rej.get("blobs", []),
+            }
+            for rej in getattr(result, "rejected_regions", [])
+        ]
 
         # Directly save Stage 2 normalized image into Laravel public scans storage if scan_id provided
         norm_img = getattr(result, "normalized_image", None)

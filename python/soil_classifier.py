@@ -50,6 +50,8 @@ class ClassificationResult:
     status: str = "needs_review"        # from dominant region's Stage 6 status
     normalized_image: Optional[object] = None  # Stage 2 lighting-normalized image (PIL Image)
     stage2_mode: str = "classical"       # Stage 2 normalization mode used (e.g. promptnorm, classical)
+    color_map_png: Optional[str] = None  # Stage 3 multi-color segmentation overlay PNG (base64)
+    rejected_regions: List[dict] = field(default_factory=list) # Regions rejected by Stage 4 patch gate
 
 
 def _texture_score(image_path: str) -> float:
@@ -407,6 +409,8 @@ def classify_soil(
         top_label = "fake_soil"
 
     final_rgb = dominant.get("rgb", rgb) if dominant else rgb
+    color_map_b64 = color_regions[0].get("color_map_png") if color_regions else None
+    rejected_regions = [r for r in color_regions if not r.get("is_real_region", False)]
 
     result = ClassificationResult(
         label=top_label,
@@ -422,6 +426,8 @@ def classify_soil(
         status=dom_status,
         normalized_image=normalized_img,
         stage2_mode=_actual_mode,
+        color_map_png=color_map_b64,
+        rejected_regions=rejected_regions,
     )
     if _prog:
         _prog(6, "Agronomic Profile & Reference Centroid", "running", {

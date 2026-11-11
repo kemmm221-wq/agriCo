@@ -295,6 +295,8 @@ export function mapServerScan(scan, data = {}) {
     beforeAfterImageUrl: beforeAfterImage,
     overlayImage: data?.overlay_image_url || scan?.overlay_image || null,
     overlayImageUrl: data?.overlay_image_url || scan?.overlay_image || null,
+    colorMapPng: data?.color_map_png || scan?.color_map_png || (regions && regions[0]?.color_map_png) || null,
+    rejectedRegions: data?.rejected_regions || scan?.rejected_regions || [],
     regions,
     lighting_warning: Boolean(data?.lighting_warning || scan?.lighting_warning || (regions && regions.some(r => r.lighting_warning))),
   };

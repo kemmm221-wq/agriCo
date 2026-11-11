@@ -204,6 +204,13 @@ class SoilMLAnalysisService
             $analysis['lighting_warning'] = true;
         }
 
+        if (!empty($pythonResult['color_map_png'])) {
+            $analysis['color_map_png'] = $pythonResult['color_map_png'];
+        }
+        if (!empty($pythonResult['rejected_regions'])) {
+            $analysis['rejected_regions'] = $pythonResult['rejected_regions'];
+        }
+
         return $analysis;
     }
 
