@@ -5524,9 +5524,9 @@
                     {{-- Center Camera Lighting Notification Popup (Centered Design - No Icon, No Shapes) --}}
                     <div id="cameraLightingPopup" class="camera-lighting-center-popup" style="display: none;" role="dialog" aria-live="polite">
                         <button type="button" class="camera-lighting-close-btn" onclick="dismissCameraLightingCenterPopup()" aria-label="Close" title="Close">&times;</button>
-                        <h4 class="camera-lighting-title">Good Lighting Condition</h4>
+                        <h4 class="camera-lighting-title">Check Your Lighting</h4>
                         <p class="camera-lighting-text">
-                            Please scan under <strong>good lighting</strong>. Make sure it is <strong>not super dark</strong> and <strong>not super light</strong> (avoid harsh glare or deep shadows) for accurate soil color detection.
+                            Before scanning, make sure the soil is clearly visible. Avoid direct sunlight, strong flash, and dark shadows.
                         </p>
                         <button type="button" class="camera-lighting-action-btn" onclick="dismissCameraLightingCenterPopup()">
                             Got It <span class="camera-lighting-countdown" id="cameraLightingTimerCount">(15s)</span>

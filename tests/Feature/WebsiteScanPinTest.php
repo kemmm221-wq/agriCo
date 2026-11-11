@@ -24,9 +24,9 @@ class WebsiteScanPinTest extends TestCase
         $response->assertSee('btnPinLocationScan');
         $response->assertSee('pinSoilLocationModal');
         $response->assertSee('cameraLightingPopup');
-        $response->assertSee('Good Lighting Condition');
-        $response->assertSee('not super dark');
-        $response->assertSee('not super light');
+        $response->assertSee('Check Your Lighting');
+        $response->assertSee('Before scanning, make sure the soil is clearly visible');
+        $response->assertSee('Avoid direct sunlight, strong flash, and dark shadows');
         $response->assertSee('dismissCameraLightingCenterPopup');
         $response->assertSee('cameraLightingTimerCount');
     }
