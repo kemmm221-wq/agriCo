@@ -191,6 +191,19 @@ class SoilMLAnalysisService
             $analysis['regions'] = [];
         }
 
+        $hasLightingWarning = !empty($pythonResult['lighting_warning']);
+        if (!$hasLightingWarning && !empty($analysis['regions'])) {
+            foreach ($analysis['regions'] as $reg) {
+                if (!empty($reg['lighting_warning']) || (isset($reg['lightness_spread']) && (float)$reg['lightness_spread'] >= 35.0)) {
+                    $hasLightingWarning = true;
+                    break;
+                }
+            }
+        }
+        if ($hasLightingWarning) {
+            $analysis['lighting_warning'] = true;
+        }
+
         return $analysis;
     }
 

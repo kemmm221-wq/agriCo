@@ -1664,6 +1664,40 @@ export default function ScanSoilScreen({ navigation }) {
                   </View>
                 </View>
 
+                {/* Dominant Color Sub-Shades (Dark -> Light) */}
+                {Array.isArray(specimenNormRegions[0]?.shades) && specimenNormRegions[0].shades.length > 1 && (
+                  <View style={styles.shadeSwatchesContainer}>
+                    <Text style={styles.shadeSwatchesLabel}>Detected Sub-Shades:</Text>
+                    <View style={styles.shadeSwatchesRow}>
+                      {specimenNormRegions[0].shades.map((s, sIdx) => {
+                        const sHex = Array.isArray(s.rgb) && s.rgb.length >= 3
+                          ? `#${s.rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`
+                          : '#888888';
+                        const sPct = s.proportion != null ? Math.round(s.proportion * 100) : null;
+                        return (
+                          <View key={`dom_shade_${sIdx}`} style={styles.shadeSwatchItem}>
+                            <View style={[styles.shadeSwatchDot, { backgroundColor: sHex }]} />
+                            <Text style={styles.shadeSwatchText}>
+                              {s.level ? s.level.charAt(0).toUpperCase() + s.level.slice(1) : ''}
+                              {sPct != null ? ` (${sPct}%)` : ''}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+                {/* Lighting Warning Notice */}
+                {Boolean(currentSpecimen.lighting_warning || specimenNormRegions[0]?.lighting_warning) && (
+                  <View style={styles.lightingWarningCard}>
+                    <Text style={styles.lightingWarningTitle}>⚠️ Uneven Lighting Observed</Text>
+                    <Text style={styles.lightingWarningText}>
+                      Significant shadow or light gradient detected ({specimenNormRegions[0]?.lightness_spread ? `ΔL* ${specimenNormRegions[0].lightness_spread}` : 'uneven exposure'}). Consider rescanning under balanced indirect light for maximum accuracy.
+                    </Text>
+                  </View>
+                )}
+
                 {/* Metrics Container (2-Column Paired Grids matching website .soil-modal-grid-2) */}
                 {/* Row 1: Color Name & Full Code */}
                 <View style={styles.soilGridRow2}>
@@ -1945,6 +1979,30 @@ export default function ScanSoilScreen({ navigation }) {
                                     <Text style={styles.layerBannerHexBadgeText}>{rHex.toUpperCase()}</Text>
                                   </View>
                                 </View>
+
+                                {/* Secondary Layer Sub-Shades */}
+                                {Array.isArray(r.shades) && r.shades.length > 1 && (
+                                  <View style={styles.shadeSwatchesContainer}>
+                                    <Text style={styles.shadeSwatchesLabel}>Detected Sub-Shades:</Text>
+                                    <View style={styles.shadeSwatchesRow}>
+                                      {r.shades.map((s, sIdx) => {
+                                        const sHex = Array.isArray(s.rgb) && s.rgb.length >= 3
+                                          ? `#${s.rgb.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`
+                                          : '#888888';
+                                        const sPct = s.proportion != null ? Math.round(s.proportion * 100) : null;
+                                        return (
+                                          <View key={`layer_shade_${idx}_${sIdx}`} style={styles.shadeSwatchItem}>
+                                            <View style={[styles.shadeSwatchDot, { backgroundColor: sHex }]} />
+                                            <Text style={styles.shadeSwatchText}>
+                                              {s.level ? s.level.charAt(0).toUpperCase() + s.level.slice(1) : ''}
+                                              {sPct != null ? ` (${sPct}%)` : ''}
+                                            </Text>
+                                          </View>
+                                        );
+                                      })}
+                                    </View>
+                                  </View>
+                                )}
 
                                  {/* 2-Column Paired Grids matching website .soil-modal-grid-2 */}
                                 {/* Row 1: Color Name & Full Code */}
@@ -3948,5 +4006,68 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginBottom: 8,
     lineHeight: 15,
+  },
+  shadeSwatchesContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  shadeSwatchesLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 5,
+  },
+  shadeSwatchesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  shadeSwatchItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    paddingHorizontal: 7,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+  },
+  shadeSwatchDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  shadeSwatchText: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#f8fafc',
+  },
+  lightingWarningCard: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  lightingWarningTitle: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#b45309',
+    marginBottom: 3,
+  },
+  lightingWarningText: {
+    fontSize: 10.5,
+    color: '#92400e',
+    lineHeight: 14,
   },
 });

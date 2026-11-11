@@ -1,69 +1,58 @@
 """
 color_detector.py
 
-Stage 3 — Multi-color detection.
+Stage 3 — Multi-color detection with shade merging.
 
 Takes a lighting-normalized PIL Image and extracts the significant distinct
-color regions present in it, along with per-region pixel masks and proportions.
+soil color regions present in it, along with per-region pixel masks, proportions,
+and sub-shade distributions.
 
-Implements exactly what the ColorThief README describes
-(https://github.com/lokesh/color-thief):
-
-  1. getPalette() → extract N candidate palette swatches from the image.
-  2. region option  → sample only a sub-rectangle of the image (the scan
-     reticle / center-crop region) so background pixels outside the scan
-     frame don't skew the palette.
-  3. Pixel-counting pass → assign every pixel to its nearest swatch by
-     squared Euclidean distance in RGB space, then count pixels per swatch.
-  4. proportion  → fraction of total ROI pixels owned by each swatch
-     (equivalent to the .proportion field on a Color object in the JS v3 API).
-  5. Minimum proportion threshold → discard swatches below ~10% (shadow /
-     glare / edge noise rather than a real distinct soil color).
-  6. Mean RGB re-computation → use the mean of the actual pixels assigned to
-     each swatch (more accurate than the raw palette swatch RGB).
-
-The Python `colorthief` package does not expose `.proportion` natively
-(unlike the JS v3), so we compute it ourselves in the pixel-counting pass —
-the result is identical.
+Key Improvements over ColorThief:
+  1. Operates in CIE Lab space with lightness-relaxed CIEDE2000 (kL=3.0) so shadow
+     and highlighted variants of the same soil cluster together instead of appearing
+     as separate fake colors.
+  2. Over-segments with MiniBatchKMeans on a fast downscaled working copy, then
+     merges small/shadow patches into their dominant color anchor.
+  3. Drops pure noise speckles (<0.5%) before merging, and rolls low-share (<5%)
+     shades into nearest parent colors.
+  4. Computes true representative color using trimmed median (skipping 10% shadow/glare extremes).
+  5. Provides per-region shade breakdown ("dark", "medium", "light", "uniform") and lightness_spread.
 
 Public API:
     detect_color_regions(
         image         : PIL.Image.Image,
         max_colors    : int   = 6,
-        min_proportion: float = 0.10,
-        roi_fraction  : float = 0.74,   # center-crop fraction (matches JS region default)
+        min_proportion: float = 0.05,
+        roi_fraction  : float = DEFAULT_ROI_FRACTION,
     ) -> list[dict]
-
-Each dict in the returned list:
-    {
-        "rgb":          (R, G, B) tuple   -- mean RGB of this region (proportion-weighted)
-        "proportion":   float             -- fraction of ROI pixels (0..1)  ← .proportion
-        "pixel_mask":   np.ndarray bool   -- (H, W) True where this region's pixels are
-        "color_index":  int               -- index in the palette (0-based)
-    }
 """
 
 import io
+import os
 from typing import List, Optional, Tuple
 
+import cv2
 import numpy as np
 from PIL import Image
+from skimage.color import rgb2lab, deltaE_ciede2000
+from sklearn.cluster import MiniBatchKMeans
 
-
-# ── ColorThief region option ───────────────────────────────────────────────────
-# Mirrors the JS API: region: { x, y, width, height } as fractions (0-1).
-# Default: center crop of 60% of the image on each axis (tightened from 74%
-# to prevent bowl, tray, or background edge contamination from leaking into color regions).
-# Can be overridden via SCAN_ROI_FRACTION environment variable.
-import os
+# ── Environment & Tunable Settings ─────────────────────────────────────────────
 DEFAULT_ROI_FRACTION = float(os.environ.get("SCAN_ROI_FRACTION", "1.0"))
+
+WORK_SIZE = int(os.environ.get("STAGE3_WORK_SIZE", "320"))     # longest side used for clustering
+OVERSEG_K = int(os.environ.get("STAGE3_OVERSEG_K", "8"))       # intentionally more clusters than needed; merging reduces them
+MIN_SPECK = float(os.environ.get("STAGE3_MIN_SPECK", "0.005")) # ignore clusters < 0.5% (pure noise) before merging
+MERGE_DE = float(os.environ.get("STAGE3_MERGE_DE", "7.0"))      # ΔE2000 (lightness relaxed) to call two clusters "same color"
+MAX_L_GAP = float(os.environ.get("STAGE3_MAX_L_GAP", "40.0"))  # max L* difference allowed inside one color
+FINAL_MIN = float(os.environ.get("STAGE3_FINAL_MIN", "0.05"))  # after merging, drop colors still < 5%
+TRIM_PCT = int(os.environ.get("STAGE3_TRIM_PCT", "10"))        # ignore darkest/lightest 10% when computing true color
 
 
 def _apply_region_crop(image: Image.Image, roi_fraction: float) -> Image.Image:
     """
     Crops the image to a centered sub-rectangle with side length
-    `roi_fraction` × original size — equivalent to ColorThief JS's
-    `region: { x: margin, y: margin, width: roi_fraction, height: roi_fraction }`.
+    `roi_fraction` × original size.
 
     Parameters:
         image        : PIL Image (RGB).
@@ -87,57 +76,30 @@ def _apply_region_crop(image: Image.Image, roi_fraction: float) -> Image.Image:
     return image.crop((left, top, right, bottom))
 
 
-def _nearest_color_index(pixel_arr: np.ndarray, palette: np.ndarray) -> np.ndarray:
-    """
-    Assigns each pixel to the index of its nearest palette entry using
-    squared Euclidean distance in RGB space.
-
-    Implements the pixel-counting pass described in the ColorThief README:
-    "assign each pixel to its closest palette color, count, divide by total
-    ROI pixels to get proportions per color."
-
-    pixel_arr : (H, W, 3) float32  — ROI pixels
-    palette   : (K, 3)    float32  — palette swatches from ColorThief
-
-    Returns (H, W) int32 index array.
-    """
-    H, W, _ = pixel_arr.shape
-    flat = pixel_arr.reshape(-1, 3)                              # (H*W, 3)
-    diffs = flat[:, np.newaxis, :] - palette[np.newaxis, :, :]  # (H*W, K, 3)
-    dists = np.sum(diffs ** 2, axis=-1)                          # (H*W, K)
-    idx = np.argmin(dists, axis=-1)                              # (H*W,)
-    return idx.reshape(H, W).astype(np.int32)
+def _shade_distance(lab1, lab2) -> float:
+    """ΔE2000 with lightness down-weighted (kL=3): dark/light of one soil stay close."""
+    return float(deltaE_ciede2000(lab1[None, :], lab2[None, :], kL=3.0)[0])
 
 
-def _get_palette_colorthief(
-    image: Image.Image,
-    max_colors: int,
-    quality: int = 5,
-) -> List[Tuple[int, int, int]]:
-    """
-    Calls ColorThief `get_palette(color_count, quality)` to extract palette
-    swatches — equivalent to the JS `getPalette(source, { colorCount, quality })`.
-
-    quality=5 means sample every 5th pixel (JS default is 10; 5 gives better
-    accuracy for small soil sample images without being too slow).
-
-    Falls back to the image mean color if `colorthief` is not installed.
-    """
-    try:
-        from colorthief import ColorThief  # type: ignore
-        buf = io.BytesIO()
-        image.save(buf, format="PNG")
-        buf.seek(0)
-        ct = ColorThief(buf)
-        if max_colors == 1:
-            return [ct.get_color(quality=quality)]
-        palette = ct.get_palette(color_count=max_colors, quality=quality)
-        return palette
-    except Exception:
-        # Graceful fallback: mean color as a single swatch
-        arr = np.asarray(image, dtype=np.float32)
-        mean_rgb = tuple(int(round(v)) for v in arr.mean(axis=(0, 1))[:3])
-        return [mean_rgb]  # type: ignore[return-value]
+def _merge_shades(centers, counts) -> dict:
+    """Biggest cluster first; each smaller cluster joins the bigger color it matches."""
+    total = counts.sum()
+    groups = {}
+    for c in np.argsort(-counts):
+        if counts[c] / total < MIN_SPECK:
+            continue
+        best, best_d = None, 1e9
+        for a in groups:
+            if abs(centers[c][0] - centers[a][0]) > MAX_L_GAP:
+                continue
+            d = _shade_distance(centers[c], centers[a])
+            if d < best_d:
+                best, best_d = a, d
+        if best is not None and best_d <= MERGE_DE:
+            groups[best].append(int(c))
+        else:
+            groups[int(c)] = [int(c)]
+    return groups
 
 
 def locate_color_box(
@@ -155,15 +117,12 @@ def locate_color_box(
     """
     H, W = img_rgb.shape[:2]
     try:
-        import cv2
-
         if pixel_mask is not None and np.any(pixel_mask):
             mask_u8 = pixel_mask.astype(np.uint8) * 255
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
             closed = cv2.morphologyEx(mask_u8, cv2.MORPH_CLOSE, kernel)
             n, labels, stats, centroids = cv2.connectedComponentsWithStats(closed)
         else:
-            from skimage.color import rgb2lab, deltaE_ciede2000
             lab = rgb2lab(img_rgb.astype(np.float64) / 255.0)
             ref = rgb2lab(np.array([[color_rgb]], dtype=np.float64) / 255.0)[0, 0]
             de = deltaE_ciede2000(lab, ref[None, None, :])
@@ -224,142 +183,144 @@ def locate_color_box(
     }
 
 
-
 def detect_color_regions(
     image: Image.Image,
     max_colors: int = 6,
-    min_proportion: float = 0.10,
+    min_proportion: float = FINAL_MIN,
     roi_fraction: float = DEFAULT_ROI_FRACTION,
 ) -> List[dict]:
-    """
-    Stage 3 — Multi-color detection.
-
-    Follows the ColorThief README pipeline exactly:
-      1. (region crop) Center-crop to `roi_fraction` of image dimensions so
-         background outside the scan reticle is excluded — mirrors the JS
-         `region: { x, y, width, height }` option.
-      2. (getPalette) Extract up to `max_colors` palette swatches via ColorThief.
-      3. (pixel-counting pass) Assign every pixel to nearest swatch; count and
-         divide by total to produce `.proportion` for each swatch.
-      4. (threshold) Discard swatches below `min_proportion` (noise/edge).
-      5. (mean re-computation) Replace raw swatch RGB with the mean of actual
-         pixels assigned to it (more accurate for irregular soil textures).
-      6. (sort) Return regions sorted by proportion descending — dominant first.
-
-    Parameters:
-        image          : PIL Image (any mode; converted to RGB internally).
-        max_colors     : Max palette swatches (default 6, same as JS colorCount).
-        min_proportion : Min pixel fraction to keep a region (default 10%).
-        roi_fraction   : Fraction of image to use as the center-crop ROI
-                         (default 0.74, matching the reticle window in
-                         ScanSoilScreen.js: RETICLE_SIZE = SCREEN_WIDTH * 0.74).
-
-    Returns:
-        List of region dicts sorted by proportion descending. Each dict:
-          - rgb          : (R, G, B) mean color of the region
-          - proportion   : float — .proportion equivalent (share of ROI pixels)
-          - pixel_mask   : (H, W) bool ndarray over the FULL image dimensions
-          - color_index  : int palette index
-    """
     img_rgb = image.convert("RGB")
-
-    # ── Step 1: Apply region crop (ColorThief JS `region` option) ─────────────
     roi_img = _apply_region_crop(img_rgb, roi_fraction)
+    Wc, Hc = roi_img.size
 
-    # ── Step 2: Extract palette swatches from the ROI ─────────────────────────
-    palette_tuples = _get_palette_colorthief(roi_img, max_colors)
-    palette = np.array(palette_tuples, dtype=np.float32)  # (K, 3)
+    # 1. Small working copy in Lab
+    small = roi_img.copy()
+    small.thumbnail((WORK_SIZE, WORK_SIZE), Image.Resampling.BILINEAR)
+    small_arr = np.asarray(small, dtype=np.float32)
+    sh, sw = small_arr.shape[:2]
+    lab = rgb2lab(small_arr / 255.0).reshape(-1, 3)
 
-    # ── Step 3: Pixel-counting pass on the ROI ────────────────────────────────
-    roi_arr = np.asarray(roi_img, dtype=np.float32)       # (Hc, Wc, 3)
-    Hc, Wc = roi_arr.shape[:2]
-    total_roi_pixels = Hc * Wc
+    # 2. Over-segment on purpose
+    k = min(OVERSEG_K, len(lab))
+    km = MiniBatchKMeans(n_clusters=k, n_init=3, random_state=0, batch_size=2048)
+    labels = km.fit_predict(lab)
+    centers = km.cluster_centers_
+    counts = np.bincount(labels, minlength=k).astype(np.float64)
+    total = counts.sum()
 
-    roi_assignment = _nearest_color_index(roi_arr, palette)  # (Hc, Wc) int32
+    # 3. Merge shades/small parts into the bigger colors they match
+    groups = _merge_shades(centers, counts)
+    share = lambda a: sum(counts[c] for c in groups[a]) / total
 
-    # Build pixel_mask over the FULL image dimensions so Stage 4 (region_checker)
-    # can crop out each region from the full normalized image correctly.
-    full_arr = np.asarray(img_rgb, dtype=np.float32)      # (H, W, 3)
+    # 4. Leftover small colors: attach to nearest big one if close, else drop
+    for a in sorted(list(groups), key=share):  # smallest first
+        if share(a) >= min_proportion:
+            continue
+        big = [o for o in groups if o != a and share(o) >= min_proportion]
+        near = min(big, key=lambda o: _shade_distance(centers[a], centers[o]), default=None)
+        if near is not None and _shade_distance(centers[a], centers[near]) <= MERGE_DE * 1.5:
+            groups[near] += groups[a]
+        del groups[a]
+
+    anchors = sorted(groups, key=share, reverse=True)[:max_colors]
+
+    # 5. Per-pixel group map at ROI size
+    lut = np.full(k, -1, dtype=np.int16)
+    for gi, a in enumerate(anchors):
+        for c in groups[a]:
+            lut[c] = gi
+    small_group = lut[labels].reshape(sh, sw)
+    roi_group = cv2.resize(small_group, (Wc, Hc), interpolation=cv2.INTER_NEAREST)
+    classified = max(int((roi_group >= 0).sum()), 1)
+
+    full_arr = np.asarray(img_rgb, dtype=np.uint8)
     H, W = full_arr.shape[:2]
-
-    # Compute ROI offset to map crop coordinates back to full-image coordinates
     roi_x0 = int(round(W * (1.0 - roi_fraction) / 2.0))
     roi_y0 = int(round(H * (1.0 - roi_fraction) / 2.0))
+    lab2d = lab.reshape(sh, sw, 3)
+    labels2d = labels.reshape(sh, sw)
 
     regions = []
-    for k, swatch_rgb in enumerate(palette_tuples):
-        # Count pixels in the ROI that belong to this swatch
-        roi_mask = (roi_assignment == k)  # (Hc, Wc) bool
-        count = int(roi_mask.sum())
-        proportion = count / total_roi_pixels  # .proportion
+    for gi, a in enumerate(anchors):
+        roi_mask = roi_group == gi
+        proportion = roi_mask.sum() / classified
 
-        if proportion < min_proportion:
-            continue  # discard noise (< 10% of ROI)
+        # True color = median of mid-tone pixels (skip shadow/glare extremes)
+        sm = small_group == gi
+        px, Lpx = small_arr[sm], lab2d[sm][:, 0]
+        lo, hi = np.percentile(Lpx, [TRIM_PCT, 100 - TRIM_PCT])
+        mid = px[(Lpx >= lo) & (Lpx <= hi)]
+        if len(mid) == 0:
+            mid = px
+        rgb = tuple(int(round(v)) for v in np.median(mid, axis=0))
 
-        # Mean RGB from actual assigned pixels (more accurate than swatch)
-        region_pixels = roi_arr[roi_mask]
-        if len(region_pixels) == 0:
-            continue
-        mean_rgb = tuple(int(round(v)) for v in region_pixels.mean(axis=0)[:3])
+        # Shades inside this color (dark -> light)
+        ordered = sorted(groups[a], key=lambda c: centers[c][0])
+        members_total = sum(counts[c] for c in ordered)
+        shades = []
+        for i, c in enumerate(ordered):
+            level = ("uniform" if len(ordered) == 1 else
+                     "dark" if i == 0 else
+                     "light" if i == len(ordered) - 1 else "medium")
+            shades.append({
+                "level": level,
+                "rgb": tuple(int(round(v)) for v in small_arr[labels2d == c].mean(axis=0)),
+                "proportion": round(float(counts[c] / members_total), 4),
+            })
 
-        # Build full-image boolean mask by embedding the ROI mask back into
-        # a full H×W array at the correct offset.
         full_mask = np.zeros((H, W), dtype=bool)
-        full_mask[
-            roi_y0: roi_y0 + Hc,
-            roi_x0: roi_x0 + Wc,
-        ] = roi_mask
-
-        # Locate the continuous blob where this color was actually detected
-        box_data = locate_color_box(full_arr.astype(np.uint8), mean_rgb, pixel_mask=full_mask)
+        full_mask[roi_y0: roi_y0 + Hc, roi_x0: roi_x0 + Wc] = roi_mask
+        box_data = locate_color_box(full_arr, rgb, pixel_mask=full_mask)
 
         regions.append({
-            "rgb": mean_rgb,
-            "proportion": round(proportion, 4),
+            "rgb": rgb,
+            "proportion": round(float(proportion), 4),
+            "shades": shades,
+            "lightness_spread": round(float(centers[ordered[-1]][0] - centers[ordered[0]][0]), 1),
             "pixel_mask": full_mask,
-            "color_index": k,
+            "color_index": gi,
             "bounding_box": box_data,
-            "box": {
-                "x": box_data["norm_x"],
-                "y": box_data["norm_y"],
-                "w": box_data["norm_w"],
-                "h": box_data["norm_h"],
-            },
+            "box": {"x": box_data["norm_x"], "y": box_data["norm_y"],
+                    "w": box_data["norm_w"], "h": box_data["norm_h"]},
         })
 
-    # Sort by proportion descending (dominant color first)
     regions.sort(key=lambda r: r["proportion"], reverse=True)
     return regions
 
 
 def crop_region(image: Image.Image, pixel_mask: np.ndarray) -> Image.Image:
     """
-    Returns a PIL Image containing only the pixels from `pixel_mask`,
-    cropped to the bounding box of that mask. Background pixels are filled white.
-
-    Used by Stage 4 to isolate individual color regions for re-checking.
-
-    Parameters:
-        image      : Original PIL Image (RGB).
-        pixel_mask : (H, W) bool ndarray matching image dimensions.
-
-    Returns:
-        Cropped PIL Image (RGB) of the region's bounding box.
+    Crops the bounding box of a region for Stage 4 verification.
+    Pixels inside the box but NOT in the region (other colors) are replaced with
+    pixels randomly sampled from the region itself, so the soil gate and SSIM
+    check only see this color's texture and are not confused by neighboring colors.
     """
-    arr = np.asarray(image.convert("RGB"), dtype=np.uint8).copy()
-
-    # Crop to bounding box of mask (preserve natural image pixels without whiting out)
-
-    # Crop to bounding box of mask
+    arr = np.asarray(image.convert("RGB"), dtype=np.uint8)
+    if pixel_mask.shape != arr.shape[:2]:
+        pixel_mask = cv2.resize(pixel_mask.astype(np.uint8),
+                                (arr.shape[1], arr.shape[0]),
+                                interpolation=cv2.INTER_NEAREST).astype(bool)
     rows = np.any(pixel_mask, axis=1)
     cols = np.any(pixel_mask, axis=0)
     if not rows.any() or not cols.any():
         return image.convert("RGB")
-
     r_min = int(np.argmax(rows))
     r_max = int(len(rows) - 1 - np.argmax(rows[::-1]))
     c_min = int(np.argmax(cols))
     c_max = int(len(cols) - 1 - np.argmax(cols[::-1]))
 
-    cropped = arr[r_min:r_max + 1, c_min:c_max + 1]
-    return Image.fromarray(cropped, mode="RGB")
+    patch = arr[r_min:r_max + 1, c_min:c_max + 1].copy()
+    m = pixel_mask[r_min:r_max + 1, c_min:c_max + 1]
+    outside = ~m
+    if outside.any() and m.any():
+        region_px = patch[m]
+        rng = np.random.default_rng(0)  # fixed seed = repeatable results
+        patch[outside] = region_px[rng.integers(0, len(region_px), size=int(outside.sum()))]
+
+    out = Image.fromarray(patch, mode="RGB")
+    # Tiny crops can break the gate model; upscale to a minimum size
+    if min(out.size) < 64:
+        scale = 64 / min(out.size)
+        out = out.resize((max(64, int(out.width * scale)), max(64, int(out.height * scale))),
+                         Image.Resampling.LANCZOS)
+    return out

@@ -252,7 +252,7 @@ def classify_soil(
     if _prog: _prog(3, "Multi-Color Detection", "running", None)
     try:
         from color_detector import detect_color_regions  # noqa: E402
-        color_regions = detect_color_regions(normalized_img)
+        color_regions = detect_color_regions(normalized_img, max_colors=6, min_proportion=0.05)
     except Exception as exc:
         sys.stderr.write(f"[Stage3] Color detection failed, falling back to single region: {exc}\n")
         color_regions = []
@@ -335,6 +335,21 @@ def classify_soil(
     sys.stderr.flush()
     if _prog: _prog(5, "Munsell Spectral Match", "done", None)
     time.sleep(0.08)
+
+    # ── Stage 5.5: Munsell Shade Merging ─────────────────────────────────────────
+    t_merge = time.perf_counter()
+    try:
+        from region_merge import merge_munsell_regions  # noqa: E402
+        pre_merge_count = len(matched_regions)
+        matched_regions = merge_munsell_regions(matched_regions, normalized_img)
+        merge_elapsed = time.perf_counter() - t_merge
+        sys.stderr.write(
+            f"[TIMING] Stage 5.5 (Munsell Merge): {merge_elapsed:.3f}s "
+            f"(regions: {pre_merge_count} -> {len(matched_regions)})\n"
+        )
+    except Exception as exc:
+        sys.stderr.write(f"[Stage 5.5] Munsell merge error, keeping matched regions: {exc}\n")
+    sys.stderr.flush()
 
     # ── Stage 6: ML cross-check ────────────────────────────────────────────────
     t_stage6 = time.perf_counter()

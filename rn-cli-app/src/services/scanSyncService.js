@@ -294,6 +294,7 @@ export function mapServerScan(scan, data = {}) {
     beforeAfterImage,
     beforeAfterImageUrl: beforeAfterImage,
     regions,
+    lighting_warning: Boolean(data?.lighting_warning || scan?.lighting_warning || (regions && regions.some(r => r.lighting_warning))),
   };
 }
 

@@ -129,7 +129,8 @@ def match_regions(
         region_image: Image.Image = region.get("region_image") or Image.new("RGB", THUMBNAIL_SIZE, rgb)
         thumbnail_b64 = _image_to_b64_thumbnail(region_image)
 
-        matched.append({
+        matched_dict = dict(region)
+        matched_dict.update({
             # Carry forward from Stage 3/4
             "rgb": rgb,
             "proportion": region["proportion"],
@@ -137,6 +138,11 @@ def match_regions(
             "gate_confidence": region.get("gate_confidence", 1.0),
             "bounding_box": region.get("bounding_box"),
             "box": region.get("box"),
+            "shades": region.get("shades", []),
+            "lightness_spread": region.get("lightness_spread", 0.0),
+            "merged_from": region.get("merged_from", [region.get("color_index")]),
+            "pixel_mask": region.get("pixel_mask"),
+            "region_image": region_image,
             # Stage 5: Munsell result
             "hue": chip.hue,
             "value": chip.value,
@@ -146,5 +152,6 @@ def match_regions(
             "color_delta_e": round(float(delta_e), 3),
             "region_thumbnail": thumbnail_b64,
         })
+        matched.append(matched_dict)
 
     return matched

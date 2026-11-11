@@ -279,9 +279,15 @@ def main() -> int:
         # Strip pixel_mask (not JSON serializable) and region_image (PIL object)
         # from each region before serialising.
         api_regions = []
+        has_lighting_warning = False
         for r in result.regions:
             rgb = r.get("rgb", (0, 0, 0))
             hex_color = "#{:02X}{:02X}{:02X}".format(rgb[0], rgb[1], rgb[2]) if isinstance(rgb, (tuple, list)) and len(rgb) >= 3 else "#808080"
+            lightness_spread = float(r.get("lightness_spread", 0.0))
+            reg_lighting_warning = bool(lightness_spread >= 35.0 or r.get("lighting_warning", False))
+            if reg_lighting_warning:
+                has_lighting_warning = True
+
             api_regions.append({
                 "munsell": r.get("munsell", "NA"),
                 "label": r.get("label", ""),
@@ -294,9 +300,15 @@ def main() -> int:
                 "hex": hex_color,
                 "bounding_box": r.get("bounding_box"),
                 "box": r.get("box"),
+                "shades": r.get("shades", []),
+                "lightness_spread": lightness_spread,
+                "merged_from": r.get("merged_from", []),
+                "lighting_warning": reg_lighting_warning,
             })
 
         output = build_output(record, result, api_regions)
+        if has_lighting_warning:
+            output["lighting_warning"] = True
 
         # Directly save Stage 2 normalized image into Laravel public scans storage if scan_id provided
         norm_img = getattr(result, "normalized_image", None)
