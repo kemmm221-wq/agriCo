@@ -244,71 +244,58 @@ def locate_color_box(
     pixel_mask: Optional[np.ndarray] = None,
 ) -> dict:
     """
-    Locates the primary continuous blob of `color_rgb` in `img_rgb`.
-    If `pixel_mask` (H×W boolean array from actual pixel assignments) is provided,
-    it identifies the most representative contiguous cluster of this color on the soil surface,
-    avoiding border-edge artifacts and crack-erasing morphological filters.
-    Returns both absolute pixel coordinates and normalized (0-1) coordinates.
+    Locates the true spatial bounding box of `color_rgb` across the image.
+    Uses the actual pixel_mask extent, proportional to its real image share,
+    so dominant soil colors cover the full analyzed frame instead of an arbitrary 20% box.
     """
     H, W = img_rgb.shape[:2]
     try:
         if pixel_mask is not None and np.any(pixel_mask):
-            mask_u8 = pixel_mask.astype(np.uint8) * 255
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-            closed = cv2.morphologyEx(mask_u8, cv2.MORPH_CLOSE, kernel)
-            n, labels, stats, centroids = cv2.connectedComponentsWithStats(closed)
-        else:
-            lab = rgb2lab(img_rgb.astype(np.float64) / 255.0)
-            ref = rgb2lab(np.array([[color_rgb]], dtype=np.float64) / 255.0)[0, 0]
-            de = deltaE_ciede2000(lab, ref[None, None, :])
-            mask_u8 = (de < max_de).astype(np.uint8) * 255
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-            closed = cv2.morphologyEx(mask_u8, cv2.MORPH_CLOSE, kernel)
-            n, labels, stats, centroids = cv2.connectedComponentsWithStats(closed)
+            ys, xs = np.where(pixel_mask)
+            if len(xs) > 0 and len(ys) > 0:
+                # 2nd to 98th percentile bounds to ignore stray noise pixels
+                x_min, x_max = int(np.percentile(xs, 2)), int(np.percentile(xs, 98))
+                y_min, y_max = int(np.percentile(ys, 2)), int(np.percentile(ys, 98))
 
-        target_cx = W / 2.0
-        target_cy = H / 2.0
+                bx = max(0, min(W - 1, x_min))
+                by = max(0, min(H - 1, y_min))
+                bw = max(10, min(W - bx, x_max - x_min + 1))
+                bh = max(10, min(H - by, y_max - y_min + 1))
 
-        best_score = -1.0
-        best_box = None
+                return {
+                    "x": int(bx),
+                    "y": int(by),
+                    "width": int(bw),
+                    "height": int(bh),
+                    "norm_x": round(float(bx / W), 4),
+                    "norm_y": round(float(by / H), 4),
+                    "norm_w": round(float(bw / W), 4),
+                    "norm_h": round(float(bh / H), 4),
+                }
 
-        if n > 1:
-            for i in range(1, n):
-                x, y, w, h, area = stats[i]
-                cx, cy = centroids[i]
-
-                if area < 16:
-                    continue
-
-                # Penalize components clinging strictly to the outer boundary edges
-                is_edge = (x <= 3 or (x + w) >= W - 3 or y <= 3 or (y + h) >= H - 3)
-                edge_mult = 0.25 if is_edge else 1.0
-
-                dist_norm = np.hypot((cx - target_cx) / target_cx, (cy - target_cy) / target_cy)
-                score = (area ** 0.6) * (1.0 / (1.0 + 0.6 * dist_norm)) * edge_mult
-
-                if score > best_score:
-                    best_score = score
-                    # Bound to a clean representative inspection window (10% to 26% of image dimension)
-                    target_w = max(int(W * 0.10), min(w, int(W * 0.26)))
-                    target_h = max(int(H * 0.08), min(h, int(H * 0.20)))
-
-                    bx = max(int(W * 0.02), min(int(W * 0.98) - target_w, int(x + (w - target_w) / 2)))
-                    by = max(int(H * 0.02), min(int(H * 0.98) - target_h, int(y + (h - target_h) / 2)))
-
-                    best_box = {
-                        "x": int(bx),
-                        "y": int(by),
-                        "width": int(target_w),
-                        "height": int(target_h),
-                        "norm_x": round(float(bx / W), 4),
-                        "norm_y": round(float(by / H), 4),
-                        "norm_w": round(float(target_w / W), 4),
-                        "norm_h": round(float(target_h / H), 4),
-                    }
-
-        if best_box:
-            return best_box
+        # Fallback: CIEDE2000 segmentation if no pixel_mask provided
+        lab = rgb2lab(img_rgb.astype(np.float64) / 255.0)
+        ref = rgb2lab(np.array([[color_rgb]], dtype=np.float64) / 255.0)[0, 0]
+        de = deltaE_ciede2000(lab, ref[None, None, :])
+        mask_u8 = (de < max_de).astype(np.uint8) * 255
+        ys, xs = np.where(mask_u8 > 0)
+        if len(xs) > 0 and len(ys) > 0:
+            x_min, x_max = int(np.percentile(xs, 2)), int(np.percentile(xs, 98))
+            y_min, y_max = int(np.percentile(ys, 2)), int(np.percentile(ys, 98))
+            bx = max(0, min(W - 1, x_min))
+            by = max(0, min(H - 1, y_min))
+            bw = max(10, min(W - bx, x_max - x_min + 1))
+            bh = max(10, min(H - by, y_max - y_min + 1))
+            return {
+                "x": int(bx),
+                "y": int(by),
+                "width": int(bw),
+                "height": int(bh),
+                "norm_x": round(float(bx / W), 4),
+                "norm_y": round(float(by / H), 4),
+                "norm_w": round(float(bw / W), 4),
+                "norm_h": round(float(bh / H), 4),
+            }
     except Exception:
         pass
 
