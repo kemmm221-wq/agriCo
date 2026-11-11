@@ -42,18 +42,35 @@ from sklearn.cluster import MiniBatchKMeans
 DEFAULT_ROI_FRACTION = float(os.environ.get("SCAN_ROI_FRACTION", "1.0"))
 
 WORK_SIZE = int(os.environ.get("STAGE3_WORK_SIZE", "320"))     # longest side used for clustering
-OVERSEG_K = int(os.environ.get("STAGE3_OVERSEG_K", "8"))       # intentionally more clusters than needed; merging reduces them
-MIN_SPECK = float(os.environ.get("STAGE3_MIN_SPECK", "0.005")) # ignore clusters < 0.5% (pure noise) before merging
-MERGE_DE = float(os.environ.get("STAGE3_MERGE_DE", "7.0"))      # ΔE2000 (lightness relaxed) to call two clusters "same color"
-MAX_L_GAP = float(os.environ.get("STAGE3_MAX_L_GAP", "40.0"))  # max L* difference allowed inside one color
-FINAL_MIN = float(os.environ.get("STAGE3_FINAL_MIN", "0.05"))  # after merging, drop colors still < 5%
+OVERSEG_K = int(os.environ.get("STAGE3_OVERSEG_K", "12"))      # intentionally more clusters than needed (12)
+MAX_COLORS = int(os.environ.get("STAGE3_MAX_COLORS", "12"))    # max distinct color anchors kept (12)
+MIN_SPECK = float(os.environ.get("STAGE3_MIN_SPECK", "0.005")) # ignore clusters < 0.5% (pure noise) before initial merge
+MERGE_DE = float(os.environ.get("STAGE3_MERGE_DE", "7.0"))      # ΔE2000 (lightness relaxed kL=3) to call two clusters "same color"
+MAX_L_GAP = float(os.environ.get("STAGE3_MAX_L_GAP", "28.0"))  # max L* difference allowed inside one color (28.0)
+FINAL_MIN = float(os.environ.get("STAGE3_FINAL_MIN", "0.02"))  # merge-into-nearest threshold: groups < 2% merge into nearest anchor
 TRIM_PCT = int(os.environ.get("STAGE3_TRIM_PCT", "10"))        # ignore darkest/lightest 10% when computing true color
 
 # ── High-Contrast Bright Overlay Colors (Stands out sharply on earthy brown soil) ─
-OVERLAY_PALETTE = [(255, 64, 64), (40, 120, 255), (255, 214, 0),
-                   (0, 200, 120), (190, 80, 255), (255, 140, 0)]  # distinct from soil browns
+OVERLAY_PALETTE = [
+    (255, 64, 64),    # 0: Bright Red
+    (40, 120, 255),   # 1: Bright Blue
+    (255, 214, 0),    # 2: Bright Yellow
+    (0, 200, 120),    # 3: Emerald Green
+    (190, 80, 255),   # 4: Purple / Violet
+    (255, 140, 0),    # 5: Bright Orange
+    (0, 225, 225),    # 6: Cyan / Aqua
+    (255, 105, 180),  # 7: Hot Pink
+    (138, 43, 226),   # 8: Indigo
+    (50, 205, 50),    # 9: Lime Green
+    (255, 20, 147),   # 10: Deep Pink
+    (30, 144, 255),   # 11: Dodger Blue
+]
+OVERLAY_COLOR_NAMES = [
+    "Red", "Blue", "Yellow", "Green", "Purple", "Orange",
+    "Cyan", "Pink", "Indigo", "Lime", "Rose", "Sky"
+]
 OVERLAY_MAX_SIDE = 640
-SMOOTH_KSIZE = 7  # odd number; removes salt-and-pepper speckle in the color map
+SMOOTH_KSIZE = int(os.environ.get("STAGE3_SMOOTH_KSIZE", "5"))  # majority filter kernel size (default 5)
 
 
 def _png_b64(arr: np.ndarray, mode: str) -> str:
@@ -62,11 +79,14 @@ def _png_b64(arr: np.ndarray, mode: str) -> str:
     return base64.b64encode(buf.getvalue()).decode("ascii")
 
 
-def smooth_label_map(roi_group: np.ndarray) -> np.ndarray:
-    """roi_group: int16 map, -1 = unclassified. Median-filter so each color forms solid areas."""
-    lab = (roi_group + 1).astype(np.uint8)          # 0 = unclassified
-    lab = cv2.medianBlur(lab, SMOOTH_KSIZE)
-    return lab.astype(np.int16) - 1
+def smooth_label_map(label_map: np.ndarray, n_labels: int, ksize: int = 5) -> np.ndarray:
+    """Majority (mode) filter applied at working resolution before upscaling."""
+    if ksize <= 1 or n_labels <= 1:
+        return label_map
+    votes = np.empty((n_labels,) + label_map.shape, np.float32)
+    for g in range(n_labels):
+        votes[g] = cv2.blur((label_map == g).astype(np.float32), (ksize, ksize))
+    return votes.argmax(axis=0).astype(np.int16)
 
 
 def extract_blobs(mask: np.ndarray, min_area_frac: float = 0.003, max_blobs: int = 10) -> list:
@@ -89,8 +109,9 @@ def extract_blobs(mask: np.ndarray, min_area_frac: float = 0.003, max_blobs: int
 
 def render_color_map(full_group: np.ndarray, n_colors: int, alpha: float = 0.5):
     """
-    full_group: (H, W) int16 label map for the WHOLE image (-1 = not classified).
+    full_group: (H, W) int16 label map for the WHOLE image (0..n_colors-1, or n_colors for rejected).
     Returns (combined_overlay_png_b64, [per_color_mask_png_b64 ...]) at <=640px.
+    Per-color mask_png is an RGBA PNG: overlay color where mask is true (alpha 200), transparent elsewhere.
     """
     H, W = full_group.shape
     s = min(1.0, OVERLAY_MAX_SIDE / max(H, W))
@@ -102,7 +123,17 @@ def render_color_map(full_group: np.ndarray, n_colors: int, alpha: float = 0.5):
         m = small == gi
         r, g, b = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
         rgba[m] = (r, g, b, int(255 * alpha))
-        masks.append(_png_b64((m.astype(np.uint8) * 255), "L"))
+
+        # Per-color mask as RGBA with alpha 200 where true, 0 elsewhere
+        color_rgba = np.zeros(small.shape + (4,), dtype=np.uint8)
+        color_rgba[m] = (r, g, b, 200)
+        masks.append(_png_b64(color_rgba, "RGBA"))
+
+    # If rejected regions exist (index n_colors), draw in neutral gray #969696
+    rej_m = small == n_colors
+    if np.any(rej_m):
+        rgba[rej_m] = (150, 150, 150, int(255 * alpha))
+
     return _png_b64(rgba, "RGBA"), masks
 
 
@@ -289,7 +320,7 @@ def locate_color_box(
 
 def detect_color_regions(
     image: Image.Image,
-    max_colors: int = 6,
+    max_colors: int = MAX_COLORS,
     min_proportion: float = FINAL_MIN,
     roi_fraction: float = DEFAULT_ROI_FRACTION,
 ) -> List[dict]:
@@ -336,7 +367,7 @@ def detect_color_regions(
     sh, sw = small_arr.shape[:2]
     lab = rgb2lab(small_arr / 255.0).reshape(-1, 3)
 
-    # 2. Over-segment on purpose
+    # 2. Over-segment on purpose (OVERSEG_K = 12)
     k = min(OVERSEG_K, len(lab))
     km = MiniBatchKMeans(n_clusters=k, n_init=3, random_state=0, batch_size=2048)
     labels = km.fit_predict(lab)
@@ -348,27 +379,46 @@ def detect_color_regions(
     groups = _merge_shades(centers, counts)
     share = lambda a: sum(counts[c] for c in groups[a]) / total
 
-    # 4. Leftover small colors: attach to nearest big one if close, else drop
-    for a in sorted(list(groups), key=share):  # smallest first
-        if share(a) >= min_proportion:
-            continue
-        big = [o for o in groups if o != a and share(o) >= min_proportion]
-        near = min(big, key=lambda o: _shade_distance(centers[a], centers[o]), default=None)
-        if near is not None and _shade_distance(centers[a], centers[near]) <= MERGE_DE * 1.5:
-            groups[near] += groups[a]
-        del groups[a]
+    # 4. Small colors (< FINAL_MIN): merge into nearest anchor (NEVER drop)
+    changed = True
+    while changed and len(groups) > 1:
+        changed = False
+        for a in sorted(list(groups), key=share):
+            if share(a) < min_proportion:
+                others = [o for o in groups if o != a]
+                if others:
+                    near = min(others, key=lambda o: _shade_distance(centers[a], centers[o]))
+                    groups[near].extend(groups[a])
+                    del groups[a]
+                    changed = True
+                    break
 
-    anchors = sorted(groups, key=share, reverse=True)[:max_colors]
+    # Cap to max_colors (12) by merging smallest remaining into nearest anchor
+    while len(groups) > max_colors:
+        smallest_a = min(groups, key=share)
+        remaining = [o for o in groups if o != smallest_a]
+        near = min(remaining, key=lambda o: _shade_distance(centers[smallest_a], centers[o]))
+        groups[near].extend(groups[smallest_a])
+        del groups[smallest_a]
 
-    # 5. Per-pixel group map at ROI size with median smoothing
-    lut = np.full(k, -1, dtype=np.int16)
+    anchors = sorted(groups, key=share, reverse=True)
+
+    # 5. Map EVERY K-means cluster (including any tiny specks) to its nearest anchor
+    anchor_labs = [centers[a] for a in anchors]
+    cluster_to_group = np.zeros(k, dtype=np.int16)
     for gi, a in enumerate(anchors):
         for c in groups[a]:
-            lut[c] = gi
-    small_group = lut[labels].reshape(sh, sw)
+            cluster_to_group[c] = gi
+    member = {c for a in anchors for c in groups[a]}
+    for c in range(k):
+        if c not in member:  # tiny/speck/leftover cluster
+            d = [_shade_distance(centers[c], al) for al in anchor_labs]
+            cluster_to_group[c] = int(np.argmin(d))
+
+    small_group = cluster_to_group[labels].reshape(sh, sw)   # no -1 anywhere
+    # Apply majority (mode) filter at working resolution BEFORE upscaling to ROI size
+    small_group = smooth_label_map(small_group, len(anchors), ksize=SMOOTH_KSIZE)
     roi_group = cv2.resize(small_group, (Wc, Hc), interpolation=cv2.INTER_NEAREST)
-    roi_group = smooth_label_map(roi_group)
-    classified = max(int((roi_group >= 0).sum()), 1)
 
     full_arr = np.asarray(img_rgb, dtype=np.uint8)
     H, W = full_arr.shape[:2]
@@ -377,14 +427,27 @@ def detect_color_regions(
     lab2d = lab.reshape(sh, sw, 3)
     labels2d = labels.reshape(sh, sw)
 
-    full_group = np.full((H, W), -1, dtype=np.int16)
+    full_group = np.zeros((H, W), dtype=np.int16)
     full_group[roi_y0: roi_y0 + Hc, roi_x0: roi_x0 + Wc] = roi_group
+
+    # If border padding was trimmed, fill borders with edge labels so full image is 100% labeled
+    if pad_l > 0:
+        full_group[:, :pad_l] = full_group[:, pad_l:pad_l+1]
+    if pad_r > 0:
+        full_group[:, W - pad_r:] = full_group[:, W - pad_r - 1: W - pad_r]
+    if pad_t > 0:
+        full_group[:pad_t, :] = full_group[pad_t:pad_t+1, :]
+    if pad_b > 0:
+        full_group[H - pad_b:, :] = full_group[H - pad_b - 1: H - pad_b, :]
+
+    total_full_pixels = H * W
     combined_overlay_b64, per_color_masks_b64 = render_color_map(full_group, len(anchors), alpha=0.5)
 
     regions = []
     for gi, a in enumerate(anchors):
-        roi_mask = roi_group == gi
-        proportion = roi_mask.sum() / classified
+        full_mask = full_group == gi
+        count_gi = int(full_mask.sum())
+        proportion = count_gi / float(total_full_pixels)
 
         # True color = median of mid-tone pixels (skip shadow/glare extremes)
         sm = small_group == gi
@@ -395,26 +458,43 @@ def detect_color_regions(
             mid = px
         rgb = tuple(int(round(v)) for v in np.median(mid, axis=0))
 
-        # Shades inside this color (dark -> light)
-        ordered = sorted(groups[a], key=lambda c: centers[c][0])
-        members_total = sum(counts[c] for c in ordered)
+        # Shades inside this color: collapse to at most 3 entries (dark, medium, light) by L* terciles
+        total_sm = len(Lpx)
         shades = []
-        for i, c in enumerate(ordered):
-            level = ("uniform" if len(ordered) == 1 else
-                     "dark" if i == 0 else
-                     "light" if i == len(ordered) - 1 else "medium")
-            shades.append({
-                "level": level,
-                "rgb": tuple(int(round(v)) for v in small_arr[labels2d == c].mean(axis=0)),
-                "proportion": round(float(counts[c] / members_total), 4),
-            })
+        if total_sm > 0:
+            q33, q66 = np.percentile(Lpx, [33.33, 66.67])
+            dark_m = Lpx <= q33
+            light_m = Lpx > q66
+            med_m = (~dark_m) & (~light_m)
+            if dark_m.any():
+                shades.append({
+                    "level": "dark",
+                    "rgb": tuple(int(round(v)) for v in px[dark_m].mean(axis=0)),
+                    "proportion": round(float(dark_m.sum() / total_sm), 4),
+                })
+            if med_m.any():
+                shades.append({
+                    "level": "medium",
+                    "rgb": tuple(int(round(v)) for v in px[med_m].mean(axis=0)),
+                    "proportion": round(float(med_m.sum() / total_sm), 4),
+                })
+            if light_m.any():
+                shades.append({
+                    "level": "light",
+                    "rgb": tuple(int(round(v)) for v in px[light_m].mean(axis=0)),
+                    "proportion": round(float(light_m.sum() / total_sm), 4),
+                })
+            if len(shades) == 1:
+                shades[0]["level"] = "uniform"
 
-        full_mask = np.zeros((H, W), dtype=bool)
-        full_mask[roi_y0: roi_y0 + Hc, roi_x0: roi_x0 + Wc] = roi_mask
+        ordered = sorted(groups[a], key=lambda c: centers[c][0])
+        lightness_spread = round(float(Lpx.max() - Lpx.min()), 1) if total_sm > 0 else 0.0
+
         box_data = locate_color_box(full_arr, rgb, pixel_mask=full_mask)
 
         r, g, b = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
         overlay_hex = f"#{r:02x}{g:02x}{b:02x}"
+        overlay_color_name = OVERLAY_COLOR_NAMES[gi % len(OVERLAY_COLOR_NAMES)]
         blobs = extract_blobs(full_mask)
         mask_png_b64 = per_color_masks_b64[gi] if gi < len(per_color_masks_b64) else ""
 
@@ -422,7 +502,7 @@ def detect_color_regions(
             "rgb": rgb,
             "proportion": round(float(proportion), 4),
             "shades": shades,
-            "lightness_spread": round(float(centers[ordered[-1]][0] - centers[ordered[0]][0]), 1),
+            "lightness_spread": lightness_spread,
             "pixel_mask": full_mask,
             "color_index": gi,
             "bounding_box": box_data,
@@ -430,6 +510,7 @@ def detect_color_regions(
                     "w": box_data["norm_w"], "h": box_data["norm_h"]},
             "overlay_color": (r, g, b),
             "overlay_hex": overlay_hex,
+            "overlay_color_name": overlay_color_name,
             "blobs": blobs,
             "mask_png": mask_png_b64,
         })
@@ -437,6 +518,14 @@ def detect_color_regions(
     regions.sort(key=lambda r: r["proportion"], reverse=True)
     if regions:
         regions[0]["color_map_png"] = combined_overlay_b64
+
+    # Assert 100% coverage
+    coverage_sum = sum(r["proportion"] for r in regions)
+    assert abs(coverage_sum - 1.0) < 0.005, f"Coverage sum {coverage_sum:.4f} != 1.0"
+    import sys
+    sys.stderr.write(f"[Stage 3] coverage = 100.0% ({len(regions)} colors)\n")
+    sys.stderr.flush()
+
     return regions
 
 
@@ -458,7 +547,9 @@ def create_segmentation_overlay(
         mask = r.get("pixel_mask")
         if mask is None or not np.any(mask):
             continue
-        c = r.get("overlay_color", BRIGHT_OVERLAY_COLORS[gi % len(BRIGHT_OVERLAY_COLORS)]["rgb"])
+        c = r.get("overlay_color")
+        if not c:
+            c = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
         overlay[mask] = c
 
     blended = cv2.addWeighted(base, 1.0 - alpha, overlay, alpha, 0)

@@ -28,8 +28,11 @@ Note: 'color_only' is preserved in schemas for historical record compatibility,
 import os
 import sys
 import time
+import traceback
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
+
+import numpy as np
 
 from munsell_lookup import MunsellTable, dominant_rgb
 from soil_gate import predict_is_soil
@@ -113,7 +116,10 @@ def classify_soil(
     from color_detector import DEFAULT_ROI_FRACTION, _apply_region_crop
     from munsell_lookup import dominant_rgb_from_image
 
-    original_img = Image.open(image_path).convert("RGB")
+    if isinstance(image_path, (str, os.PathLike)):
+        original_img = Image.open(image_path).convert("RGB")
+    else:
+        original_img = image_path.convert("RGB")
     roi_img = _apply_region_crop(original_img, DEFAULT_ROI_FRACTION)
 
     # Hardware check
@@ -254,7 +260,7 @@ def classify_soil(
     if _prog: _prog(3, "Multi-Color Detection", "running", None)
     try:
         from color_detector import detect_color_regions  # noqa: E402
-        color_regions = detect_color_regions(normalized_img, max_colors=6, min_proportion=0.05)
+        color_regions = detect_color_regions(normalized_img)
     except Exception as exc:
         sys.stderr.write(f"[Stage3] Color detection failed, falling back to single region: {exc}\n")
         color_regions = []
@@ -283,18 +289,26 @@ def classify_soil(
     scan_root = munsell_table.scan_root or os.path.join(os.getcwd(), "Scan_Soil_Image")
     fake_soil_dir = os.path.join(scan_root, "Fake_Soil")
     if _prog: _prog(4, "Per-Region Verification", "running", None)
+    stage4_rejected = []
     try:
         from region_checker import filter_real_regions  # noqa: E402
-        real_regions = filter_real_regions(normalized_img, color_regions, fake_soil_dir)
+        res = filter_real_regions(original_img, color_regions, fake_soil_dir)
+        if isinstance(res, tuple) and len(res) == 2:
+            real_regions, stage4_rejected = res
+        else:
+            real_regions = res
+            stage4_rejected = [r for r in color_regions if not r.get("is_real_region", False)]
     except Exception as exc:
         sys.stderr.write(f"[Stage4] Region filter failed, using all color regions: {exc}\n")
         for r in color_regions:
             r.setdefault("gate_confidence", gate_conf)
             r.setdefault("is_real_region", True)
-            r.setdefault("region_image", normalized_img)
+            r.setdefault("verified", True)
+            r.setdefault("region_image", original_img)
         real_regions = color_regions
+        stage4_rejected = []
     stage4_elapsed = time.perf_counter() - t_stage4
-    sys.stderr.write(f"[TIMING] Stage 4 (Per-Region Verification): {stage4_elapsed:.3f}s (real_regions={len(real_regions)})\n")
+    sys.stderr.write(f"[TIMING] Stage 4 (Per-Region Verification): {stage4_elapsed:.3f}s (real_regions={len(real_regions)}, rejected={len(stage4_rejected)})\n")
 
     if not real_regions:
         if _prog: _prog(4, "Per-Region Verification", "rejected", {"reason": "all_regions_rejected"})
@@ -340,8 +354,10 @@ def classify_soil(
 
     # ── Stage 5.5: Munsell Shade Merging ─────────────────────────────────────────
     t_merge = time.perf_counter()
+    combined_overlay_b64 = None
     try:
         from region_merge import merge_munsell_regions  # noqa: E402
+        from color_detector import render_color_map, extract_blobs, OVERLAY_PALETTE, OVERLAY_COLOR_NAMES  # noqa: E402
         pre_merge_count = len(matched_regions)
         matched_regions = merge_munsell_regions(matched_regions, normalized_img)
         merge_elapsed = time.perf_counter() - t_merge
@@ -349,8 +365,41 @@ def classify_soil(
             f"[TIMING] Stage 5.5 (Munsell Merge): {merge_elapsed:.3f}s "
             f"(regions: {pre_merge_count} -> {len(matched_regions)})\n"
         )
+
+        # Rebuild full-size int16 label map from final merged pixel_masks
+        H_norm, W_norm = normalized_img.size[1], normalized_img.size[0]
+        final_group = np.zeros((H_norm, W_norm), dtype=np.int16)
+        n_final = len(matched_regions)
+        for gi, r in enumerate(matched_regions):
+            mask = r.get("pixel_mask")
+            if mask is not None:
+                final_group[mask] = gi
+
+        # Draw rejected regions as index n_final (drawn in gray #969696)
+        for rej in stage4_rejected:
+            r_mask = rej.get("pixel_mask")
+            if r_mask is not None:
+                final_group[r_mask] = n_final
+
+        combined_overlay_b64, per_color_masks_b64 = render_color_map(final_group, n_final, alpha=0.5)
+
+        # Overwrite each region's mask_png, blobs, overlay_hex, overlay_color, overlay_color_name
+        for gi, r in enumerate(matched_regions):
+            pal_rgb = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
+            r["overlay_color"] = pal_rgb
+            r["overlay_hex"] = f"#{pal_rgb[0]:02x}{pal_rgb[1]:02x}{pal_rgb[2]:02x}"
+            r["overlay_color_name"] = OVERLAY_COLOR_NAMES[gi % len(OVERLAY_COLOR_NAMES)]
+            if gi < len(per_color_masks_b64):
+                r["mask_png"] = per_color_masks_b64[gi]
+            if r.get("pixel_mask") is not None:
+                r["blobs"] = extract_blobs(r["pixel_mask"])
+
+        for rej in stage4_rejected:
+            rej["overlay_color"] = (150, 150, 150)
+            rej["overlay_hex"] = "#969696"
+            rej["overlay_color_name"] = "Gray"
     except Exception as exc:
-        sys.stderr.write(f"[Stage 5.5] Munsell merge error, keeping matched regions: {exc}\n")
+        sys.stderr.write(f"[Stage 5.5] Munsell merge error, keeping matched regions: {exc}\n{traceback.format_exc()}\n")
     sys.stderr.flush()
 
     # ── Stage 6: ML cross-check ────────────────────────────────────────────────
@@ -409,8 +458,8 @@ def classify_soil(
         top_label = "fake_soil"
 
     final_rgb = dominant.get("rgb", rgb) if dominant else rgb
-    color_map_b64 = color_regions[0].get("color_map_png") if color_regions else None
-    rejected_regions = [r for r in color_regions if not r.get("is_real_region", False)]
+    color_map_b64 = combined_overlay_b64 if combined_overlay_b64 else (color_regions[0].get("color_map_png") if color_regions else None)
+    rejected_regions = stage4_rejected if stage4_rejected is not None else [r for r in color_regions if not r.get("is_real_region", False)]
 
     result = ClassificationResult(
         label=top_label,

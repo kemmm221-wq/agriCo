@@ -75,9 +75,9 @@ export const STAGE_META = {
     targetPct: 68,
     badge: 'STAGE 3',
     title: 'Stage 3/6: Multi-Color Detection…',
-    sub: 'Extracting dominant soil color clusters via ColorThief',
-    name: 'Multi-Color Detection (ColorThief Palette)',
-    tag: 'ColorThief Palette',
+    sub: 'Extracting dominant soil color clusters via K-means in CIELAB (shade-merged)',
+    name: 'Multi-Color Detection (K-means in CIELAB, shade-merged)',
+    tag: 'K-means CIELAB',
   },
   4: {
     stage: 4,
@@ -342,10 +342,6 @@ export default function ScanSoilScreen({ navigation }) {
   const [isSavedCopy, setIsSavedCopy] = useState(false);
   const [selectedOverlayColorIndex, setSelectedOverlayColorIndex] = useState(null);
 
-  useEffect(() => {
-    setSelectedOverlayColorIndex(null);
-  }, [currentSpecimen?.scanId, currentSpecimen?.id]);
-
   // Layout & Bounds
   const [camBounds, setCamBounds] = useState({ x: 0, y: 0, width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
   const [dockTop, setDockTop] = useState(null);
@@ -363,6 +359,14 @@ export default function ScanSoilScreen({ navigation }) {
   const targetPctRef = useRef(15);
 
   const currentSpecimen = scanResult; // real result only; null until a scan completes
+
+  const normBarFrac = currentSpecimen?.bar_frac ?? (currentSpecimen?.barFrac ?? 0.0741);
+  const normBarPct = normBarFrac * 100;
+  const normImgHeightPct = 100 - normBarPct;
+
+  useEffect(() => {
+    setSelectedOverlayColorIndex(null);
+  }, [currentSpecimen?.scanId, currentSpecimen?.id]);
 
   const specimenMunsellMatch = useMemo(() => {
     if (!currentSpecimen) return null;
@@ -464,7 +468,9 @@ export default function ScanSoilScreen({ navigation }) {
   }, [currentSpecimen]);
 
   const specimenNormBoxes = useMemo(() => {
-    const ordinalNames = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH', '9TH', '10TH'];
+    const barFrac = currentSpecimen?.bar_frac ?? (currentSpecimen?.barFrac ?? 0.0741);
+    const barPct = barFrac * 100;
+    const imgHeightPct = 100 - barPct;
     const regions = (specimenNormRegions && specimenNormRegions.length > 0)
       ? specimenNormRegions
       : [{ norm_x: 0.25, norm_y: 0.25, norm_w: 0.5, norm_h: 0.5 }];
@@ -482,11 +488,11 @@ export default function ScanSoilScreen({ navigation }) {
         ? Math.round(r.percent)
         : (r.proportion !== undefined ? Math.round(r.proportion * 100) : null);
 
-      // Coordinates for 2-panel composite Before/After comparison image (right 50% pane, with 7.41% top bar)
+      // Coordinates for 2-panel composite Before/After comparison image (right 50% pane, with dynamic top bar)
       const splitLeft = 50.0 + (bData.raw_x * 50.0);
-      const splitTop = 7.41 + (bData.raw_y * 92.59);
+      const splitTop = barPct + (bData.raw_y * imgHeightPct);
       const splitWidth = bData.raw_w * 50.0;
-      const splitHeight = bData.raw_h * 92.59;
+      const splitHeight = bData.raw_h * imgHeightPct;
 
       // Coordinates for single panel / simulated split pane (100% of panel width/height)
       const boxLeft = bData.raw_x * 100.0;
@@ -510,7 +516,7 @@ export default function ScanSoilScreen({ navigation }) {
         topPct: Math.round(splitTop * 100) / 100,
         widthPct: Math.round(splitWidth * 100) / 100,
         heightPct: Math.round(splitHeight * 100) / 100,
-        roleLabel: `${ordinalNames[idx] || (idx + 1) + 'TH'} COLOR`,
+        roleLabel: `Color ${idx + 1}`,
         hex: rHex,
         munsellCode: rCode,
         percent: rPct,
@@ -520,7 +526,7 @@ export default function ScanSoilScreen({ navigation }) {
         raw_h: bData.raw_h,
       };
     });
-  }, [specimenNormRegions]);
+  }, [specimenNormRegions, currentSpecimen]);
 
 
   const handleSaveSpecimenCopy = async (targetSpecimen, munsellMatch, resolvedDesc) => {
@@ -877,7 +883,7 @@ export default function ScanSoilScreen({ navigation }) {
           soil_type: offlineSpecimen.soilType,
           nearMatchRating: offlineSpecimen.nearMatchRating,
           confidence: offlineSpecimen.confidence,
-          regions: offlineSpecimen.regions || [],
+          regions: (offlineSpecimen.regions || []).map(({ mask_png, color_map_png, ...rest }) => rest),
           beforeAfterImage: offlineSpecimen.imageUrl || photo.uri,
           beforeAfterImageUrl: offlineSpecimen.imageUrl || photo.uri,
           latitude: gps?.latitude ?? null,
@@ -953,7 +959,7 @@ export default function ScanSoilScreen({ navigation }) {
         scanImage: mapped.imageUrl || photo.uri,
         beforeAfterImage: mapped.beforeAfterImage,
         beforeAfterImageUrl: mapped.beforeAfterImage,
-        regions: mapped.regions || [],
+        regions: (mapped.regions || []).map(({ mask_png, color_map_png, ...rest }) => rest),
         rawDate: result.scan.created_at || now.toISOString(),
         scanTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         dateGroup: 'Today',
@@ -2131,9 +2137,9 @@ export default function ScanSoilScreen({ navigation }) {
                                 style={{
                                   position: 'absolute',
                                   left: '50%',
-                                  top: '7.41%',
+                                  top: `${normBarPct}%`,
                                   width: '50%',
-                                  height: '92.59%',
+                                  height: `${normImgHeightPct}%`,
                                   opacity: 0.55,
                                 }}
                                 resizeMode="cover"
@@ -2146,10 +2152,9 @@ export default function ScanSoilScreen({ navigation }) {
                                     style={{
                                       position: 'absolute',
                                       left: '50%',
-                                      top: '7.41%',
+                                      top: `${normBarPct}%`,
                                       width: '50%',
-                                      height: '92.59%',
-                                      tintColor: specimenNormRegions[selectedOverlayColorIndex].overlay_hex || '#ff4040',
+                                      height: `${normImgHeightPct}%`,
                                       opacity: 0.70,
                                     }}
                                     resizeMode="cover"
@@ -2161,9 +2166,9 @@ export default function ScanSoilScreen({ navigation }) {
                                     style={{
                                       position: 'absolute',
                                       left: `${50.0 + blob.norm_x * 50.0}%`,
-                                      top: `${7.41 + blob.norm_y * 92.59}%`,
+                                      top: `${normBarPct + blob.norm_y * normImgHeightPct}%`,
                                       width: `${blob.norm_w * 50.0}%`,
-                                      height: `${blob.norm_h * 92.59}%`,
+                                      height: `${blob.norm_h * normImgHeightPct}%`,
                                       borderWidth: 1.5,
                                       borderColor: specimenNormRegions[selectedOverlayColorIndex]?.overlay_hex || '#ffffff',
                                       borderRadius: 2,
@@ -2227,8 +2232,7 @@ export default function ScanSoilScreen({ navigation }) {
                                   <Image
                                     source={{ uri: `data:image/png;base64,${currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png}` }}
                                     style={{
-                                      position: 'absolute',
-                                      inset: 0,
+                                      ...StyleSheet.absoluteFillObject,
                                       width: '100%',
                                       height: '100%',
                                       opacity: 0.55,
@@ -2241,11 +2245,9 @@ export default function ScanSoilScreen({ navigation }) {
                                       <Image
                                         source={{ uri: `data:image/png;base64,${specimenNormRegions[selectedOverlayColorIndex].mask_png}` }}
                                         style={{
-                                          position: 'absolute',
-                                          inset: 0,
+                                          ...StyleSheet.absoluteFillObject,
                                           width: '100%',
                                           height: '100%',
-                                          tintColor: specimenNormRegions[selectedOverlayColorIndex].overlay_hex || '#ff4040',
                                           opacity: 0.70,
                                         }}
                                         resizeMode="cover"
@@ -2355,7 +2357,7 @@ export default function ScanSoilScreen({ navigation }) {
                   <View style={{ marginTop: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                       <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                        Soil Color Coverage Map
+                        {specimenNormRegions.length} Soil Colors, 100% of the image scanned
                       </Text>
                       {selectedOverlayColorIndex !== null && (
                         <TouchableOpacity
@@ -2402,16 +2404,28 @@ export default function ScanSoilScreen({ navigation }) {
                               styles.soilSwatchCapsulePill,
                               isSelected && { borderColor: overlayColorHex, borderWidth: 1.5, backgroundColor: '#ffffff' },
                               isDimmed && { opacity: 0.45 },
+                              r.verified === false && { borderStyle: 'dashed' },
                             ]}
                           >
                             <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: overlayColorHex, marginRight: 2 }} />
                             <View style={[styles.capsulePillSwatch, { backgroundColor: rHex }]} />
-                            <Text style={styles.capsulePillHex}>{rHex.toUpperCase()}</Text>
+                            <Text style={styles.capsulePillHex}>{`Color ${idx + 1}`}</Text>
                             {displayCode ? <Text style={styles.capsulePillCode}>({displayCode})</Text> : null}
                             {rPct != null ? <Text style={styles.capsulePillPct}>{rPct}%</Text> : null}
+                            {r.verified === false && (
+                              <Text style={{ fontSize: 9, fontWeight: '700', color: '#b45309', marginLeft: 2 }}>[Unverified]</Text>
+                            )}
                           </TouchableOpacity>
                         );
                       })}
+                      {Array.isArray(currentSpecimen.rejected_regions || currentSpecimen.rejectedRegions) &&
+                        (currentSpecimen.rejected_regions || currentSpecimen.rejectedRegions).map((rej, rIdx) => (
+                          <View key={`rej_swatch_${rIdx}`} style={[styles.soilSwatchCapsulePill, { opacity: 0.75, backgroundColor: '#f1f5f9' }]}>
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#969696', marginRight: 2 }} />
+                            <Text style={[styles.capsulePillHex, { color: '#64748b' }]}>Non-soil/Glare</Text>
+                            <Text style={styles.capsulePillPct}>{Math.round((rej.proportion || 0) * 100)}%</Text>
+                          </View>
+                        ))}
                     </View>
                   </View>
 

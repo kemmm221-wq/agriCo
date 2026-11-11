@@ -19,8 +19,9 @@ import numpy as np
 from color_detector import locate_color_box, extract_blobs
 
 # ── Tunable Settings ───────────────────────────────────────────────────────────
-MUNSELL_MAX_VALUE_GAP = 2.0    # Value steps apart allowed (shadow vs light)
-MUNSELL_MAX_CHROMA_GAP = 1.0   # Chroma steps apart allowed (set 0 for strict)
+import os
+MUNSELL_MAX_VALUE_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_VALUE_GAP", "2.0"))    # Value steps apart allowed (shadow vs light)
+MUNSELL_MAX_CHROMA_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_CHROMA_GAP", "1.0"))   # Chroma steps apart allowed (set 0 for strict)
 
 _MUNSELL_RE = re.compile(
     r"^\s*(\d+(?:\.\d+)?)\s*([A-Z]{1,2})\s+(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*$"
@@ -55,11 +56,39 @@ def _luma(rgb) -> float:
 def _relabel_shades(shades: list) -> list:
     shades = sorted(shades, key=lambda s: _luma(s["rgb"]))
     n = len(shades)
-    for i, s in enumerate(shades):
-        s["level"] = ("uniform" if n == 1 else
-                      "dark" if i == 0 else
-                      "light" if i == n - 1 else "medium")
-    return shades
+    if n <= 1:
+        if n == 1:
+            shades[0]["level"] = "uniform"
+        return shades
+    if n == 2:
+        shades[0]["level"] = "dark"
+        shades[1]["level"] = "light"
+        return shades
+    if n == 3:
+        shades[0]["level"] = "dark"
+        shades[1]["level"] = "medium"
+        shades[2]["level"] = "light"
+        return shades
+    # If more than 3 shades after merging, group into 3 terciles (dark, medium, light)
+    t1 = n // 3
+    t2 = (2 * n) // 3
+    groups = [shades[:t1], shades[t1:t2], shades[t2:]]
+    levels = ["dark", "medium", "light"]
+    collapsed = []
+    for g, level in zip(groups, levels):
+        if not g:
+            continue
+        tot_prop = sum(float(s.get("proportion", 0.0)) for s in g)
+        denom = max(tot_prop, 1e-6)
+        avg_r = int(round(sum(s["rgb"][0] * s.get("proportion", 1.0) for s in g) / denom))
+        avg_g = int(round(sum(s["rgb"][1] * s.get("proportion", 1.0) for s in g) / denom))
+        avg_b = int(round(sum(s["rgb"][2] * s.get("proportion", 1.0) for s in g) / denom))
+        collapsed.append({
+            "rgb": (avg_r, avg_g, avg_b),
+            "level": level,
+            "proportion": round(tot_prop, 4),
+        })
+    return collapsed
 
 
 def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
@@ -130,13 +159,18 @@ def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
         if c_idx is not None and c_idx not in target.get("merged_from", []):
             target["merged_from"].append(c_idx)
 
-        # Recompute representative bounding box and blobs on the merged soil surface
+        # Recompute representative bounding box, blobs, and mask_png on the merged soil surface
         if target.get("pixel_mask") is not None:
             box = locate_color_box(img_arr, target["rgb"], pixel_mask=target["pixel_mask"])
             target["bounding_box"] = box
             target["box"] = {"x": box["norm_x"], "y": box["norm_y"],
                              "w": box["norm_w"], "h": box["norm_h"]}
             target["blobs"] = extract_blobs(target["pixel_mask"])
+            try:
+                from color_detector import _png_b64
+                target["mask_png"] = _png_b64((target["pixel_mask"].astype(np.uint8) * 255), "L")
+            except Exception:
+                pass
 
         merge_events.append((r.get("color_index"), target.get("color_index"), _munsell_code(r), _munsell_code(target)))
 

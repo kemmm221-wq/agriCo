@@ -295,6 +295,8 @@ def main() -> int:
                 "region_thumbnail": r.get("region_thumbnail", ""),
                 "verification_confidence": r.get("verification_confidence", 0),
                 "status": r.get("status", "needs_review"),
+                "verified": bool(r.get("verified", r.get("status") == "verified" or r.get("status") != "rejected")),
+                "low_confidence": bool(r.get("low_confidence", False)),
                 "color_delta_e": r.get("color_delta_e", -1),
                 "gate_confidence": r.get("gate_confidence", 1.0),
                 "hex": hex_color,
@@ -321,9 +323,17 @@ def main() -> int:
                 "proportion": round(float(rej.get("proportion", 0.0)), 4),
                 "reason": "Non-soil debris, glare, or organic texture rejected by Stage 4 patch gate",
                 "blobs": rej.get("blobs", []),
+                "overlay_hex": rej.get("overlay_hex", "#969696"),
+                "mask_png": rej.get("mask_png", ""),
             }
             for rej in getattr(result, "rejected_regions", [])
         ]
+        total_cov = sum(float(r.get("proportion", 0.0)) for r in api_regions) + sum(float(rej.get("proportion", 0.0)) for rej in output.get("rejected_regions", []))
+        # Ensure coverage is bounded [0.0, 1.0] and represents 100% whole-image assignment
+        if total_cov >= 0.995:
+            output["coverage"] = 1.0
+        else:
+            output["coverage"] = round(min(1.0, max(0.0, total_cov)), 4)
 
         # Directly save Stage 2 normalized image into Laravel public scans storage if scan_id provided
         norm_img = getattr(result, "normalized_image", None)
@@ -357,6 +367,11 @@ def main() -> int:
 
                     norm_resized = norm_img.convert("RGB").resize((rw, rh), Image.LANCZOS)
                     bar_h = max(30, int(rh * 0.08))
+                    bar_frac = bar_h / float(rh + bar_h)
+                    output["bar_h"] = bar_h
+                    output["image_w"] = rw
+                    output["image_h"] = rh
+                    output["bar_frac"] = round(bar_frac, 4)
                     canvas = Image.new("RGB", (rw * 2, rh + bar_h), (18, 30, 24))
                     canvas.paste(raw_pil, (0, bar_h))
                     canvas.paste(norm_resized, (rw, bar_h))
@@ -407,6 +422,30 @@ def main() -> int:
                         sys.stderr.write(f"[INFO] Saved segmentation overlay image to {overlay_dest_file}\n")
                     except Exception as e_ov:
                         sys.stderr.write(f"[WARN] Could not generate segmentation overlay image: {e_ov}\n")
+
+                    # Save transparent color map PNG and per-color mask PNGs
+                    try:
+                        colormap_b64 = getattr(result, "color_map_png", None) or output.get("color_map_png")
+                        if colormap_b64:
+                            import base64
+                            cm_bytes = base64.b64decode(colormap_b64)
+                            cm_dest_file = os.path.join(laravel_scans_dir, f"scan_{scan_id}_colormap.png")
+                            with open(cm_dest_file, "wb") as f_cm:
+                                f_cm.write(cm_bytes)
+                            output["color_map_url"] = f"/storage/scans/scan_{scan_id}_colormap.png"
+                            sys.stderr.write(f"[INFO] Saved transparent color map PNG to {cm_dest_file}\n")
+                        for idx, r in enumerate(result.regions):
+                            m_b64 = r.get("mask_png")
+                            if m_b64:
+                                import base64
+                                m_bytes = base64.b64decode(m_b64)
+                                m_dest_file = os.path.join(laravel_scans_dir, f"scan_{scan_id}_mask_{idx}.png")
+                                with open(m_dest_file, "wb") as f_m:
+                                    f_m.write(m_bytes)
+                                if idx < len(api_regions):
+                                    api_regions[idx]["mask_url"] = f"/storage/scans/scan_{scan_id}_mask_{idx}.png"
+                    except Exception as e_pngs:
+                        sys.stderr.write(f"[WARN] Could not save colormap or mask PNGs: {e_pngs}\n")
                 except Exception as e_ba:
                     sys.stderr.write(f"[WARN] Could not generate before/after comparison image: {e_ba}\n")
             except Exception as e_save:

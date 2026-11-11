@@ -149,3 +149,4 @@ print("  Saved overlay to: test_outputs/test_overlay_d.png")
 print("\n" + "=" * 70)
 print("ALL 4 QUALITY & OVERLAY TESTS PASSED SUCCESSFULLY!")
 print("=" * 70)
+

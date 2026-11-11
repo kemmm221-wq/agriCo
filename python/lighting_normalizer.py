@@ -15,6 +15,7 @@ Public API:
 The returned image is always RGB mode, ready for Stage 3 (color_detector).
 """
 
+import os
 import sys
 import cv2
 import numpy as np
@@ -232,6 +233,15 @@ def normalize_lighting(image: Image.Image) -> Image.Image:
 
     if abs(mean_L2 - _TARGET_L) <= _L_TOLERANCE:
         return img_rgb
+
+    preserve_mean_l = os.environ.get("STAGE2_PRESERVE_MEAN_L", "1").strip().lower() in ("1", "true", "yes")
+    if preserve_mean_l:
+        # Flat-fielding has already eliminated spatial illumination gradients across the soil
+        # while preserving authentic soil lightness (mean L*). Bypassing forced L*=50 gamma shift
+        # prevents dark soils (e.g. 5YR 2.5/1) from having their Value artificially inflated from 2.5/3 to 5/6.
+        lab[:, :, 0] = L
+        rgb_out = _lab_to_rgb(lab)
+        return Image.fromarray(rgb_out, mode="RGB")
 
     if std_L2 > 30.0 or grid_std_post > _RESIDUAL_GRADIENT_THRESHOLD:
         lab[:, :, 0] = _apply_clahe_on_l(L)

@@ -210,6 +210,21 @@ class SoilMLAnalysisService
         if (!empty($pythonResult['rejected_regions'])) {
             $analysis['rejected_regions'] = $pythonResult['rejected_regions'];
         }
+        if (isset($pythonResult['coverage'])) {
+            $analysis['coverage'] = (float)$pythonResult['coverage'];
+        }
+        if (isset($pythonResult['bar_frac'])) {
+            $analysis['bar_frac'] = (float)$pythonResult['bar_frac'];
+        }
+        if (isset($pythonResult['bar_h'])) {
+            $analysis['bar_h'] = (int)$pythonResult['bar_h'];
+        }
+        if (isset($pythonResult['image_w'])) {
+            $analysis['image_w'] = (int)$pythonResult['image_w'];
+        }
+        if (isset($pythonResult['image_h'])) {
+            $analysis['image_h'] = (int)$pythonResult['image_h'];
+        }
 
         return $analysis;
     }
@@ -643,11 +658,22 @@ class SoilMLAnalysisService
             $domImgPath = $saveRegionImage($domR['region_thumbnail'] ?? null, 0);
             $dominantScanImage = $publicScanRelativePath ?: ($domImgPath ?: null);
 
+            $cleanRegionsData = array_map(function ($r) {
+                if (is_array($r)) {
+                    $cleaned = \Illuminate\Support\Arr::except($r, ['mask_png', 'color_map_png']);
+                    if (!empty($cleaned['region_thumbnail']) && (str_starts_with($cleaned['region_thumbnail'], 'data:') || strlen($cleaned['region_thumbnail']) > 200)) {
+                        unset($cleaned['region_thumbnail']);
+                    }
+                    return $cleaned;
+                }
+                return $r;
+            }, $regions);
+
             // Create ONLY ONE SoilScan record for the entire scan session!
             $soilScan = SoilScan::create([
                 'user_id' => $userId, 'soil_id' => $soil->soil_id, 'platform' => $platform,
                 'scan_note' => "Determined Soil: {$soil->effective_soil_name} ({$domCode})" . ($domPct ? " - Soil Percentage: {$domPct}%" : "") . " - Confidence: {$domConf}",
-                'regions_data' => $regions, 'scan_date' => now(),
+                'regions_data' => $cleanRegionsData, 'scan_date' => now(),
                 'scan_image' => $dominantScanImage,
                 'before_after_image' => $publicBaRelativePath,
                 'thumbnail_image' => $publicThumbRelativePath ?: $domImgPath,
@@ -663,7 +689,7 @@ class SoilMLAnalysisService
                 'hex' => $soil->effective_hex_color ?? ($domR['hex'] ?? '#8F694E'),
                 'desc' => $soil->effective_description, 'organic' => $soil->effective_organic_matter,
                 'drainage' => $soil->effective_soil_type, 'soil_type' => $soil->effective_soil_type,
-                'confidence' => $domConf, 'percent' => $domPct, 'regions' => $regions,
+                'confidence' => $domConf, 'percent' => $domPct,
                 'image' => $dominantScanImage ? asset($dominantScanImage) : null,
                 'scan_image' => $dominantScanImage ? asset($dominantScanImage) : null,
             ]];
@@ -702,7 +728,7 @@ class SoilMLAnalysisService
                     'hex' => $layerSoil->effective_hex_color ?? ($r['hex'] ?? '#8F694E'),
                     'desc' => $layerSoil->effective_description, 'organic' => $layerSoil->effective_organic_matter,
                     'drainage' => $layerSoil->effective_soil_type, 'soil_type' => $layerSoil->effective_soil_type,
-                    'confidence' => $confVal, 'percent' => $pctVal, 'regions' => $regions,
+                    'confidence' => $confVal, 'percent' => $pctVal,
                     'image' => $rImgPath ? asset($rImgPath) : ($publicScanRelativePath ? asset($publicScanRelativePath) : null),
                     'scan_image' => $rImgPath ? asset($rImgPath) : ($publicScanRelativePath ? asset($publicScanRelativePath) : null),
                 ];
@@ -729,10 +755,21 @@ class SoilMLAnalysisService
             $analysis['soil_name']      = $soil->effective_soil_name;
             $analysis['organic_matter'] = $soil->effective_organic_matter;
             $analysis['soil_type']      = $soil->effective_soil_type;
+            $cleanRegionsData = array_map(function ($r) {
+                if (is_array($r)) {
+                    $cleaned = \Illuminate\Support\Arr::except($r, ['mask_png', 'color_map_png']);
+                    if (!empty($cleaned['region_thumbnail']) && (str_starts_with($cleaned['region_thumbnail'], 'data:') || strlen($cleaned['region_thumbnail']) > 200)) {
+                        unset($cleaned['region_thumbnail']);
+                    }
+                    return $cleaned;
+                }
+                return $r;
+            }, $regions);
+
             $soilScan = SoilScan::create([
                 'user_id' => $userId, 'soil_id' => $soil->soil_id, 'platform' => $platform,
                 'scan_note' => "Determined Soil: {$analysis['soil_name']} ({$singleCode}) - Confidence: " . ($analysis['confidence_formatted'] ?? '97.4%'),
-                'regions_data' => $regions, 'scan_date' => now(),
+                'regions_data' => $cleanRegionsData, 'scan_date' => now(),
                 'scan_image' => $publicScanRelativePath,
                 'before_after_image' => $publicBaRelativePath,
                 'thumbnail_image' => $publicThumbRelativePath,
@@ -747,7 +784,7 @@ class SoilMLAnalysisService
                 'desc' => $soil->effective_description, 'organic' => $soil->effective_organic_matter,
                 'drainage' => $soil->effective_soil_type, 'soil_type' => $soil->effective_soil_type,
                 'confidence' => $analysis['confidence_formatted'] ?? '97.4%',
-                'percent' => 100, 'regions' => $regions,
+                'percent' => 100,
                 'image' => $publicScanRelativePath ? (str_starts_with($publicScanRelativePath, 'http') ? $publicScanRelativePath : asset($publicScanRelativePath)) : null,
                 'scan_image' => $publicScanRelativePath ? (str_starts_with($publicScanRelativePath, 'http') ? $publicScanRelativePath : asset($publicScanRelativePath)) : null,
             ]];

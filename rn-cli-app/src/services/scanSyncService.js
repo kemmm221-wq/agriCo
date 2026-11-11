@@ -246,7 +246,7 @@ export function mapServerScan(scan, data = {}) {
   const rawRegions = Array.isArray(data?.regions) && data.regions.length > 0
     ? data.regions
     : (Array.isArray(scan?.regions) && scan.regions.length > 0 ? scan.regions : []);
-  // Normalize each region so the renderer can read .hex and .munsell_code reliably
+  // Normalize each region so the renderer can read .hex, .munsell_code, .mask_png, .overlay_hex, etc. reliably
   const regions = rawRegions.map((r) => ({
     ...r,
     // Guarantee .hex field (RGB array → hex string if needed)
@@ -262,6 +262,12 @@ export function mapServerScan(scan, data = {}) {
     percent: r.percent !== undefined
       ? r.percent
       : (r.proportion !== undefined ? Math.round(r.proportion * 100) : undefined),
+    mask_png: r.mask_png || null,
+    overlay_hex: r.overlay_hex || null,
+    overlay_color_name: r.overlay_color_name || null,
+    shades: r.shades || [],
+    blobs: r.blobs || [],
+    bar_frac: r.bar_frac ?? (data?.bar_frac ?? (scan?.bar_frac ?? 0.0741)),
   }));
 
   const hasPin = Boolean(scan?.location_id || scan?.location || data?.hasPin || data?.location_id || data?.location || data?.latitude);
@@ -269,6 +275,11 @@ export function mapServerScan(scan, data = {}) {
   const isRealNote = rawNote && !rawNote.startsWith('Determined Soil:') && rawNote !== '—' && rawNote !== '-';
   const scanNote = (hasPin && isRealNote) ? rawNote : '-';
   const soilPercentage = data?.soil_percentage || data?.percentage || (regions && regions[0] ? regions[0].percent || Math.round((regions[0].proportion || 0) * 100) : null);
+
+  const barFracVal = data?.bar_frac ?? scan?.bar_frac ?? (regions[0]?.bar_frac ?? 0.0741);
+  const coverageVal = data?.coverage ?? scan?.coverage ?? 1.0;
+  const colMapPng = data?.color_map_png || scan?.color_map_png || (regions && regions[0]?.color_map_png) || null;
+  const rejRegs = data?.rejected_regions || scan?.rejected_regions || [];
 
   return {
     id: scanId,
@@ -295,8 +306,13 @@ export function mapServerScan(scan, data = {}) {
     beforeAfterImageUrl: beforeAfterImage,
     overlayImage: data?.overlay_image_url || scan?.overlay_image || null,
     overlayImageUrl: data?.overlay_image_url || scan?.overlay_image || null,
-    colorMapPng: data?.color_map_png || scan?.color_map_png || (regions && regions[0]?.color_map_png) || null,
-    rejectedRegions: data?.rejected_regions || scan?.rejected_regions || [],
+    colorMapPng: colMapPng,
+    color_map_png: colMapPng,
+    rejectedRegions: rejRegs,
+    rejected_regions: rejRegs,
+    barFrac: barFracVal,
+    bar_frac: barFracVal,
+    coverage: coverageVal,
     regions,
     lighting_warning: Boolean(data?.lighting_warning || scan?.lighting_warning || (regions && regions.some(r => r.lighting_warning))),
   };

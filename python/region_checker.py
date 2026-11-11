@@ -117,24 +117,22 @@ def _region_to_thumbnail(region_image: Image.Image) -> np.ndarray:
 
 
 def filter_real_regions(
-    normalized_image: Image.Image,
+    image: Image.Image,
     regions: List[dict],
     fake_soil_dir: str,
-) -> List[dict]:
+    stage1_passed: bool = True,
+) -> Tuple[List[dict], List[dict]]:
     """
     Stage 4 — Per-region zoom + real-vs-fake re-check.
 
-    Parameters:
-        normalized_image : PIL Image from Stage 2 (lighting-normalized, RGB).
-        regions          : List of region dicts from Stage 3 (color_detector).
-        fake_soil_dir    : Absolute path to Scan_Soil_Image/Fake_Soil/ directory.
+    Never deletes pixels. Hard-rejects only if BOTH:
+        soil_p < 0.30 AND (Fake_SSIM >= 0.80 OR tiny/white glare)
+    Otherwise marks region as low_confidence with verified=False, keeping its
+    pixels intact in the final segmentation. Hard-rejected regions are returned
+    separately in `rejected_regions` (assigned neutral gray).
 
     Returns:
-        Subset of `regions` that pass both the soil gate re-check and the
-        Fake_Soil similarity check. Each surviving dict is augmented with:
-          - "gate_confidence"  : float
-          - "region_image"     : PIL.Image.Image  (cropped sub-image, used by Stage 5)
-          - "is_real_region"   : True
+        (real_regions, rejected_regions)
     """
     # Lazy import to avoid circular dependency
     from soil_gate import predict_is_soil  # noqa: E402
@@ -143,74 +141,110 @@ def filter_real_regions(
     fake_refs = _load_fake_soil_refs(fake_soil_dir)
 
     real_regions = []
+    rejected_regions = []
 
-    # If only one region, skip sub-crop and check the whole image
+    # If only one region, check the whole image directly
     if len(regions) == 1:
         region = dict(regions[0])
-        region["region_image"] = normalized_image.convert("RGB")
-        is_soil, gate_conf = predict_is_soil(normalized_image)
-
-        if not is_soil:
-            sys.stderr.write(
-                f"[Stage4] Single region rejected by soil gate (conf={gate_conf:.3f})\n"
-            )
-            return []
-
+        region["region_image"] = image.convert("RGB")
+        is_soil, gate_conf = predict_is_soil(image)
+        soil_p = gate_conf if is_soil else (1.0 - gate_conf)
         region_thumb = _region_to_thumbnail(region["region_image"])
         max_fake_ssim = _max_ssim_vs_fake(region_thumb, fake_refs)
 
-        if max_fake_ssim >= FAKE_SOIL_SSIM_THRESHOLD:
-            sys.stderr.write(
-                f"[Stage4] Single region rejected: SSIM={max_fake_ssim:.3f} >= "
-                f"fake threshold {FAKE_SOIL_SSIM_THRESHOLD}\n"
-            )
-            return []
+        region["gate_confidence"] = round(soil_p, 3)
+        region["gate_raw_conf"] = round(gate_conf, 3)
+        region["fake_ssim"] = round(max_fake_ssim, 3)
 
-        region["gate_confidence"] = round(gate_conf, 3)
+        if soil_p < 0.30 and max_fake_ssim >= FAKE_SOIL_SSIM_THRESHOLD:
+            region["is_real_region"] = False
+            region["verified"] = False
+            region["low_confidence"] = True
+            region["rejected"] = True
+            region["status"] = "rejected"
+            region["overlay_color"] = (150, 150, 150)
+            region["overlay_hex"] = "#969696"
+            return [], [region]
+
+        passed = is_soil and (max_fake_ssim < FAKE_SOIL_SSIM_THRESHOLD)
+        if not passed and stage1_passed and max_fake_ssim < FAKE_SOIL_SSIM_THRESHOLD:
+            passed = True
         region["is_real_region"] = True
-        return [region]
+        region["verified"] = bool(passed)
+        region["low_confidence"] = bool(not passed)
+        region["rejected"] = False
+        region["status"] = "verified" if passed else "unverified"
+        return [region], []
 
     # Multiple regions: crop and check each independently
     for region in regions:
         region = dict(region)
         pixel_mask = region["pixel_mask"]
-        cropped = crop_region(normalized_image, pixel_mask)
+        cropped = crop_region(image, pixel_mask)
         region["region_image"] = cropped
 
         # A. Soil gate on cropped region
         is_soil, gate_conf = predict_is_soil(cropped)
-        if not is_soil:
-            sys.stderr.write(
-                f"[DEBUG Stage 4] Region {region.get('color_index')} DROPPED by soil gate: "
-                f"gate_prob={gate_conf:.3f} < 0.50\n"
-            )
-            sys.stderr.flush()
-            continue
+        soil_p = gate_conf if is_soil else (1.0 - gate_conf)
 
         # B. Fake_Soil similarity check
         region_thumb = _region_to_thumbnail(cropped)
         max_fake_ssim = _max_ssim_vs_fake(region_thumb, fake_refs)
 
-        if max_fake_ssim >= FAKE_SOIL_SSIM_THRESHOLD:
+        # C. Glare or tiny check
+        cropped_arr = np.asarray(cropped.convert("RGB"), dtype=np.float32)
+        mean_luma = float(np.mean(0.299 * cropped_arr[:, :, 0] + 0.587 * cropped_arr[:, :, 1] + 0.114 * cropped_arr[:, :, 2]))
+        is_glare_or_tiny = (mean_luma >= 240.0) or (region.get("proportion", 0.0) < 0.005 and not is_soil)
+
+        # Hard-reject ONLY if BOTH: soil_p < 0.30 AND (Fake_SSIM >= 0.80 OR tiny/white glare)
+        is_hard_reject = (soil_p < 0.30) and (max_fake_ssim >= FAKE_SOIL_SSIM_THRESHOLD or is_glare_or_tiny)
+
+        region["gate_confidence"] = round(soil_p, 3)
+        region["gate_raw_conf"] = round(gate_conf, 3)
+        region["fake_ssim"] = round(max_fake_ssim, 3)
+
+        if is_hard_reject:
             sys.stderr.write(
-                f"[DEBUG Stage 4] Region {region.get('color_index')} DROPPED by Fake_Soil SSIM: "
-                f"SSIM={max_fake_ssim:.3f} >= threshold {FAKE_SOIL_SSIM_THRESHOLD}\n"
+                f"[DEBUG Stage 4] Region {region.get('color_index')} HARD-REJECTED: "
+                f"soil_p={soil_p:.3f} < 0.30, Fake_SSIM={max_fake_ssim:.3f}, glare_or_tiny={is_glare_or_tiny}\n"
             )
             sys.stderr.flush()
-            continue
-
-        sys.stderr.write(
-            f"[DEBUG Stage 4] Region {region.get('color_index')} PASSED: "
-            f"gate_prob={gate_conf:.3f}, fake_SSIM={max_fake_ssim:.3f}\n"
-        )
-        sys.stderr.flush()
-
-        region["gate_confidence"] = round(gate_conf, 3)
-        region["is_real_region"] = True
-        real_regions.append(region)
+            region["is_real_region"] = False
+            region["verified"] = False
+            region["low_confidence"] = True
+            region["rejected"] = True
+            region["status"] = "rejected"
+            region["overlay_color"] = (150, 150, 150)
+            region["overlay_hex"] = "#969696"
+            rejected_regions.append(region)
+        else:
+            # Region is KEPT — never delete pixels
+            passed = is_soil and (max_fake_ssim < FAKE_SOIL_SSIM_THRESHOLD)
+            prop = float(region.get("proportion", 0.0))
+            if not passed and prop > 0.50 and stage1_passed and max_fake_ssim < FAKE_SOIL_SSIM_THRESHOLD:
+                passed = True  # Inherit Stage 1 if dominant region
+            region["is_real_region"] = True
+            region["verified"] = bool(passed)
+            region["low_confidence"] = bool(not passed)
+            region["rejected"] = False
+            region["status"] = "verified" if passed else "unverified"
+            sys.stderr.write(
+                f"[DEBUG Stage 4] Region {region.get('color_index')} KEPT ({region['status']}): "
+                f"soil_p={soil_p:.3f}, Fake_SSIM={max_fake_ssim:.3f}, verified={region['verified']}\n"
+            )
+            sys.stderr.flush()
+            sys.stderr.write(
+                f"[DEBUG Stage 4] Region {region.get('color_index')} KEPT ({region['status']}): "
+                f"gate_prob={gate_conf:.3f}, Fake_SSIM={max_fake_ssim:.3f}, verified={region['verified']}\n"
+            )
+            sys.stderr.flush()
+            real_regions.append(region)
 
     sys.stderr.write(
-        f"[DEBUG Stage 4] region_checker summary: {len(real_regions)}/{len(regions)} regions passed\n"
+        f"[DEBUG Stage 4] region_checker summary: {len(real_regions)} kept "
+        f"({sum(1 for r in real_regions if r['verified'])} verified, "
+        f"{sum(1 for r in real_regions if not r['verified'])} unverified), "
+        f"{len(rejected_regions)} hard-rejected\n"
     )
     sys.stderr.flush()
-    return real_regions
+    return real_regions, rejected_regions

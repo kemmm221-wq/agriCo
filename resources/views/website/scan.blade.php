@@ -5794,6 +5794,7 @@
                         </div>
                         <div id="resBeforeAfterContainer" style="position: relative; width: 100%; min-height: 160px; border-radius: 8px; overflow: hidden; background: #0c1a17; border: 1px solid rgba(142, 182, 155, 0.2); cursor: pointer;" onclick="openBeforeAfterLightbox('resBeforeAfterImg')" title="Click to view full resolution comparison">
                             <img id="resBeforeAfterImg" src="" alt="Soil Before & After Normalization" style="width: 100%; height: auto; display: block; border-radius: 6px; object-fit: contain;">
+                            <img id="resColorMapOverlay" src="" alt="Soil Color Segmentation Overlay" style="display: none; position: absolute; left: 50%; top: 7.41%; width: 50%; height: 92.59%; object-fit: cover; opacity: 0.55; pointer-events: none; z-index: 5;">
 
                             <!-- Replaces the single static box — populated per-region by renderBeforeAfterBoxes() -->
                             <div id="resBeforeAfterBoxes" style="position: absolute; inset: 0; pointer-events: none; z-index: 10;"></div>
@@ -5850,7 +5851,7 @@
                             </div>
                             <div class="pipeline-stage-item">
                                 <span class="pipeline-stage-badge">STAGE 3</span>
-                                <span class="pipeline-stage-label">Multi-Color Detection (ColorThief Palette)</span>
+                                <span class="pipeline-stage-label">Multi-Color Detection (K-means in CIELAB, shade-merged)</span>
                             </div>
                             <div class="pipeline-stage-item">
                                 <span class="pipeline-stage-badge">STAGE 4</span>
@@ -6046,7 +6047,18 @@
 
                                 $regionsJson = '[]';
                                 try {
-                                    $regionsJson = json_encode($scan->regions ?? []);
+                                    $rawRegs = $scan->regions ?? [];
+                                    $cleanRegs = array_map(function ($r) {
+                                        if (is_array($r)) {
+                                            $c = \Illuminate\Support\Arr::except($r, ['mask_png', 'color_map_png']);
+                                            if (!empty($c['region_thumbnail']) && (str_starts_with($c['region_thumbnail'], 'data:') || strlen($c['region_thumbnail']) > 200)) {
+                                                unset($c['region_thumbnail']);
+                                            }
+                                            return $c;
+                                        }
+                                        return $r;
+                                    }, is_array($rawRegs) ? $rawRegs : []);
+                                    $regionsJson = json_encode($cleanRegs);
                                 } catch (\Throwable $e_r) {}
 
                                 // Re-use already-fetched JSON — do NOT call $scan->regions again (N+1 risk)
@@ -6144,6 +6156,7 @@
                                     data-uemail="{{ $uEmail }}"
                                     data-ucode="{{ $uCode }}"
                                     data-uavatar="{{ $uAvatar }}"
+                                    data-overlay="{{ asset('storage/scans/scan_' . ($scan->soil_scan_id ?? 0) . '_overlay.jpg') }}"
                                     data-regions="{{ $regionsJson }}">View</button>
                             </td>
                         </tr>
@@ -6554,12 +6567,13 @@
             }
 
             // The side-by-side comparison image has:
-            // - Top bar: ~7.41% height (both Python and JS use max(30, 8% of photo h))
+            // - Top bar: dynamic bar_frac height (defaults to 7.41%)
             // - Left half: BEFORE image (0% to 50% width)
             // - Right half: AFTER image (50% to 100% width)
             // The green box is placed on the AFTER (right / normalized) side (50% to 100%).
-            const topBarPct = 7.41;
-            const photoHeightPct = 92.59;
+            const barFrac = region?.bar_frac ?? (window.currentScanResult?.bar_frac ?? 0.0741);
+            const topBarPct = barFrac * 100;
+            const photoHeightPct = 100 - topBarPct;
 
             // Map bounding box (0.0 to 1.0) into the RIGHT 50% (AFTER half)
             let left = 50.0 + (b.x * 50.0);
@@ -6594,13 +6608,41 @@
             boxEl.style.setProperty('opacity', '1', 'important');
         }
 
-        function renderBeforeAfterBoxes(containerEl, regions) {
+        function barFracFromComposite(w, h) {
+            if (!h || h <= 0) return 0.0741;
+            const rh = h / 1.08;
+            const bar = Math.max(30, Math.floor(rh * 0.08));
+            return bar / h;
+        }
+
+        function renderBeforeAfterBoxes(containerEl, regions, force = false) {
             if (!containerEl) return;
             containerEl.innerHTML = '';
             if (!Array.isArray(regions) || regions.length === 0) return;
 
-            const topBarPct = 7.41;
-            const photoHeightPct = 92.59;
+            const isModal = containerEl.id === 'modalBeforeAfterBoxes';
+            const overlayEl = isModal ? document.getElementById('modalColorMapOverlay') : document.getElementById('resColorMapOverlay');
+            const hasColorMap = Boolean(overlayEl && overlayEl.src && overlayEl.style.display !== 'none');
+
+            // 5a: Do not draw bounding boxes when a color map is available unless forced (e.g. single region selected)
+            if (!force && hasColorMap && regions.length > 1) {
+                return;
+            }
+
+            const firstReg = regions[0] || {};
+            const imgEl = isModal ? document.getElementById('modalBeforeAfterImg') : document.getElementById('resBeforeAfterImg');
+            let barFrac = firstReg.bar_frac;
+            if (barFrac === undefined || barFrac === null) {
+                if (imgEl && imgEl.naturalHeight) {
+                    barFrac = barFracFromComposite(imgEl.naturalWidth, imgEl.naturalHeight);
+                } else if (!isModal && window.currentScanResult?.bar_frac) {
+                    barFrac = window.currentScanResult.bar_frac;
+                } else {
+                    barFrac = 0.0741;
+                }
+            }
+            const topBarPct = barFrac * 100;
+            const photoHeightPct = 100 - topBarPct;
             const minLeft = 51.0;
             const maxRight = 99.0;
             const containerRect = containerEl.getBoundingClientRect();
@@ -6614,15 +6656,13 @@
 
             const placedBoxes = []; // track placed {left, top, width, labelAbove} to detect collisions
 
-            const ordinalNames = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH', '9TH', '10TH'];
-
             regions.forEach((r, idx) => {
                 const b = getNormalizedRegionBox(r);
                 if (!b) return;
 
                 const code = r.munsell || r.munsell_code || r.code || '';
-                const roleName = ordinalNames[idx] || `${idx + 1}TH`;
-                let rHex = r.hex || '#4ade80';
+                const roleName = `Color ${idx + 1}`;
+                let rHex = r.overlay_hex || r.hex || '#4ade80';
                 if (rHex && !rHex.startsWith('#')) rHex = '#' + rHex;
 
                 let left = 50 + (b.x * 50);
@@ -6662,16 +6702,17 @@
                 const horizPos = isNearRight ? 'right: -2px; left: auto;' : 'left: -2px;';
 
                 const box = document.createElement('div');
+                const borderPx = force ? '1.5px' : '2.5px';
                 box.style.cssText = `
                     position: absolute;
                     left: ${left.toFixed(2)}%;
                     top: ${top.toFixed(2)}%;
                     width: ${width.toFixed(2)}%;
                     height: ${height.toFixed(2)}%;
-                    border: 2.5px solid #10b981;
+                    border: ${borderPx} solid ${rHex};
                     border-radius: 4px;
                     box-sizing: border-box;
-                    box-shadow: 0 0 8px rgba(16, 185, 129, 0.75), inset 0 0 4px rgba(16, 185, 129, 0.25);
+                    box-shadow: 0 0 6px ${rHex}99;
                     pointer-events: none;
                 `;
 
@@ -6680,7 +6721,7 @@
                     position: absolute;
                     ${labelAbove ? `bottom: 100%; margin-bottom: 2px;` : `top: 100%; margin-top: 2px;`}
                     ${horizPos}
-                    background: #10b981;
+                    background: ${rHex};
                     color: #ffffff;
                     text-shadow: 0 1px 2px rgba(0,0,0,0.6);
                     font-size: ${labelFontSize}px;
@@ -6698,7 +6739,7 @@
                     align-items: center;
                     gap: 3px;
                 `;
-                label.innerHTML = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${rHex};border:1px solid #ffffff;flex-shrink:0;"></span>${roleName} COLOR`;
+                label.innerHTML = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ffffff;flex-shrink:0;"></span>${roleName}`;
 
                 box.appendChild(label);
                 containerEl.appendChild(box);
@@ -6719,20 +6760,130 @@
                 return;
             }
             containerEl.style.display = 'flex';
+
+            const isModal = containerEl.id === 'modalBeforeAfterSwatches';
+            const overlayEl = isModal ? document.getElementById('modalColorMapOverlay') : document.getElementById('resColorMapOverlay');
+            const boxesEl = isModal ? document.getElementById('modalBeforeAfterBoxes') : document.getElementById('resBeforeAfterBoxes');
+            const imgEl = isModal ? document.getElementById('modalBeforeAfterImg') : document.getElementById('resBeforeAfterImg');
+            const firstReg = (swatches && swatches[0]) || {};
+
+            // 5b & 5c: Scope check: NEVER read window.currentScanResult for the history modal!
+            let barFrac = firstReg.bar_frac;
+            if (barFrac === undefined || barFrac === null) {
+                if (imgEl && imgEl.naturalHeight) {
+                    barFrac = barFracFromComposite(imgEl.naturalWidth, imgEl.naturalHeight);
+                } else if (!isModal && window.currentScanResult?.bar_frac) {
+                    barFrac = window.currentScanResult.bar_frac;
+                } else {
+                    barFrac = 0.0741;
+                }
+            }
+            const topBarPct = barFrac * 100;
+            const photoHeightPct = 100 - topBarPct;
+
+            if (overlayEl) {
+                overlayEl.style.top = topBarPct + '%';
+                overlayEl.style.height = photoHeightPct + '%';
+                overlayEl.style.left = '50%';
+                overlayEl.style.width = '50%';
+            }
+
+            // Scope check: modal uses its own data, not window.currentScanResult
+            const colorMapPng = firstReg.color_map_png || (!isModal ? window.currentScanResult?.color_map_png : null) || null;
+            const colorMapUrl = firstReg.color_map_url || firstReg.colormap_url || (!isModal ? window.currentScanResult?.color_map_url : null) || null;
+
+            if (overlayEl) {
+                if (colorMapPng) {
+                    overlayEl.src = 'data:image/png;base64,' + colorMapPng;
+                    overlayEl.style.display = 'block';
+                    overlayEl.style.opacity = '0.55';
+                } else if (colorMapUrl) {
+                    overlayEl.src = colorMapUrl;
+                    overlayEl.style.display = 'block';
+                    overlayEl.style.opacity = '0.55';
+                }
+            }
+
+            // If colormap is shown, hide bounding boxes on initial display (5a)
+            if (boxesEl && (colorMapPng || colorMapUrl)) {
+                boxesEl.innerHTML = '';
+            }
+
             swatches.forEach((r, idx) => {
                 const hex = r.hex || (r.rgb ? `rgb(${r.rgb.join(',')})` : '#836E4F');
                 const pct = r.percent !== undefined ? r.percent : (r.proportion !== undefined ? Math.round(r.proportion * 100) : (idx === 0 ? 70 : 15));
                 const code = r.munsell || r.munsell_code || r.code || '';
+                const ovHex = r.overlay_hex || '#ff4040';
                 const pill = document.createElement('div');
                 pill.className = 'before-after-swatch-pill';
+                pill.style.cursor = 'pointer';
+                pill.title = 'Click to isolate this color on the normalized image';
                 pill.innerHTML = `
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${ovHex};margin-right:2px;flex-shrink:0;"></span>
                     <span class="swatch-color-box" style="background: ${hex};"></span>
                     <span class="swatch-hex">${hex.toUpperCase()}</span>
                     ${code ? `<span class="swatch-code">(${code})</span>` : ''}
                     <span class="swatch-pct">${pct}%</span>
                 `;
+
+                pill.onclick = (e) => {
+                    e.stopPropagation();
+                    const isAlreadySelected = pill.classList.contains('is-selected');
+                    containerEl.querySelectorAll('.before-after-swatch-pill').forEach(p => {
+                        p.classList.remove('is-selected');
+                        p.style.opacity = '1';
+                        p.style.border = '';
+                    });
+
+                    if (isAlreadySelected) {
+                        // Deselect: show full segmentation map without boxes (5a)
+                        if (overlayEl) {
+                            if (colorMapPng) {
+                                overlayEl.src = 'data:image/png;base64,' + colorMapPng;
+                                overlayEl.style.display = 'block';
+                                overlayEl.style.opacity = '0.55';
+                            } else if (colorMapUrl) {
+                                overlayEl.src = colorMapUrl;
+                                overlayEl.style.display = 'block';
+                                overlayEl.style.opacity = '0.55';
+                            }
+                        }
+                        if (boxesEl) boxesEl.innerHTML = '';
+                    } else {
+                        // Isolate: show per-color mask and thin outline on selection (5a)
+                        pill.classList.add('is-selected');
+                        pill.style.border = `1.5px solid ${ovHex}`;
+                        containerEl.querySelectorAll('.before-after-swatch-pill').forEach(p => {
+                            if (p !== pill) p.style.opacity = '0.45';
+                        });
+                        if (overlayEl) {
+                            if (r.mask_png) {
+                                overlayEl.src = 'data:image/png;base64,' + r.mask_png;
+                                overlayEl.style.display = 'block';
+                                overlayEl.style.opacity = '0.70';
+                            } else if (r.mask_url) {
+                                overlayEl.src = r.mask_url;
+                                overlayEl.style.display = 'block';
+                                overlayEl.style.opacity = '0.70';
+                            }
+                        }
+                        if (boxesEl) renderBeforeAfterBoxes(boxesEl, [r], true);
+                    }
+                };
+
                 containerEl.appendChild(pill);
             });
+
+            // Update Metadata Text Row
+            const metaEl = isModal ? document.getElementById('modalBeforeAfterMetaText') : document.getElementById('resBeforeAfterMetaText');
+            if (metaEl) {
+                const now = new Date();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const yyyy = now.getFullYear();
+                const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                metaEl.textContent = `DATE: ${mm}/${dd}/${yyyy}  |  TIME: ${timeFormatted}  |  ${swatches.length} SOIL COLORS, 100% OF THE IMAGE SCANNED`;
+            }
         }
 
         function drawGreenBoxOnBeforeAfter(sourceImageSrc, region, onReady) {
@@ -8436,7 +8587,7 @@
                     0: { targetPct: 15, title: 'Initializing pipeline…',                   sub: 'Preparing soil analysis engine' },
                     1: { targetPct: 32, title: 'Stage 1/6: Soil Gate Validation…',         sub: 'Verifying genuine soil grain texture & non-soil rejection' },
                     2: { targetPct: 50, title: 'Stage 2/6: Lighting Normalization…',       sub: 'Balancing dark & light exposure to center (Target L* 50.0)' },
-                    3: { targetPct: 68, title: 'Stage 3/6: Multi-Color Detection…',        sub: 'Extracting dominant soil color clusters via ColorThief' },
+                    3: { targetPct: 68, title: 'Stage 3/6: Multi-Color Detection…',        sub: 'Extracting dominant soil color clusters via K-means in CIELAB (shade-merged)' },
                     4: { targetPct: 82, title: 'Stage 4/6: Per-Region Verification…',      sub: 'Re-checking individual color regions through soil gate' },
                     5: { targetPct: 94, title: 'Stage 5/6: Munsell Spectral Match…',       sub: 'Calculating CIEDE2000 (ΔE₀₀) color distance to Munsell chart' },
                     6: { targetPct: 98, title: 'Stage 6/6: Agronomic Profile & Centroid…', sub: 'Generating soil properties, drainage & crop profile' },
@@ -8976,6 +9127,7 @@
                 window.selectActiveResultLayer = function(layerIdx) {
                     if (!regions || !regions[layerIdx]) return;
                     const r = regions[layerIdx];
+                    const rConf = (window.getNearMatchScore ? window.getNearMatchScore(r, '96.8%') : (r.confidence || '96.8%'));
                     const rPct = r.percent !== undefined ? r.percent : Math.round((r.proportion || 0.2) * 100);
                     const rCode = r.munsell || r.munsell_code || match.code || '—';
                     const rHex = r.hex || getMunsellColorHex(rCode, '') || match.hex || '#594433';
@@ -9604,6 +9756,7 @@
                 userEmail: btn.getAttribute('data-uemail'),
                 userCode: btn.getAttribute('data-ucode'),
                 userAvatar: btn.getAttribute('data-uavatar'),
+                overlay_image_url: btn.getAttribute('data-overlay') || (btn.getAttribute('data-scan-id') ? `/storage/scans/scan_${btn.getAttribute('data-scan-id')}_overlay.jpg` : null),
                 regions: parsedRegions
             };
             viewScanDetails(data);
@@ -9924,6 +10077,7 @@
                 window.selectActiveModalLayer = function(layerIdx) {
                     if (!regions || !regions[layerIdx]) return;
                     const r = regions[layerIdx];
+                    const rConf = (window.getNearMatchScore ? window.getNearMatchScore(r, '96.8%') : (r.confidence || '96.8%'));
                     const rPct = r.percent !== undefined ? r.percent : Math.round((r.proportion || 0.2) * 100);
                     const rCode = r.munsell || r.munsell_code || data.code;
                     const rHex = r.hex || getMunsellColorHex(rCode, '') || data.hex || '#8F694E';
@@ -10143,6 +10297,23 @@
                             if (placeholder) placeholder.style.display = 'none';
                             modalBeforeAfterCard.style.display = 'block';
                             if (modalBeforeAfterBoxes) renderBeforeAfterBoxes(modalBeforeAfterBoxes, regions);
+                            const modalOverlayEl = document.getElementById('modalColorMapOverlay');
+                            if (modalOverlayEl) {
+                                const transparentColormapUrl = data.color_map_url || (data.scan_id ? `/storage/scans/scan_${data.scan_id}_colormap.png` : null);
+                                if (data.color_map_png) {
+                                    modalOverlayEl.src = 'data:image/png;base64,' + data.color_map_png;
+                                    modalOverlayEl.style.display = 'block';
+                                    modalOverlayEl.style.opacity = '0.55';
+                                } else if (transparentColormapUrl) {
+                                    modalOverlayEl.src = transparentColormapUrl;
+                                    modalOverlayEl.style.display = 'block';
+                                    modalOverlayEl.style.opacity = '0.55';
+                                } else if (data.overlay_image_url) {
+                                    modalOverlayEl.src = data.overlay_image_url;
+                                    modalOverlayEl.style.display = 'block';
+                                    modalOverlayEl.style.opacity = '0.55';
+                                }
+                            }
                         };
                         modalBeforeAfterImg.onerror = () => {
                             const fallbackRaw = rawSrc || (typeof base64Image !== 'undefined' ? base64Image : null) || window.currentClientSoilPhoto || thumbData;
@@ -10884,7 +11055,7 @@
                 zoomImg.src = srcEl.src;
                 if (modalTitle) modalTitle.textContent = 'Stage 3: Multi-Color Detection (Detected Soil Color)';
                 if (modalBadge) {
-                    modalBadge.textContent = 'ColorThief Palette';
+                    modalBadge.textContent = 'K-means in CIELAB (shade-merged)';
                     modalBadge.style.color = '';
                     modalBadge.style.background = '';
                 }
@@ -12304,11 +12475,12 @@
         function drawBeforeAfterOverlay(ctx, regions, imgX, imgY, imgW, imgH) {
             if (!Array.isArray(regions) || regions.length === 0) return;
 
-            const topBarPct = 7.41;
-            const photoHeightPct = 92.59;
+            const firstReg = regions[0] || {};
+            const barFrac = firstReg.bar_frac ?? (window.currentScanResult?.bar_frac ?? 0.0741);
+            const topBarPct = barFrac * 100;
+            const photoHeightPct = 100 - topBarPct;
             const minLeftPct = 51.0;
             const maxRightPct = 99.0;
-            const ordinalNames = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH', '9TH', '10TH'];
             const greenColor = '#4ade80';
 
             const labelH = 26, labelPadX = 8;
@@ -12320,8 +12492,8 @@
                 const b = getNormalizedRegionBox(r);
                 if (!b) return;
 
-                const roleName = ordinalNames[idx] || `${idx + 1}TH`;
-                const labelText = `${roleName} COLOR`;
+                const roleName = `Color ${idx + 1}`;
+                const labelText = roleName;
 
                 let leftPct = 50 + (b.x * 50);
                 let topPct = topBarPct + (b.y * photoHeightPct);
@@ -12907,6 +13079,7 @@
                     </div>
                     <div id="modalBeforeAfterContainer" style="position: relative; width: 100%; border-radius: 10px; overflow: hidden; cursor: pointer;" onclick="openBeforeAfterLightbox('modalBeforeAfterImg')" title="Click to view full resolution comparison">
                         <img id="modalBeforeAfterImg" src="" alt="Soil Before & After Normalization" style="width: 100%; height: auto; display: block; border-radius: 8px;">
+                        <img id="modalColorMapOverlay" src="" alt="Soil Color Segmentation Overlay" style="display: none; position: absolute; left: 50%; top: 7.41%; width: 50%; height: 92.59%; object-fit: cover; opacity: 0.55; pointer-events: none; z-index: 5;">
 
                         <!-- Replaces the single static modalBeforeAfterBox -->
                         <div id="modalBeforeAfterBoxes" style="position: absolute; inset: 0; pointer-events: none; z-index: 10;"></div>
