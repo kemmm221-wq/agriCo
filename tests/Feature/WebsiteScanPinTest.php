@@ -23,6 +23,12 @@ class WebsiteScanPinTest extends TestCase
         $response->assertSee('btnSaveCopyScan');
         $response->assertSee('btnPinLocationScan');
         $response->assertSee('pinSoilLocationModal');
+        $response->assertSee('cameraLightingPopup');
+        $response->assertSee('Good Lighting Condition');
+        $response->assertSee('not super dark');
+        $response->assertSee('not super light');
+        $response->assertSee('dismissCameraLightingCenterPopup');
+        $response->assertSee('cameraLightingTimerCount');
     }
 
     public function test_pin_location_endpoint_creates_pending_record_for_regular_user(): void
