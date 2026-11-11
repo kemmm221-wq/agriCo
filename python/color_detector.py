@@ -48,6 +48,81 @@ MAX_L_GAP = float(os.environ.get("STAGE3_MAX_L_GAP", "40.0"))  # max L* differen
 FINAL_MIN = float(os.environ.get("STAGE3_FINAL_MIN", "0.05"))  # after merging, drop colors still < 5%
 TRIM_PCT = int(os.environ.get("STAGE3_TRIM_PCT", "10"))        # ignore darkest/lightest 10% when computing true color
 
+# ── High-Contrast Bright Overlay Colors (Stands out sharply on earthy brown soil) ─
+BRIGHT_OVERLAY_COLORS = [
+    {"name": "Red",     "rgb": (239, 68, 68),   "hex": "#ef4444"},   # Dominant color
+    {"name": "Blue",    "rgb": (59, 130, 246),  "hex": "#3b82f6"},   # Secondary color
+    {"name": "Yellow",  "rgb": (234, 179, 8),   "hex": "#eab308"},   # 3rd color
+    {"name": "Green",   "rgb": (34, 197, 94),   "hex": "#22c55e"},   # 4th color
+    {"name": "Magenta", "rgb": (168, 85, 247),  "hex": "#a855f7"},   # 5th color
+    {"name": "Cyan",    "rgb": (6, 182, 212),   "hex": "#06b6d4"},   # 6th color
+]
+
+
+def smooth_label_map(label_map: np.ndarray, kernel_size: int = 3) -> np.ndarray:
+    """
+    Applies a median filter to the discrete integer label map (cluster assignments).
+    Turns scattered speckles, pebbles, and tiny grain clumps into solid, cohesive areas,
+    preventing noisy single-pixel salt-and-pepper artifacts and producing clean overlay masks.
+    """
+    if kernel_size <= 1:
+        return label_map
+    try:
+        from scipy.ndimage import median_filter
+        return median_filter(label_map, size=kernel_size)
+    except ImportError:
+        shifted = np.where(label_map < 0, 255, label_map).astype(np.uint8)
+        k = kernel_size if kernel_size % 2 == 1 else kernel_size + 1
+        blurred = cv2.medianBlur(shifted, k)
+        return np.where(blurred == 255, -1, blurred.astype(label_map.dtype))
+
+
+def detect_border_padding(arr: np.ndarray, max_check: int = 12) -> Tuple[int, int, int, int]:
+    """
+    Detects if borders (left, top, right, bottom) contain repeated or padded pixels
+    introduced by Stage 2 mirror/replicate padding, convolution borders, or camera letterboxing.
+    Returns (pad_left, pad_top, pad_right, pad_bottom).
+    """
+    H, W = arr.shape[:2]
+    pad_left = 0
+    for c in range(min(max_check, W // 4)):
+        diff_next = float(np.mean(np.abs(arr[:, c].astype(float) - arr[:, c + 1].astype(float))))
+        col_std = float(np.std(arr[:, c].astype(float)))
+        # Exact duplicate column from padding or completely constant border strip
+        if np.all(arr[:, c] == arr[:, c + 1]) or diff_next == 0.0 or col_std == 0.0:
+            pad_left = c + 1
+        else:
+            break
+
+    pad_right = 0
+    for c in range(min(max_check, W // 4)):
+        diff_prev = float(np.mean(np.abs(arr[:, W - 1 - c].astype(float) - arr[:, W - 2 - c].astype(float))))
+        col_std = float(np.std(arr[:, W - 1 - c].astype(float)))
+        if np.all(arr[:, W - 1 - c] == arr[:, W - 2 - c]) or diff_prev == 0.0 or col_std == 0.0:
+            pad_right = c + 1
+        else:
+            break
+
+    pad_top = 0
+    for r in range(min(max_check, H // 4)):
+        diff_next = float(np.mean(np.abs(arr[r, :].astype(float) - arr[r + 1, :].astype(float))))
+        row_std = float(np.std(arr[r, :].astype(float)))
+        if np.all(arr[r, :] == arr[r + 1, :]) or diff_next == 0.0 or row_std == 0.0:
+            pad_top = r + 1
+        else:
+            break
+
+    pad_bottom = 0
+    for r in range(min(max_check, H // 4)):
+        diff_prev = float(np.mean(np.abs(arr[H - 1 - r, :].astype(float) - arr[H - 2 - r, :].astype(float))))
+        row_std = float(np.std(arr[H - 1 - r, :].astype(float)))
+        if np.all(arr[H - 1 - r, :] == arr[H - 2 - r, :]) or diff_prev == 0.0 or row_std == 0.0:
+            pad_bottom = r + 1
+        else:
+            break
+
+    return pad_left, pad_top, pad_right, pad_bottom
+
 
 def _apply_region_crop(image: Image.Image, roi_fraction: float) -> Image.Image:
     """
@@ -189,9 +264,41 @@ def detect_color_regions(
     min_proportion: float = FINAL_MIN,
     roi_fraction: float = DEFAULT_ROI_FRACTION,
 ) -> List[dict]:
+    # Check SCAN_ROI_FRACTION env override
+    roi_fraction_env = os.environ.get("SCAN_ROI_FRACTION")
+    if roi_fraction_env is not None:
+        try:
+            roi_fraction = float(roi_fraction_env)
+        except ValueError:
+            pass
+
+    if roi_fraction < 1.0:
+        import sys
+        sys.stderr.write(
+            f"[Stage 3] SCAN_ROI_FRACTION={roi_fraction:.2f} (< 1.0): analyzing center "
+            f"{roi_fraction * 100:.0f}% only. (Ensure SCAN_ROI_FRACTION=1.0 for full image)\n"
+        )
+        sys.stderr.flush()
+
     img_rgb = image.convert("RGB")
     roi_img = _apply_region_crop(img_rgb, roi_fraction)
     Wc, Hc = roi_img.size
+
+    # Check for Stage 2 border padding / mirror artifacts on the edges
+    roi_raw_arr = np.asarray(roi_img, dtype=np.uint8)
+    pad_l, pad_t, pad_r, pad_b = detect_border_padding(roi_raw_arr)
+    if pad_l > 0 or pad_t > 0 or pad_r > 0 or pad_b > 0:
+        import sys
+        sys.stderr.write(
+            f"[Stage 3] Trimmed border padding/mirror (L={pad_l}, T={pad_t}, R={pad_r}, B={pad_b}) "
+            f"to prevent counting fake pixels in percentages\n"
+        )
+        sys.stderr.flush()
+        crop_box = (pad_l, pad_t, max(pad_l + 1, Wc - pad_r), max(pad_t + 1, Hc - pad_b))
+        roi_img = roi_img.crop(crop_box)
+        Wc, Hc = roi_img.size
+    else:
+        pad_l, pad_t = 0, 0
 
     # 1. Small working copy in Lab
     small = roi_img.copy()
@@ -224,19 +331,23 @@ def detect_color_regions(
 
     anchors = sorted(groups, key=share, reverse=True)[:max_colors]
 
-    # 5. Per-pixel group map at ROI size
+    # 5. Per-pixel group map at ROI size with median smoothing
     lut = np.full(k, -1, dtype=np.int16)
     for gi, a in enumerate(anchors):
         for c in groups[a]:
             lut[c] = gi
     small_group = lut[labels].reshape(sh, sw)
+
+    # Apply median filter on label map to turn scattered pebbles/speckles into solid areas
+    small_group = smooth_label_map(small_group, kernel_size=3)
     roi_group = cv2.resize(small_group, (Wc, Hc), interpolation=cv2.INTER_NEAREST)
+    roi_group = smooth_label_map(roi_group, kernel_size=3)
     classified = max(int((roi_group >= 0).sum()), 1)
 
     full_arr = np.asarray(img_rgb, dtype=np.uint8)
     H, W = full_arr.shape[:2]
-    roi_x0 = int(round(W * (1.0 - roi_fraction) / 2.0))
-    roi_y0 = int(round(H * (1.0 - roi_fraction) / 2.0))
+    roi_x0 = int(round(W * (1.0 - roi_fraction) / 2.0)) + pad_l
+    roi_y0 = int(round(H * (1.0 - roi_fraction) / 2.0)) + pad_t
     lab2d = lab.reshape(sh, sw, 3)
     labels2d = labels.reshape(sh, sw)
 
@@ -272,6 +383,8 @@ def detect_color_regions(
         full_mask[roi_y0: roi_y0 + Hc, roi_x0: roi_x0 + Wc] = roi_mask
         box_data = locate_color_box(full_arr, rgb, pixel_mask=full_mask)
 
+        overlay_info = BRIGHT_OVERLAY_COLORS[gi % len(BRIGHT_OVERLAY_COLORS)]
+
         regions.append({
             "rgb": rgb,
             "proportion": round(float(proportion), 4),
@@ -282,10 +395,38 @@ def detect_color_regions(
             "bounding_box": box_data,
             "box": {"x": box_data["norm_x"], "y": box_data["norm_y"],
                     "w": box_data["norm_w"], "h": box_data["norm_h"]},
+            "overlay_color": overlay_info["rgb"],
+            "overlay_hex": overlay_info["hex"],
+            "overlay_color_name": overlay_info["name"],
         })
 
     regions.sort(key=lambda r: r["proportion"], reverse=True)
     return regions
+
+
+def create_segmentation_overlay(
+    image: Image.Image,
+    regions: List[dict],
+    alpha: float = 0.42,
+) -> Image.Image:
+    """
+    Creates a visual segmentation overlay using bright contrasting colors
+    (Red, Blue, Yellow, etc.) blended over the soil image so distinct layers,
+    pebbles, and clumps stand out clearly against brown soil, while the
+    companion legend displays the true soil color next to each swatch.
+    """
+    base = np.asarray(image.convert("RGB"), dtype=np.uint8).copy()
+    overlay = base.copy()
+
+    for gi, r in enumerate(regions):
+        mask = r.get("pixel_mask")
+        if mask is None or not np.any(mask):
+            continue
+        c = r.get("overlay_color", BRIGHT_OVERLAY_COLORS[gi % len(BRIGHT_OVERLAY_COLORS)]["rgb"])
+        overlay[mask] = c
+
+    blended = cv2.addWeighted(base, 1.0 - alpha, overlay, alpha, 0)
+    return Image.fromarray(blended, mode="RGB")
 
 
 def crop_region(image: Image.Image, pixel_mask: np.ndarray) -> Image.Image:

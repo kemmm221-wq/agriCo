@@ -304,6 +304,9 @@ def main() -> int:
                 "lightness_spread": lightness_spread,
                 "merged_from": r.get("merged_from", []),
                 "lighting_warning": reg_lighting_warning,
+                "overlay_color": r.get("overlay_color"),
+                "overlay_hex": r.get("overlay_hex"),
+                "overlay_color_name": r.get("overlay_color_name"),
             })
 
         output = build_output(record, result, api_regions)
@@ -380,6 +383,18 @@ def main() -> int:
                     output["before_after_image_path"] = ba_dest_file
                     output["before_after_image_url"] = f"/storage/scans/scan_{scan_id}_before_after.jpg"
                     sys.stderr.write(f"[INFO] Saved before/after comparison image to {ba_dest_file}\n")
+
+                    # Generate bright color segmentation overlay (smoothed pebbles/clumps)
+                    try:
+                        from color_detector import create_segmentation_overlay
+                        overlay_img = create_segmentation_overlay(norm_img, result.regions, alpha=0.42)
+                        overlay_dest_file = os.path.join(laravel_scans_dir, f"scan_{scan_id}_overlay.jpg")
+                        overlay_img.save(overlay_dest_file, quality=92)
+                        output["overlay_image_path"] = overlay_dest_file
+                        output["overlay_image_url"] = f"/storage/scans/scan_{scan_id}_overlay.jpg"
+                        sys.stderr.write(f"[INFO] Saved segmentation overlay image to {overlay_dest_file}\n")
+                    except Exception as e_ov:
+                        sys.stderr.write(f"[WARN] Could not generate segmentation overlay image: {e_ov}\n")
                 except Exception as e_ba:
                     sys.stderr.write(f"[WARN] Could not generate before/after comparison image: {e_ba}\n")
             except Exception as e_save:

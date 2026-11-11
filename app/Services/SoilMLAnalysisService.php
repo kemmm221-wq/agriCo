@@ -789,6 +789,7 @@ class SoilMLAnalysisService
         $analysis['stage2_normalized_url']  = $normalizedUrl;
         $analysis['normalized_image_url']   = $normalizedUrl;
         $analysis['before_after_image_url'] = $beforeAfterUrl;
+        $analysis['overlay_image_url']      = $pythonResult['overlay_image_url'] ?? (file_exists(storage_path("app/public/scans/scan_{$scanId}_overlay.jpg")) ? "/storage/scans/scan_{$scanId}_overlay.jpg" : null);
         $analysis['thumbnail_image_url']    = $thumbnailUrl;
         $analysis['raw_image_url']          = $rawUrl;
         $analysis['stage2_mode']            = $analysis['stage2_mode'] ?? $pythonResult['stage2_mode'] ?? config('soil.stage2_mode', 'classical');

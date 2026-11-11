@@ -1656,11 +1656,18 @@ export default function ScanSoilScreen({ navigation }) {
                     )}
                   </View>
 
-                  {/* Right Hex Pill (Website #modalHexPill) */}
-                  <View style={styles.soilBannerHexPill}>
-                    <Text style={styles.soilBannerHexText}>
-                      {(currentSpecimen.hexColor || currentSpecimen.hex || '#8F694E').toUpperCase()}
-                    </Text>
+                  {/* Right Hex Pill & Bright Overlay Badge */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {specimenNormRegions[0]?.overlay_hex && (
+                      <View style={[styles.layerOverlayBadge, { backgroundColor: specimenNormRegions[0].overlay_hex }]}>
+                        <Text style={styles.layerOverlayBadgeText}>{specimenNormRegions[0].overlay_color_name || 'Red'}</Text>
+                      </View>
+                    )}
+                    <View style={styles.soilBannerHexPill}>
+                      <Text style={styles.soilBannerHexText}>
+                        {(currentSpecimen.hexColor || currentSpecimen.hex || '#8F694E').toUpperCase()}
+                      </Text>
+                    </View>
                   </View>
                 </View>
 
@@ -1975,8 +1982,15 @@ export default function ScanSoilScreen({ navigation }) {
                                     <Text style={styles.layerBannerCode}>{rCode}</Text>
                                     <Text style={styles.layerBannerName} numberOfLines={1}>{rName}</Text>
                                   </View>
-                                  <View style={styles.layerBannerHexBadge}>
-                                    <Text style={styles.layerBannerHexBadgeText}>{rHex.toUpperCase()}</Text>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    {r.overlay_hex && (
+                                      <View style={[styles.layerOverlayBadge, { backgroundColor: r.overlay_hex }]}>
+                                        <Text style={styles.layerOverlayBadgeText}>{r.overlay_color_name || 'Overlay'}</Text>
+                                      </View>
+                                    )}
+                                    <View style={styles.layerBannerHexBadge}>
+                                      <Text style={styles.layerBannerHexBadgeText}>{rHex.toUpperCase()}</Text>
+                                    </View>
                                   </View>
                                 </View>
 
@@ -4069,5 +4083,24 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     color: '#92400e',
     lineHeight: 14,
+  },
+  layerOverlayBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  layerOverlayBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#ffffff',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
 });

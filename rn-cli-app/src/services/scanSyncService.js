@@ -293,6 +293,8 @@ export function mapServerScan(scan, data = {}) {
     thumbnail: imageUrl ? { uri: imageUrl } : null,
     beforeAfterImage,
     beforeAfterImageUrl: beforeAfterImage,
+    overlayImage: data?.overlay_image_url || scan?.overlay_image || null,
+    overlayImageUrl: data?.overlay_image_url || scan?.overlay_image || null,
     regions,
     lighting_warning: Boolean(data?.lighting_warning || scan?.lighting_warning || (regions && regions.some(r => r.lighting_warning))),
   };
