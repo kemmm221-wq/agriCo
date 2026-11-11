@@ -522,7 +522,7 @@
             justify-content: center;
         }
 
-        /* Center Viewfinder Lighting Condition Notification Popup (Simple Minimalist Design - No Icon) */
+        /* Center Viewfinder Lighting Condition Notification Popup */
         .camera-lighting-center-popup {
             position: absolute;
             top: 50%;
@@ -530,14 +530,17 @@
             transform: translate(-50%, -50%);
             z-index: 45;
             width: calc(100% - 40px);
-            max-width: 300px;
-            background: #051F20;
-            border: 1px solid #8EB69B;
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            padding: 14px 16px;
+            max-width: 320px;
+            background: rgba(5, 31, 32, 0.95);
+            border: 1px solid rgba(142, 182, 155, 0.4);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 18px 20px 16px;
             color: #DAF1DE;
             box-sizing: border-box;
+            text-align: center;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
@@ -546,38 +549,36 @@
             opacity: 1;
             pointer-events: auto;
         }
-        .camera-lighting-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-        .camera-lighting-title {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 0;
-        }
         .camera-lighting-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
             background: transparent;
             border: none;
-            color: #DAF1DE;
-            font-size: 20px;
+            color: rgba(218, 241, 222, 0.75);
+            font-size: 22px;
             line-height: 1;
             cursor: pointer;
-            padding: 0 4px;
-            opacity: 0.75;
-            transition: opacity 0.15s ease;
+            padding: 4px;
+            transition: color 0.15s ease;
         }
         .camera-lighting-close-btn:hover {
-            opacity: 1;
+            color: #ffffff;
+        }
+        .camera-lighting-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 10px;
+            text-align: center;
+            letter-spacing: -0.01em;
         }
         .camera-lighting-text {
-            font-size: 11.5px;
-            line-height: 1.45;
-            color: #DAF1DE;
-            margin: 0 0 10px;
-            text-align: left;
+            font-size: 12px;
+            line-height: 1.5;
+            color: rgba(218, 241, 222, 0.9);
+            margin: 0 0 14px;
+            text-align: center;
         }
         .camera-lighting-text strong {
             color: #ffffff;
@@ -586,23 +587,24 @@
         .camera-lighting-action-btn {
             display: block;
             width: 100%;
-            padding: 6px 12px;
+            padding: 8px 14px;
             background: #10b981;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             color: #ffffff;
-            font-size: 12px;
+            font-size: 12.5px;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
             transition: background 0.15s ease;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
         }
         .camera-lighting-action-btn:hover {
             background: #059669;
         }
         .camera-lighting-countdown {
             opacity: 0.9;
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: 500;
         }
         .reticle {
@@ -5519,12 +5521,10 @@
                         <div class="reticle"></div>
                     </div>
 
-                    {{-- Center Camera Lighting Notification Popup (Simple Design - No Icon) --}}
+                    {{-- Center Camera Lighting Notification Popup (Centered Design - No Icon, No Shapes) --}}
                     <div id="cameraLightingPopup" class="camera-lighting-center-popup" style="display: none;" role="dialog" aria-live="polite">
-                        <div class="camera-lighting-header">
-                            <h4 class="camera-lighting-title">Good Lighting Condition</h4>
-                            <button type="button" class="camera-lighting-close-btn" onclick="dismissCameraLightingCenterPopup()" aria-label="Close" title="Close">&times;</button>
-                        </div>
+                        <button type="button" class="camera-lighting-close-btn" onclick="dismissCameraLightingCenterPopup()" aria-label="Close" title="Close">&times;</button>
+                        <h4 class="camera-lighting-title">Good Lighting Condition</h4>
                         <p class="camera-lighting-text">
                             Please scan under <strong>good lighting</strong>. Make sure it is <strong>not super dark</strong> and <strong>not super light</strong> (avoid harsh glare or deep shadows) for accurate soil color detection.
                         </p>
