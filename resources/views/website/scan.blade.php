@@ -527,64 +527,56 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.95);
+            transform: translate(-50%, -50%);
             z-index: 45;
-            width: calc(100% - 32px);
-            max-width: 310px;
-            background: rgba(5, 31, 32, 0.95);
-            border: 1px solid rgba(142, 182, 155, 0.35);
-            border-radius: 12px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            width: calc(100% - 40px);
+            max-width: 300px;
+            background: #051F20;
+            border: 1px solid #8EB69B;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
             padding: 14px 16px;
             color: #DAF1DE;
             box-sizing: border-box;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.2s ease;
         }
         .camera-lighting-center-popup.active {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
             pointer-events: auto;
         }
         .camera-lighting-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .camera-lighting-title {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 700;
             color: #ffffff;
             margin: 0;
-            letter-spacing: -0.01em;
         }
         .camera-lighting-close-btn {
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
             background: transparent;
             border: none;
-            color: rgba(218, 241, 222, 0.65);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            color: #DAF1DE;
+            font-size: 20px;
+            line-height: 1;
             cursor: pointer;
-            transition: all 0.15s ease;
-            padding: 0;
+            padding: 0 4px;
+            opacity: 0.75;
+            transition: opacity 0.15s ease;
         }
         .camera-lighting-close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
+            opacity: 1;
         }
         .camera-lighting-text {
-            font-size: 12px;
-            line-height: 1.5;
-            color: rgba(218, 241, 222, 0.88);
-            margin: 0 0 12px;
+            font-size: 11.5px;
+            line-height: 1.45;
+            color: #DAF1DE;
+            margin: 0 0 10px;
             text-align: left;
         }
         .camera-lighting-text strong {
@@ -592,27 +584,25 @@
             font-weight: 600;
         }
         .camera-lighting-action-btn {
+            display: block;
             width: 100%;
-            padding: 7px 12px;
+            padding: 6px 12px;
             background: #10b981;
             border: none;
-            border-radius: 7px;
+            border-radius: 6px;
             color: #ffffff;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            text-align: center;
             transition: background 0.15s ease;
         }
         .camera-lighting-action-btn:hover {
             background: #059669;
         }
         .camera-lighting-countdown {
-            opacity: 0.85;
-            font-size: 11.5px;
+            opacity: 0.9;
+            font-size: 11px;
             font-weight: 500;
         }
         .reticle {
@@ -5533,19 +5523,13 @@
                     <div id="cameraLightingPopup" class="camera-lighting-center-popup" style="display: none;" role="dialog" aria-live="polite">
                         <div class="camera-lighting-header">
                             <h4 class="camera-lighting-title">Good Lighting Condition</h4>
-                            <button type="button" class="camera-lighting-close-btn" onclick="dismissCameraLightingCenterPopup()" aria-label="Close" title="Close">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
+                            <button type="button" class="camera-lighting-close-btn" onclick="dismissCameraLightingCenterPopup()" aria-label="Close" title="Close">&times;</button>
                         </div>
                         <p class="camera-lighting-text">
                             Please scan under <strong>good lighting</strong>. Make sure it is <strong>not super dark</strong> and <strong>not super light</strong> (avoid harsh glare or deep shadows) for accurate soil color detection.
                         </p>
                         <button type="button" class="camera-lighting-action-btn" onclick="dismissCameraLightingCenterPopup()">
-                            <span>Got It</span>
-                            <span class="camera-lighting-countdown" id="cameraLightingTimerCount">(15s)</span>
+                            Got It <span class="camera-lighting-countdown" id="cameraLightingTimerCount">(15s)</span>
                         </button>
                     </div>
                 </div>
