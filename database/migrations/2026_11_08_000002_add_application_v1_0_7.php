@@ -28,3 +28,4 @@ return new class extends Migration
         Application::where('version', 'v1.0.6')->update(['status' => 'ACTIVE']);
     }
 };
+

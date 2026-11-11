@@ -591,7 +591,7 @@
                         <h2 class="legal-section-title">Acceptance of Terms</h2>
                     </div>
                     <p>
-                        By visiting or using the AgriCo website (<a href="https://agrico-production-1eb3.up.railway.app/" style="color:#16a34a; font-weight:600;">agrico-production-1eb3.up.railway.app</a>), downloading the AgriCo mobile application, or registering for an account, you agree to be legally bound by these Terms of Service ("Terms"). If you do not agree with any part of these Terms, you must discontinue your use of the platform immediately.
+                        By visiting or using the AgriCo website (<a href="https://agrico-web-production.up.railway.app/" style="color:#16a34a; font-weight:600;">agrico-web-production.up.railway.app</a>), downloading the AgriCo mobile application, or registering for an account, you agree to be legally bound by these Terms of Service ("Terms"). If you do not agree with any part of these Terms, you must discontinue your use of the platform immediately.
                     </p>
                     <p>
                         These Terms constitute a binding agreement between you and the <strong>AgriCo Project Team</strong> in partnership with the <strong>College of Information and Computing Sciences, Cagayan State University – Lal-lo Campus</strong>.

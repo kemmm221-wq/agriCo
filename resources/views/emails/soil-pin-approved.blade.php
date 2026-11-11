@@ -77,7 +77,7 @@
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="center" style="border-radius: 10px; background-color: #16a34a;">
-                                        <a href="https://agrico-production-1eb3.up.railway.app/map" target="_blank" style="display: inline-block; padding: 14px 32px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px; letter-spacing: 0.2px;">
+                                        <a href="https://agrico-web-production.up.railway.app/map" target="_blank" style="display: inline-block; padding: 14px 32px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px; letter-spacing: 0.2px;">
                                             View on Soil Map &rarr;
                                         </a>
                                     </td>

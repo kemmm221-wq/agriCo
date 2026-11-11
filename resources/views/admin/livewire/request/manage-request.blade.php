@@ -727,6 +727,202 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- SOIL SPECIMEN & NORMALIZED VIEW (AFTER NORMALIZED ONLY) --}}
+                        @php
+                            $renderRegions = $selectedRequestLocation['render_regions'] ?? [];
+                            $isAllPinned = !empty($selectedRequestLocation['is_all_pinned']);
+                            $normImg = $selectedRequestLocation['normalized_image_url'] ?? null;
+                            $thumbImg = $selectedRequestLocation['pinned_soil_image'] ?? null;
+                            $mCode = $selectedRequestLocation['munsell_code'] ?? 'Soil Specimen';
+                            $sName = $selectedRequestLocation['soil_name'] ?? 'Soil Specimen';
+                            $hex = $selectedRequestLocation['hex_color'] ?? '#8a7757';
+                            $pct = $selectedRequestLocation['pinned_percentage'] ?? '100%';
+                            $conf = $selectedRequestLocation['pinned_confidence'] ?? '95%';
+                            $ordinalNames = ['1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH', '9TH', '10TH'];
+
+                            $normalizeBox = function($r) {
+                                if (!$r) {
+                                    return ['left' => 25, 'top' => 25, 'width' => 50, 'height' => 50];
+                                }
+                                $box = $r['box'] ?? ($r['bounding_box'] ?? null);
+                                if (!$box && isset($r['x'], $r['y'], $r['w'], $r['h'])) {
+                                    $box = ['x' => $r['x'], 'y' => $r['y'], 'w' => $r['w'], 'h' => $r['h']];
+                                }
+                                if (!$box && isset($r['norm_x'], $r['norm_y'], $r['norm_w'], $r['norm_h'])) {
+                                    $box = ['x' => $r['norm_x'], 'y' => $r['norm_y'], 'w' => $r['norm_w'], 'h' => $r['norm_h']];
+                                }
+                                if (is_string($box)) {
+                                    $box = json_decode($box, true) ?: null;
+                                }
+                                if (!$box) {
+                                    return ['left' => 25, 'top' => 25, 'width' => 50, 'height' => 50];
+                                }
+                                $bx = floatval($box['norm_x'] ?? ($box['x'] ?? 0.25));
+                                $by = floatval($box['norm_y'] ?? ($box['y'] ?? 0.25));
+                                $bw = floatval($box['norm_w'] ?? ($box['w'] ?? 0.5));
+                                $bh = floatval($box['norm_h'] ?? ($box['h'] ?? 0.5));
+
+                                if ($bx > 1.0 || $by > 1.0 || $bw > 1.0 || $bh > 1.0) {
+                                    $bx = $bx / 400; $by = $by / 400; $bw = $bw / 400; $bh = $bh / 400;
+                                }
+                                $bx = max(0.01, min(0.92, $bx));
+                                $by = max(0.01, min(0.92, $by));
+                                $bw = max(0.05, min(0.98 - $bx, $bw));
+                                $bh = max(0.05, min(0.98 - $by, $bh));
+
+                                return [
+                                    'left'   => round($bx * 100, 2),
+                                    'top'    => round($by * 100, 2),
+                                    'width'  => round($bw * 100, 2),
+                                    'height' => round($bh * 100, 2),
+                                ];
+                            };
+                        @endphp
+
+                        <div style="margin-bottom: 20px;">
+                            {{-- Header Title Row --}}
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                                <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 15-4-4 1.4-1.4L11 14.2l6.6-6.6L19 9z"/></svg>
+                                    Soil Specimen (Normalized)
+                                </span>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    @if($isAllPinned)
+                                        <span style="font-size: 10.5px; font-weight: 700; color: #065f46; background: #d1fae5; padding: 2px 9px; border-radius: 6px; border: 1px solid #a7f3d0;">
+                                            ✨ All {{ count($renderRegions) }} Soils Pinned (Batch Pin)
+                                        </span>
+                                    @else
+                                        <span style="font-size: 10.5px; font-weight: 700; color: #0f766e; background: #ccfbf1; padding: 2px 9px; border-radius: 6px; border: 1px solid #99f6e4;">
+                                            📌 Pinned Soil Layer Only
+                                        </span>
+                                    @endif
+                                    <span style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981; text-transform: uppercase; letter-spacing: 0.04em; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                        AFTER (NORMALIZED)
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Main Card Container --}}
+                            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 14px;">
+
+                                {{-- Hero Swatch Banner --}}
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                                        {{-- Thumbnail or Fallback --}}
+                                        <div style="width: 48px; height: 48px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: {{ $hex }}; border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); position: relative;">
+                                            @if($thumbImg)
+                                                <img src="{{ $thumbImg }}" alt="{{ $mCode }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none';" />
+                                            @else
+                                                <div style="width: 100%; height: 100%; background: {{ $hex }};"></div>
+                                            @endif
+                                        </div>
+
+                                        {{-- Soil Info --}}
+                                        <div style="min-width: 0;">
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <span style="font-size: 15px; font-weight: 800; color: #0f172a; letter-spacing: -0.01em;">
+                                                    {{ $mCode }}
+                                                </span>
+                                                <span style="font-size: 13px; font-weight: 600; color: #475569;">
+                                                    {{ $sName }}
+                                                </span>
+                                            </div>
+                                            <div style="font-size: 11.5px; font-weight: 600; color: #64748b; margin-top: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <span>Soil Coverage: <strong style="color: #0f172a;">{{ $pct }}</strong></span>
+                                                <span>•</span>
+                                                <span>Confidence: <strong style="color: #10b981;">{{ $conf }}</strong></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Right HEX Pill --}}
+                                    <span style="font-size: 12px; font-weight: 800; color: #ffffff; background: {{ $hex }}; padding: 5px 12px; border-radius: 9999px; font-family: monospace; letter-spacing: 0.05em; text-shadow: 0 1px 2px rgba(0,0,0,0.35); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        {{ strtoupper($hex) }}
+                                    </span>
+                                </div>
+
+                                {{-- Normalized Photo Frame with Overlaid ROI Bounding Boxes (AFTER NORMALIZED ONLY) --}}
+                                <div style="position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #0c1a17; border: 1px solid rgba(142, 182, 155, 0.25); text-align: center;">
+                                    @if($normImg)
+                                        <div style="position: relative; width: 100%; display: inline-block;">
+                                            <img
+                                                src="{{ $normImg }}"
+                                                alt="Soil Specimen - After (Normalized)"
+                                                loading="lazy"
+                                                style="width: 100%; height: auto; max-height: 320px; object-fit: contain; display: block; margin: 0 auto;"
+                                                onload="var p = this.parentElement; if(p) { var o = p.querySelector('.soil-norm-overlays'); if(o) o.style.display='block'; }"
+                                                onerror="this.style.display='none'; var fb = this.parentElement.querySelector('.soil-photo-missing-fb'); if(fb) fb.style.display='flex';"
+                                            />
+
+                                            {{-- Bounding Box Overlays (Only Pinned Soil if Single Pin; All Soils if Pin All) --}}
+                                            <div class="soil-norm-overlays" style="display: none; position: absolute; inset: 0; pointer-events: none; z-index: 10;">
+                                                @foreach($renderRegions as $idx => $r)
+                                                    @php
+                                                        $bData = $normalizeBox($r);
+                                                        $rHex = $r['hex'] ?? $hex;
+                                                        $rCode = $r['munsell'] ?? ($r['munsell_code'] ?? ($r['code'] ?? $mCode));
+                                                        $rPct = isset($r['percent']) ? $r['percent'] : (isset($r['proportion']) ? round($r['proportion'] * 100, 1) : null);
+                                                        if ($isAllPinned) {
+                                                            $roleLabel = ($ordinalNames[$idx] ?? ($idx + 1) . 'TH') . ' COLOR · ' . $rCode . ($rPct !== null ? ' (' . $rPct . '%)' : '');
+                                                        } else {
+                                                            $roleLabel = 'PINNED SOIL · ' . $rCode . ($rPct !== null ? ' (' . $rPct . '%)' : '');
+                                                        }
+                                                    @endphp
+                                                    <div style="position: absolute; left: {{ $bData['left'] }}%; top: {{ $bData['top'] }}%; width: {{ $bData['width'] }}%; height: {{ $bData['height'] }}%; border: 2.5px solid #4ade80; pointer-events: none; border-radius: 4px; box-sizing: border-box; box-shadow: 0 0 8px rgba(74, 222, 128, 0.45);">
+                                                        <span style="position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 8.5px; font-weight: 800; background: #4ade80; color: #000000; padding: 1.5px 7px; border-radius: 4px; white-space: nowrap; line-height: 1.2; letter-spacing: 0.03em; box-shadow: 0 2px 4px rgba(0,0,0,0.35);">
+                                                            {{ $roleLabel }}
+                                                        </span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+
+                                            <div class="soil-photo-missing-fb" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 32px 16px; background: rgba(12, 26, 23, 0.95); text-align: center;">
+                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                                <span style="font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.85);">Image preview unavailable</span>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; background: rgba(12, 26, 23, 0.95); text-align: center;">
+                                            <div style="width: 56px; height: 56px; border-radius: 12px; background: {{ $hex }}; border: 2px solid rgba(255,255,255,0.3); margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.25);"></div>
+                                            <span style="font-size: 13px; font-weight: 800; color: #ffffff;">{{ $mCode }} — {{ $sName }}</span>
+                                            <span style="font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 4px;">Normalized photo was not attached to this legacy coordinate pin</span>
+                                        </div>
+                                    @endif
+
+                                    {{-- Watermark Tag --}}
+                                    <div style="position: absolute; bottom: 8px; right: 8px; z-index: 15; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); padding: 2px 7px; border-radius: 5px; font-size: 9.5px; color: rgba(255,255,255,0.8); font-weight: 700; border: 1px solid rgba(255,255,255,0.15); pointer-events: none;">
+                                        AgriCo Normalized View
+                                    </div>
+                                </div>
+
+                                {{-- Detected Soil Swatch Pills Below Photo (Only Pinned Soil if Single Pin; All if Pin All) --}}
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                                    @foreach($renderRegions as $idx => $r)
+                                        @php
+                                            $rHex = $r['hex'] ?? $hex;
+                                            $rCode = $r['munsell'] ?? ($r['munsell_code'] ?? ($r['code'] ?? $mCode));
+                                            $rLabel = $r['label'] ?? ($r['color_name'] ?? ($r['name'] ?? $sName));
+                                            $rawPct = isset($r['percent']) ? $r['percent'] : (isset($r['proportion']) ? round($r['proportion'] * 100, 1) : null);
+                                            $rConf = $r['confidence'] ?? ($r['near_match'] ?? null);
+                                            if (is_numeric($rConf)) $rConf = round((float)$rConf, 1) . '%';
+                                        @endphp
+                                        <div style="display: inline-flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 4px 12px 4px 6px;">
+                                            <span style="width: 14px; height: 14px; border-radius: 9999px; background: {{ $rHex }}; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0;"></span>
+                                            <span style="font-size: 11.5px; font-weight: 800; color: #0f172a; font-family: monospace;">{{ $rCode }}</span>
+                                            <span style="font-size: 11.5px; font-weight: 600; color: #475569;">{{ $rLabel }}</span>
+                                            @if($rawPct !== null)
+                                                <span style="font-size: 10.5px; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 1px 6px; border-radius: 6px;">{{ $rawPct }}%</span>
+                                            @endif
+                                            @if($rConf)
+                                                <span style="font-size: 10.5px; font-weight: 700; color: #15803d; background: #dcfce7; padding: 1px 6px; border-radius: 6px;">{{ $rConf }} Match</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                            </div>
+                        </div>
                     @endif
 
                     {{-- DETAILED DESCRIPTION BOX --}}

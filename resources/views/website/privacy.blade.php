@@ -581,7 +581,7 @@
                         AgriCo is operated by the <strong>AgriCo Project Team</strong> in partnership with the <strong>College of Information and Computing Sciences, Cagayan State University – Lal-lo Campus</strong>, located at Sta. Maria, Lal-lo, Cagayan 3511, Philippines.
                     </p>
                     <p>
-                        This Privacy Policy explains how we collect, process, store, and safeguard your personal information when you access our website (<a href="https://agrico-production-1eb3.up.railway.app/" style="color:#16a34a; font-weight:600;">agrico-production-1eb3.up.railway.app</a>), use the AgriCo mobile application, or interact with our interactive soil mapping features. By creating an account or using AgriCo, you acknowledge that you have read and understood the practices described in this policy.
+                        This Privacy Policy explains how we collect, process, store, and safeguard your personal information when you access our website (<a href="https://agrico-web-production.up.railway.app/" style="color:#16a34a; font-weight:600;">agrico-web-production.up.railway.app</a>), use the AgriCo mobile application, or interact with our interactive soil mapping features. By creating an account or using AgriCo, you acknowledge that you have read and understood the practices described in this policy.
                     </p>
                 </section>
 

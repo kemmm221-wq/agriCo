@@ -22,7 +22,7 @@ class AccountApprovedMail extends Mailable
     ) {
         $this->userName = $this->userName ?: ($this->user?->name ?? 'AgriCo Member');
         $this->userEmail = $this->userEmail ?: ($this->user?->email ?? '');
-        $this->loginUrl = $loginUrl ?: 'https://agrico-production-1eb3.up.railway.app/login';
+        $this->loginUrl = $loginUrl ?: 'https://agrico-web-production.up.railway.app/login';
     }
 
     public function envelope(): Envelope

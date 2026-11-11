@@ -1,10 +1,10 @@
 @php
-    $logoSrc = 'https://agrico-production-1eb3.up.railway.app/images/agrico-logo.png';
+    $logoSrc = 'https://agrico-web-production.up.railway.app/images/agrico-logo.png';
     if (isset($message) && method_exists($message, 'embed') && file_exists(public_path('images/agrico-logo.png'))) {
         try {
             $logoSrc = $message->embed(public_path('images/agrico-logo.png'));
         } catch (\Throwable $e) {
-            $logoSrc = 'https://agrico-production-1eb3.up.railway.app/images/agrico-logo.png';
+            $logoSrc = 'https://agrico-web-production.up.railway.app/images/agrico-logo.png';
         }
     }
 @endphp
@@ -14,7 +14,7 @@
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto; border-collapse: collapse;">
             <tr>
                 <td style="vertical-align: middle; padding-right: 12px;">
-                    <a href="https://agrico-production-1eb3.up.railway.app" target="_blank" style="text-decoration: none; display: block;">
+                    <a href="https://agrico-web-production.up.railway.app" target="_blank" style="text-decoration: none; display: block;">
                         <img src="{{ $logoSrc }}" 
                              alt="AgriCo Logo" 
                              width="48" 
@@ -24,7 +24,7 @@
                     </a>
                 </td>
                 <td style="vertical-align: middle; text-align: left;">
-                    <a href="https://agrico-production-1eb3.up.railway.app" target="_blank" style="text-decoration: none;">
+                    <a href="https://agrico-web-production.up.railway.app" target="_blank" style="text-decoration: none;">
                         <div style="font-family: Arial, Helvetica, sans-serif; font-size: 26px; font-weight: 900; color: #22c55e; margin: 0; line-height: 1; letter-spacing: -0.02em;">AgriCo</div>
                     </a>
                 </td>

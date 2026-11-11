@@ -171,6 +171,22 @@ class ManageRequest extends Component
 
         if (!$lat || !$lng) return null;
 
+        $isPinAllText = (bool) preg_match('/Pin All:\s*(\d+)/i', $desc);
+        if (!$locationMapping && $lat && $lng) {
+            $mappingsQuery = \App\Models\LocationMapping::with(['soil.munsellColor', 'soilScan'])
+                ->where('latitude', $lat)
+                ->where('longitude', $lng);
+            $locationMapping = $mappingsQuery->latest('location_mapping_id')->first();
+        }
+
+        $isAllPinned = $isPinAllText;
+        if (!$isAllPinned && !preg_match('/Location Pin #/i', $desc) && $locationMapping && $locationMapping->soil_scan_id) {
+            $countPinsForScan = \App\Models\LocationMapping::where('soil_scan_id', $locationMapping->soil_scan_id)->count();
+            if ($countPinsForScan > 1 && $locationMapping->pinned_soil_index === null) {
+                $isAllPinned = true;
+            }
+        }
+
         $coverage = '';
         if (preg_match('/\[Covered Area:\s*([^\]]+)\]/i', $desc, $cov)) {
             $coverage = trim($cov[1]);
@@ -191,16 +207,124 @@ class ManageRequest extends Component
             $munsellCode = trim($soilMatch[2]);
         }
 
+        $soilScan = $locationMapping?->soilScan;
+        if (!$soilScan && $locationMapping?->soil_scan_id) {
+            $soilScan = \App\Models\SoilScan::find($locationMapping->soil_scan_id);
+        }
+
+        // Pinned soil index on this mapping
+        $pinnedIdx = $locationMapping?->pinned_soil_index ?? 0;
+
+        // Extract scan image (AFTER normalized image)
+        $normalizedImgUrl = null;
+        if ($soilScan) {
+            $normalizedImgUrl = $soilScan->scan_image_url ?: \App\Helpers\SoilImageHelper::scanImageUrl($soilScan, false);
+        }
+        if (!$normalizedImgUrl && $locationMapping) {
+            $normalizedImgUrl = $locationMapping->scan_image_url ?: \App\Helpers\SoilImageHelper::scanImageUrl($locationMapping, false);
+        }
+
+        // Extract thumbnail of pinned soil
+        $pinnedThumb = null;
+        if ($locationMapping && !empty($locationMapping->region_thumbnail)) {
+            $pinnedThumb = $locationMapping->region_thumbnail;
+            if (!str_starts_with($pinnedThumb, 'data:')) {
+                $pinnedThumb = 'data:image/png;base64,' . $pinnedThumb;
+            }
+        } elseif ($locationMapping) {
+            $pinnedThumb = \App\Helpers\SoilImageHelper::scanImageUrl($locationMapping, 'thumb');
+        } elseif ($soilScan) {
+            $pinnedThumb = \App\Helpers\SoilImageHelper::scanImageUrl($soilScan, 'thumb');
+        }
+
+        // Extract regions
+        $allScanRegions = [];
+        if ($soilScan && !empty($soilScan->regions) && is_array($soilScan->regions)) {
+            $allScanRegions = $soilScan->regions;
+        } elseif ($locationMapping && !empty($locationMapping->regions) && is_array($locationMapping->regions)) {
+            $allScanRegions = $locationMapping->regions;
+        }
+
+        // Determine render_regions:
+        // If Pin All: include ALL detected regions
+        // If Single Pin: include ONLY the single pinned soil layer!
+        $renderRegions = [];
+        if ($isAllPinned && count($allScanRegions) > 0) {
+            $renderRegions = array_values($allScanRegions);
+        } elseif (count($allScanRegions) > 0) {
+            $targetRegion = null;
+            if (isset($allScanRegions[$pinnedIdx])) {
+                $targetRegion = $allScanRegions[$pinnedIdx];
+            } else {
+                foreach ($allScanRegions as $r) {
+                    if ((isset($r['soil_id']) && $r['soil_id'] == $locationMapping?->soil_id) ||
+                        (isset($r['munsell']) && $r['munsell'] == $munsellCode) ||
+                        (isset($r['munsell_code']) && $r['munsell_code'] == $munsellCode)) {
+                        $targetRegion = $r;
+                        break;
+                    }
+                }
+                if (!$targetRegion) {
+                    $targetRegion = $allScanRegions[0];
+                }
+            }
+            if ($targetRegion) {
+                $targetRegion['is_primary'] = true;
+                $targetRegion['pinned_index'] = $pinnedIdx;
+                $renderRegions = [$targetRegion];
+            }
+        }
+
+        // Fallback single region if no regions array was found
+        if (empty($renderRegions) && ($munsellCode || $soilName)) {
+            $meta = is_array($locationMapping?->soil_layer_meta) ? $locationMapping->soil_layer_meta : json_decode($locationMapping?->soil_layer_meta ?? '[]', true);
+            $renderRegions = [[
+                'is_primary'       => true,
+                'munsell'          => $munsellCode ?: 'Soil Specimen',
+                'munsell_code'     => $munsellCode ?: 'Soil Specimen',
+                'label'            => $soilName ?: 'Soil Color',
+                'color_name'       => $soilName ?: 'Soil Color',
+                'hex'              => $hexColor,
+                'percent'          => (float) filter_var($locationMapping?->soil_percentage ?? ($meta['percent'] ?? 100), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION) ?: 100,
+                'confidence'       => $locationMapping?->soil_confidence ?? ($meta['confidence'] ?? '95%'),
+                'soil_type'        => $soilType,
+                'organic_matter'   => $meta['organic_matter'] ?? ($locationMapping?->soil?->effective_organic_matter ?? 'Moderate'),
+                'description'      => $meta['description'] ?? ($locationMapping?->soil?->description ?? ''),
+                'box'              => $meta['box'] ?? ($meta['bounding_box'] ?? ['x' => 0.25, 'y' => 0.25, 'w' => 0.5, 'h' => 0.5]),
+                'region_thumbnail' => $pinnedThumb,
+                'pinned_index'     => $pinnedIdx,
+            ]];
+        }
+
+        $pinnedPercentage = $locationMapping?->soil_percentage;
+        if (!$pinnedPercentage && !empty($renderRegions[0]['percent'])) {
+            $pinnedPercentage = $renderRegions[0]['percent'] . '%';
+        }
+        $pinnedConfidence = $locationMapping?->soil_confidence;
+        if (!$pinnedConfidence && !empty($renderRegions[0]['confidence'])) {
+            $pinnedConfidence = $renderRegions[0]['confidence'];
+        }
+        if (is_numeric($pinnedConfidence)) {
+            $pinnedConfidence = round((float) $pinnedConfidence, 1) . '%';
+        }
+
         return [
-            'lat'          => $lat,
-            'lng'          => $lng,
-            'barangay'     => $brgy ?: 'Lal-lo Jurisdiction',
-            'soil_name'    => $soilName ?: 'Soil Specimen',
-            'munsell_code' => $munsellCode,
-            'soil_type'    => $soilType,
-            'hex_color'    => $hexColor,
-            'coverage'     => $coverage,
-            'mapping_id'   => $locationMapping?->location_mapping_id,
+            'lat'                  => $lat,
+            'lng'                  => $lng,
+            'barangay'             => $brgy ?: 'Lal-lo Jurisdiction',
+            'soil_name'            => $soilName ?: 'Soil Specimen',
+            'munsell_code'         => $munsellCode,
+            'soil_type'            => $soilType,
+            'hex_color'            => $hexColor,
+            'coverage'             => $coverage,
+            'mapping_id'           => $locationMapping?->location_mapping_id,
+            'is_all_pinned'        => $isAllPinned,
+            'pinned_soil_index'    => $pinnedIdx,
+            'pinned_soil_image'    => $pinnedThumb,
+            'normalized_image_url' => $normalizedImgUrl,
+            'render_regions'       => $renderRegions,
+            'pinned_percentage'    => $pinnedPercentage ?: '100%',
+            'pinned_confidence'    => $pinnedConfidence ?: '95%',
         ];
     }
 }
