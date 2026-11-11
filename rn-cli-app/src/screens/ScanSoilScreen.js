@@ -2132,18 +2132,28 @@ export default function ScanSoilScreen({ navigation }) {
                         {(currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png) ? (
                           <>
                             {selectedOverlayColorIndex === null ? (
-                              <Image
-                                source={{ uri: `data:image/png;base64,${currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png}` }}
-                                style={{
-                                  position: 'absolute',
-                                  left: '50%',
-                                  top: `${normBarPct}%`,
-                                  width: '50%',
-                                  height: `${normImgHeightPct}%`,
-                                  opacity: 0.55,
-                                }}
-                                resizeMode="cover"
-                              />
+                              /* Clean AFTER image matching BEFORE with all color bounding boxes */
+                              specimenNormBoxes.map((b, idx) => (
+                                <View
+                                  key={`norm_box_${idx}`}
+                                  style={{
+                                    position: 'absolute',
+                                    left: `${b.splitLeftPct}%`,
+                                    top: `${b.splitTopPct}%`,
+                                    width: `${b.splitWidthPct}%`,
+                                    height: `${b.splitHeightPct}%`,
+                                    borderWidth: 2.5,
+                                    borderColor: b.hex,
+                                    borderRadius: 4,
+                                  }}
+                                >
+                                  <View style={[styles.normRoleBadge, { backgroundColor: b.hex, borderColor: 'rgba(0,0,0,0.3)', borderWidth: 1 }]}>
+                                    <Text style={[styles.normRoleBadgeText, { color: '#fff', textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 2 }]}>
+                                      {b.roleLabel}{b.munsellCode ? ` · ${b.munsellCode}` : ''}{b.percent != null ? ` (${b.percent}%)` : ''}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ))
                             ) : (
                               <>
                                 {specimenNormRegions[selectedOverlayColorIndex]?.mask_png && (
@@ -2229,16 +2239,28 @@ export default function ScanSoilScreen({ navigation }) {
                             {(currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png) ? (
                               <>
                                 {selectedOverlayColorIndex === null ? (
-                                  <Image
-                                    source={{ uri: `data:image/png;base64,${currentSpecimen.colorMapPng || currentSpecimen.color_map_png || specimenNormRegions[0]?.color_map_png}` }}
-                                    style={{
-                                      ...StyleSheet.absoluteFillObject,
-                                      width: '100%',
-                                      height: '100%',
-                                      opacity: 0.55,
-                                    }}
-                                    resizeMode="cover"
-                                  />
+                                  /* Clean AFTER image matching BEFORE with all color bounding boxes */
+                                  specimenNormBoxes.map((b, idx) => (
+                                    <View
+                                      key={`sim_norm_box_${idx}`}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `${b.boxLeftPct}%`,
+                                        top: `${b.boxTopPct}%`,
+                                        width: `${b.boxWidthPct}%`,
+                                        height: `${b.boxHeightPct}%`,
+                                        borderWidth: 2,
+                                        borderColor: b.hex,
+                                        borderRadius: 4,
+                                      }}
+                                    >
+                                      <View style={[styles.normRoleBadge, { backgroundColor: b.hex, borderColor: 'rgba(0,0,0,0.3)', borderWidth: 1 }]}>
+                                        <Text style={[styles.normRoleBadgeText, { color: '#fff', textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 2 }]}>
+                                          {b.roleLabel}{b.munsellCode ? ` · ${b.munsellCode}` : ''}{b.percent != null ? ` (${b.percent}%)` : ''}
+                                        </Text>
+                                      </View>
+                                    </View>
+                                  ))
                                 ) : (
                                   <>
                                     {specimenNormRegions[selectedOverlayColorIndex]?.mask_png && (

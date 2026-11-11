@@ -6622,12 +6622,6 @@
 
             const isModal = containerEl.id === 'modalBeforeAfterBoxes';
             const overlayEl = isModal ? document.getElementById('modalColorMapOverlay') : document.getElementById('resColorMapOverlay');
-            const hasColorMap = Boolean(overlayEl && overlayEl.src && overlayEl.style.display !== 'none');
-
-            // 5a: Do not draw bounding boxes when a color map is available unless forced (e.g. single region selected)
-            if (!force && hasColorMap && regions.length > 1) {
-                return;
-            }
 
             const firstReg = regions[0] || {};
             const imgEl = isModal ? document.getElementById('modalBeforeAfterImg') : document.getElementById('resBeforeAfterImg');
@@ -6792,21 +6786,14 @@
             const colorMapPng = firstReg.color_map_png || (!isModal ? window.currentScanResult?.color_map_png : null) || null;
             const colorMapUrl = firstReg.color_map_url || firstReg.colormap_url || (!isModal ? window.currentScanResult?.color_map_url : null) || null;
 
+            // Keep AFTER image clean and natural (matching BEFORE) by default — no bright full-image color wash
             if (overlayEl) {
-                if (colorMapPng) {
-                    overlayEl.src = 'data:image/png;base64,' + colorMapPng;
-                    overlayEl.style.display = 'block';
-                    overlayEl.style.opacity = '0.55';
-                } else if (colorMapUrl) {
-                    overlayEl.src = colorMapUrl;
-                    overlayEl.style.display = 'block';
-                    overlayEl.style.opacity = '0.55';
-                }
+                overlayEl.style.display = 'none';
             }
 
-            // If colormap is shown, hide bounding boxes on initial display (5a)
-            if (boxesEl && (colorMapPng || colorMapUrl)) {
-                boxesEl.innerHTML = '';
+            // Always display the bounding boxes for all detected colors on the AFTER image
+            if (boxesEl) {
+                renderBeforeAfterBoxes(boxesEl, swatches, false);
             }
 
             swatches.forEach((r, idx) => {
@@ -6836,21 +6823,15 @@
                     });
 
                     if (isAlreadySelected) {
-                        // Deselect: show full segmentation map without boxes (5a)
+                        // Deselect: return to clean AFTER image with all bounding boxes visible
                         if (overlayEl) {
-                            if (colorMapPng) {
-                                overlayEl.src = 'data:image/png;base64,' + colorMapPng;
-                                overlayEl.style.display = 'block';
-                                overlayEl.style.opacity = '0.55';
-                            } else if (colorMapUrl) {
-                                overlayEl.src = colorMapUrl;
-                                overlayEl.style.display = 'block';
-                                overlayEl.style.opacity = '0.55';
-                            }
+                            overlayEl.style.display = 'none';
                         }
-                        if (boxesEl) boxesEl.innerHTML = '';
+                        if (boxesEl) {
+                            renderBeforeAfterBoxes(boxesEl, swatches, false);
+                        }
                     } else {
-                        // Isolate: show per-color mask and thin outline on selection (5a)
+                        // Isolate: show per-color mask and highlight this color's box on the AFTER image
                         pill.classList.add('is-selected');
                         pill.style.border = `1.5px solid ${ovHex}`;
                         containerEl.querySelectorAll('.before-after-swatch-pill').forEach(p => {
@@ -6860,11 +6841,11 @@
                             if (r.mask_png) {
                                 overlayEl.src = 'data:image/png;base64,' + r.mask_png;
                                 overlayEl.style.display = 'block';
-                                overlayEl.style.opacity = '0.70';
+                                overlayEl.style.opacity = '0.65';
                             } else if (r.mask_url) {
                                 overlayEl.src = r.mask_url;
                                 overlayEl.style.display = 'block';
-                                overlayEl.style.opacity = '0.70';
+                                overlayEl.style.opacity = '0.65';
                             }
                         }
                         if (boxesEl) renderBeforeAfterBoxes(boxesEl, [r], true);
@@ -10299,20 +10280,7 @@
                             if (modalBeforeAfterBoxes) renderBeforeAfterBoxes(modalBeforeAfterBoxes, regions);
                             const modalOverlayEl = document.getElementById('modalColorMapOverlay');
                             if (modalOverlayEl) {
-                                const transparentColormapUrl = data.color_map_url || (data.scan_id ? `/storage/scans/scan_${data.scan_id}_colormap.png` : null);
-                                if (data.color_map_png) {
-                                    modalOverlayEl.src = 'data:image/png;base64,' + data.color_map_png;
-                                    modalOverlayEl.style.display = 'block';
-                                    modalOverlayEl.style.opacity = '0.55';
-                                } else if (transparentColormapUrl) {
-                                    modalOverlayEl.src = transparentColormapUrl;
-                                    modalOverlayEl.style.display = 'block';
-                                    modalOverlayEl.style.opacity = '0.55';
-                                } else if (data.overlay_image_url) {
-                                    modalOverlayEl.src = data.overlay_image_url;
-                                    modalOverlayEl.style.display = 'block';
-                                    modalOverlayEl.style.opacity = '0.55';
-                                }
+                                modalOverlayEl.style.display = 'none';
                             }
                         };
                         modalBeforeAfterImg.onerror = () => {
