@@ -6664,24 +6664,22 @@
                 let width = b.w * 50;
                 let height = b.h * photoHeightPct;
 
+                // Horizontal bounds safeguard: shift box into visible area without shrinking
+                if (width > (maxRight - minLeft)) width = maxRight - minLeft;
                 if (left < minLeft) {
-                    const overflow = minLeft - left;
                     left = minLeft;
-                    width = Math.max(5, width - overflow);
+                } else if (left + width > maxRight) {
+                    left = maxRight - width;
                 }
-                if (left + width > maxRight) width = Math.max(5, maxRight - left);
-                if (left > maxRight - 5) { left = maxRight - 5; width = 5; }
 
-                // Vertical bounds safeguard: ensure box never overflows the bottom or header bar
+                // Vertical bounds safeguard: shift box into visible area without shrinking
                 const minTop = topBarPct + 0.5;
                 const maxBottom = 99.0;
+                if (height > (maxBottom - minTop)) height = maxBottom - minTop;
                 if (top < minTop) {
-                    const overflowY = minTop - top;
                     top = minTop;
-                    height = Math.max(5, height - overflowY);
-                }
-                if (top + height > maxBottom) {
-                    height = Math.max(5, maxBottom - top);
+                } else if (top + height > maxBottom) {
+                    top = maxBottom - height;
                 }
 
                 // Decide label position: default above the box; flip below if that

@@ -29,6 +29,7 @@ Public API:
 
 import base64
 import io
+import math
 import os
 from typing import List, Optional, Tuple
 
@@ -44,10 +45,10 @@ DEFAULT_ROI_FRACTION = float(os.environ.get("SCAN_ROI_FRACTION", "1.0"))
 WORK_SIZE = int(os.environ.get("STAGE3_WORK_SIZE", "320"))     # longest side used for clustering
 OVERSEG_K = int(os.environ.get("STAGE3_OVERSEG_K", "12"))      # intentionally more clusters than needed (12)
 MAX_COLORS = int(os.environ.get("STAGE3_MAX_COLORS", "12"))    # max distinct color anchors kept (12)
-MIN_SPECK = float(os.environ.get("STAGE3_MIN_SPECK", "0.005")) # ignore clusters < 0.5% (pure noise) before initial merge
-MERGE_DE = float(os.environ.get("STAGE3_MERGE_DE", "7.0"))      # ΔE2000 (lightness relaxed kL=3) to call two clusters "same color"
+MIN_SPECK = float(os.environ.get("STAGE3_MIN_SPECK", "0.001")) # ignore clusters < 0.1% (pure noise) before initial merge
+MERGE_DE = float(os.environ.get("STAGE3_MERGE_DE", "2.0"))      # ΔE2000 to merge near-identical clusters (< 2.0)
 MAX_L_GAP = float(os.environ.get("STAGE3_MAX_L_GAP", "28.0"))  # max L* difference allowed inside one color (28.0)
-FINAL_MIN = float(os.environ.get("STAGE3_FINAL_MIN", "0.02"))  # merge-into-nearest threshold: groups < 2% merge into nearest anchor
+FINAL_MIN = float(os.environ.get("STAGE3_FINAL_MIN", "0.0"))   # 0.0 = do not hide/merge minor colors by a min proportion
 TRIM_PCT = int(os.environ.get("STAGE3_TRIM_PCT", "10"))        # ignore darkest/lightest 10% when computing true color
 
 # ── High-Contrast Bright Overlay Colors (Stands out sharply on earthy brown soil) ─
@@ -242,66 +243,92 @@ def locate_color_box(
     color_rgb: tuple,
     max_de: float = 12.0,
     pixel_mask: Optional[np.ndarray] = None,
+    proportion: Optional[float] = None,
 ) -> dict:
     """
-    Locates the true spatial bounding box of `color_rgb` across the image.
-    Uses the actual pixel_mask extent, proportional to its real image share,
-    so dominant soil colors cover the full analyzed frame instead of an arbitrary 20% box.
+    Computes a normalized bounding box strictly proportional to the color's percentage:
+      box_w = img_w * sqrt(p)
+      box_h = img_h * sqrt(p)
+    Centered on the densest area (centroid of largest connected component of pixel mask).
+    Shifted within [0.005, 0.995] bounds so it never overflows and is never shrunk.
     """
     H, W = img_rgb.shape[:2]
+    total_pixels = float(H * W) if (H > 0 and W > 0) else 1.0
+
+    # 1. Determine percentage p
+    if proportion is not None:
+        p = float(proportion)
+    elif pixel_mask is not None and np.any(pixel_mask):
+        p = float(np.sum(pixel_mask > 0)) / total_pixels
+    else:
+        p = 0.05
+    p = max(0.0001, min(1.0, p))
+
+    # 2. Box dimensions proportional to sqrt(p), keeping aspect ratio of the image
+    min_b = 0.005
+    max_b = 0.995
+    max_span = max_b - min_b  # 0.99
+    norm_w = min(max_span, math.sqrt(p))
+    norm_h = min(max_span, math.sqrt(p))
+
+    # 3. Find center coordinates: densest area (largest connected component centroid)
+    cx, cy = float(W) / 2.0, float(H) / 2.0
     try:
+        mask_to_analyze = None
         if pixel_mask is not None and np.any(pixel_mask):
-            ys, xs = np.where(pixel_mask)
-            if len(xs) > 0 and len(ys) > 0:
-                # 2nd to 98th percentile bounds to ignore stray noise pixels
-                x_min, x_max = int(np.percentile(xs, 2)), int(np.percentile(xs, 98))
-                y_min, y_max = int(np.percentile(ys, 2)), int(np.percentile(ys, 98))
+            mask_to_analyze = (pixel_mask > 0).astype(np.uint8) * 255
+        elif color_rgb is not None:
+            lab = rgb2lab(img_rgb.astype(np.float64) / 255.0)
+            ref = rgb2lab(np.array([[color_rgb]], dtype=np.float64) / 255.0)[0, 0]
+            de = deltaE_ciede2000(lab, ref[None, None, :])
+            mask_to_analyze = (de < max_de).astype(np.uint8) * 255
 
-                bx = max(0, min(W - 1, x_min))
-                by = max(0, min(H - 1, y_min))
-                bw = max(10, min(W - bx, x_max - x_min + 1))
-                bh = max(10, min(H - by, y_max - y_min + 1))
-
-                return {
-                    "x": int(bx),
-                    "y": int(by),
-                    "width": int(bw),
-                    "height": int(bh),
-                    "norm_x": round(float(bx / W), 4),
-                    "norm_y": round(float(by / H), 4),
-                    "norm_w": round(float(bw / W), 4),
-                    "norm_h": round(float(bh / H), 4),
-                }
-
-        # Fallback: CIEDE2000 segmentation if no pixel_mask provided
-        lab = rgb2lab(img_rgb.astype(np.float64) / 255.0)
-        ref = rgb2lab(np.array([[color_rgb]], dtype=np.float64) / 255.0)[0, 0]
-        de = deltaE_ciede2000(lab, ref[None, None, :])
-        mask_u8 = (de < max_de).astype(np.uint8) * 255
-        ys, xs = np.where(mask_u8 > 0)
-        if len(xs) > 0 and len(ys) > 0:
-            x_min, x_max = int(np.percentile(xs, 2)), int(np.percentile(xs, 98))
-            y_min, y_max = int(np.percentile(ys, 2)), int(np.percentile(ys, 98))
-            bx = max(0, min(W - 1, x_min))
-            by = max(0, min(H - 1, y_min))
-            bw = max(10, min(W - bx, x_max - x_min + 1))
-            bh = max(10, min(H - by, y_max - y_min + 1))
-            return {
-                "x": int(bx),
-                "y": int(by),
-                "width": int(bw),
-                "height": int(bh),
-                "norm_x": round(float(bx / W), 4),
-                "norm_y": round(float(by / H), 4),
-                "norm_w": round(float(bw / W), 4),
-                "norm_h": round(float(bh / H), 4),
-            }
+        if mask_to_analyze is not None and np.any(mask_to_analyze):
+            num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask_to_analyze)
+            if num_labels > 1:
+                # label 0 is background; find largest component among labels 1..num_labels-1
+                areas = stats[1:, cv2.CC_STAT_AREA]
+                largest_idx = 1 + int(np.argmax(areas))
+                cx, cy = float(centroids[largest_idx][0]), float(centroids[largest_idx][1])
+            else:
+                ys, xs = np.where(mask_to_analyze > 0)
+                if len(xs) > 0 and len(ys) > 0:
+                    cx, cy = float(np.mean(xs)), float(np.mean(ys))
     except Exception:
         pass
 
+    norm_cx = cx / float(W)
+    norm_cy = cy / float(H)
+
+    # 4. Center box on (norm_cx, norm_cy)
+    norm_x = norm_cx - (norm_w / 2.0)
+    norm_y = norm_cy - (norm_h / 2.0)
+
+    # 5. Shift inside bounds [min_b, max_b] without shrinking
+    if norm_x < min_b:
+        norm_x = min_b
+    elif norm_x + norm_w > max_b:
+        norm_x = max_b - norm_w
+
+    if norm_y < min_b:
+        norm_y = min_b
+    elif norm_y + norm_h > max_b:
+        norm_y = max_b - norm_h
+
+    bx = int(round(norm_x * W))
+    by = int(round(norm_y * H))
+    bw = int(round(norm_w * W))
+    bh = int(round(norm_h * H))
+
     return {
-        "x": 0, "y": 0, "width": W, "height": H,
-        "norm_x": 0.0, "norm_y": 0.0, "norm_w": 1.0, "norm_h": 1.0,
+        "x": int(bx),
+        "y": int(by),
+        "width": int(bw),
+        "height": int(bh),
+        "norm_x": round(float(norm_x), 4),
+        "norm_y": round(float(norm_y), 4),
+        "norm_w": round(float(norm_w), 4),
+        "norm_h": round(float(norm_h), 4),
     }
 
 
@@ -366,19 +393,20 @@ def detect_color_regions(
     groups = _merge_shades(centers, counts)
     share = lambda a: sum(counts[c] for c in groups[a]) / total
 
-    # 4. Small colors (< FINAL_MIN): merge into nearest anchor (NEVER drop)
-    changed = True
-    while changed and len(groups) > 1:
-        changed = False
-        for a in sorted(list(groups), key=share):
-            if share(a) < min_proportion:
-                others = [o for o in groups if o != a]
-                if others:
-                    near = min(others, key=lambda o: _shade_distance(centers[a], centers[o]))
-                    groups[near].extend(groups[a])
-                    del groups[a]
-                    changed = True
-                    break
+    # 4. Small colors: merge only if min_proportion > 0.0 (default 0.0 retains all detected colors)
+    if min_proportion > 0.0:
+        changed = True
+        while changed and len(groups) > 1:
+            changed = False
+            for a in sorted(list(groups), key=share):
+                if share(a) < min_proportion:
+                    others = [o for o in groups if o != a]
+                    if others:
+                        near = min(others, key=lambda o: _shade_distance(centers[a], centers[o]))
+                        groups[near].extend(groups[a])
+                        del groups[a]
+                        changed = True
+                        break
 
     # Cap to max_colors (12) by merging smallest remaining into nearest anchor
     while len(groups) > max_colors:
@@ -477,7 +505,7 @@ def detect_color_regions(
         ordered = sorted(groups[a], key=lambda c: centers[c][0])
         lightness_spread = round(float(Lpx.max() - Lpx.min()), 1) if total_sm > 0 else 0.0
 
-        box_data = locate_color_box(full_arr, rgb, pixel_mask=full_mask)
+        box_data = locate_color_box(full_arr, rgb, pixel_mask=full_mask, proportion=proportion)
 
         r, g, b = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
         overlay_hex = f"#{r:02x}{g:02x}{b:02x}"

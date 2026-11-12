@@ -494,18 +494,44 @@ export default function ScanSoilScreen({ navigation }) {
       let splitWidth = bData.raw_w * 50.0;
       let splitHeight = bData.raw_h * imgHeightPct;
 
-      // Safeguard: Clamp composite coordinates so bounding boxes never overflow the frame
-      splitLeft = Math.max(50.5, Math.min(98.0, splitLeft));
-      splitWidth = Math.max(2.0, Math.min(99.0 - splitLeft, splitWidth));
+      // Safeguard: Shift composite coordinates so bounding boxes never overflow without shrinking
+      const minSplitLeft = 50.5;
+      const maxSplitRight = 99.0;
+      if (splitWidth > (maxSplitRight - minSplitLeft)) splitWidth = maxSplitRight - minSplitLeft;
+      if (splitLeft < minSplitLeft) {
+        splitLeft = minSplitLeft;
+      } else if (splitLeft + splitWidth > maxSplitRight) {
+        splitLeft = maxSplitRight - splitWidth;
+      }
+
       const minSplitTop = barPct + 0.5;
-      splitTop = Math.max(minSplitTop, Math.min(98.0, splitTop));
-      splitHeight = Math.max(2.0, Math.min(99.0 - splitTop, splitHeight));
+      const maxSplitBottom = 99.0;
+      if (splitHeight > (maxSplitBottom - minSplitTop)) splitHeight = maxSplitBottom - minSplitTop;
+      if (splitTop < minSplitTop) {
+        splitTop = minSplitTop;
+      } else if (splitTop + splitHeight > maxSplitBottom) {
+        splitTop = maxSplitBottom - splitHeight;
+      }
 
       // Coordinates for single panel / simulated split pane (100% of panel width/height)
-      let boxLeft = Math.max(1.0, Math.min(98.0, bData.raw_x * 100.0));
-      let boxTop = Math.max(1.0, Math.min(98.0, bData.raw_y * 100.0));
-      let boxWidth = Math.max(2.0, Math.min(99.0 - boxLeft, bData.raw_w * 100.0));
-      let boxHeight = Math.max(2.0, Math.min(99.0 - boxTop, bData.raw_h * 100.0));
+      let boxWidth = Math.min(98.0, (bData.raw_w || 0.5) * 100.0);
+      let boxHeight = Math.min(98.0, (bData.raw_h || 0.5) * 100.0);
+      let boxLeft = (bData.raw_x || 0.25) * 100.0;
+      let boxTop = (bData.raw_y || 0.25) * 100.0;
+
+      const minBox = 1.0;
+      const maxBox = 99.0;
+      if (boxLeft < minBox) {
+        boxLeft = minBox;
+      } else if (boxLeft + boxWidth > maxBox) {
+        boxLeft = maxBox - boxWidth;
+      }
+
+      if (boxTop < minBox) {
+        boxTop = minBox;
+      } else if (boxTop + boxHeight > maxBox) {
+        boxTop = maxBox - boxHeight;
+      }
 
       return {
         // Composite image coordinates

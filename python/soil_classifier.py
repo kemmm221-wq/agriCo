@@ -357,7 +357,7 @@ def classify_soil(
     combined_overlay_b64 = None
     try:
         from region_merge import merge_munsell_regions  # noqa: E402
-        from color_detector import render_color_map, extract_blobs, OVERLAY_PALETTE, OVERLAY_COLOR_NAMES  # noqa: E402
+        from color_detector import render_color_map, extract_blobs, locate_color_box, OVERLAY_PALETTE, OVERLAY_COLOR_NAMES  # noqa: E402
         pre_merge_count = len(matched_regions)
         matched_regions = merge_munsell_regions(matched_regions, normalized_img)
         merge_elapsed = time.perf_counter() - t_merge
@@ -368,6 +368,7 @@ def classify_soil(
 
         # Rebuild full-size int16 label map from final merged pixel_masks
         H_norm, W_norm = normalized_img.size[1], normalized_img.size[0]
+        norm_arr = np.asarray(normalized_img.convert("RGB"), dtype=np.uint8)
         final_group = np.zeros((H_norm, W_norm), dtype=np.int16)
         n_final = len(matched_regions)
         for gi, r in enumerate(matched_regions):
@@ -383,7 +384,7 @@ def classify_soil(
 
         combined_overlay_b64, per_color_masks_b64 = render_color_map(final_group, n_final, alpha=0.5)
 
-        # Overwrite each region's mask_png, blobs, overlay_hex, overlay_color, overlay_color_name
+        # Overwrite each region's mask_png, blobs, overlay_hex, overlay_color, overlay_color_name, and bounding box
         for gi, r in enumerate(matched_regions):
             pal_rgb = OVERLAY_PALETTE[gi % len(OVERLAY_PALETTE)]
             r["overlay_color"] = pal_rgb
@@ -393,6 +394,10 @@ def classify_soil(
                 r["mask_png"] = per_color_masks_b64[gi]
             if r.get("pixel_mask") is not None:
                 r["blobs"] = extract_blobs(r["pixel_mask"])
+                box_data = locate_color_box(norm_arr, r["rgb"], pixel_mask=r["pixel_mask"], proportion=r.get("proportion"))
+                r["bounding_box"] = box_data
+                r["box"] = {"x": box_data["norm_x"], "y": box_data["norm_y"],
+                            "w": box_data["norm_w"], "h": box_data["norm_h"]}
 
         for rej in stage4_rejected:
             rej["overlay_color"] = (150, 150, 150)

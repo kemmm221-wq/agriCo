@@ -16,13 +16,15 @@ import re
 import sys
 from typing import List, Optional
 import numpy as np
+from skimage.color import rgb2lab, deltaE_ciede2000
 from color_detector import locate_color_box, extract_blobs
 
 # ── Tunable Settings ───────────────────────────────────────────────────────────
 import os
-MUNSELL_MAX_VALUE_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_VALUE_GAP", "2.0"))    # Value steps apart allowed (shadow vs light)
-MUNSELL_MAX_CHROMA_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_CHROMA_GAP", "1.0"))   # Chroma steps apart allowed (set 0 for strict)
+MUNSELL_MAX_VALUE_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_VALUE_GAP", "0.0"))    # Value steps apart allowed (0.0 = identical value)
+MUNSELL_MAX_CHROMA_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_CHROMA_GAP", "0.0"))   # Chroma steps apart allowed (0.0 = identical chroma)
 MUNSELL_MAX_HUE_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_HUE_GAP", "2.5"))         # Hue units apart allowed (10R to 2.5YR = 2.5)
+MERGE_DELTA_E = float(os.environ.get("STAGE5_MERGE_DELTA_E", "2.0"))                     # Delta E00 threshold for merging (< 2.0)
 
 _HUE_FAMILY_OFFSET = {
     "R": 0.0,
@@ -141,14 +143,31 @@ def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
     for r in sorted(regions, key=lambda x: x.get("proportion", 0.0), reverse=True):
         p = parse_munsell(_munsell_code(r))
         target = None
+        target_de = 0.0
+        target_hdist = 0.0
         if p:
             for m in merged:
                 q = m["_parsed"]
-                if (q and hue_distance(p, q) <= MUNSELL_MAX_HUE_GAP
-                        and abs(p[2] - q[2]) <= MUNSELL_MAX_VALUE_GAP
-                        and abs(p[3] - q[3]) <= MUNSELL_MAX_CHROMA_GAP):
-                    target = m
-                    break
+                if not q:
+                    continue
+                h_dist = hue_distance(p, q)
+                val_diff = abs(p[2] - q[2])
+                chr_diff = abs(p[3] - q[3])
+                if (h_dist <= MUNSELL_MAX_HUE_GAP
+                        and val_diff <= MUNSELL_MAX_VALUE_GAP
+                        and chr_diff <= MUNSELL_MAX_CHROMA_GAP):
+                    # Only merge near-identical shades where Delta E00 < MERGE_DELTA_E (2.0)
+                    try:
+                        lab_r = rgb2lab(np.array([[r["rgb"]]], dtype=np.float64) / 255.0)
+                        lab_m = rgb2lab(np.array([[m["rgb"]]], dtype=np.float64) / 255.0)
+                        de00 = float(deltaE_ciede2000(lab_r, lab_m)[0, 0])
+                    except Exception:
+                        de00 = 999.0
+                    if de00 < MERGE_DELTA_E:
+                        target = m
+                        target_de = de00
+                        target_hdist = h_dist
+                        break
 
         if target is None:
             r = dict(r)
@@ -194,7 +213,7 @@ def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
 
         # Recompute representative bounding box, blobs, and mask_png on the merged soil surface
         if target.get("pixel_mask") is not None:
-            box = locate_color_box(img_arr, target["rgb"], pixel_mask=target["pixel_mask"])
+            box = locate_color_box(img_arr, target["rgb"], pixel_mask=target["pixel_mask"], proportion=target["proportion"])
             target["bounding_box"] = box
             target["box"] = {"x": box["norm_x"], "y": box["norm_y"],
                              "w": box["norm_w"], "h": box["norm_h"]}
@@ -205,7 +224,11 @@ def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
             except Exception:
                 pass
 
-        merge_events.append((r.get("color_index"), target.get("color_index"), _munsell_code(r), _munsell_code(target)))
+        merge_events.append((
+            r.get("color_index"), target.get("color_index"),
+            _munsell_code(r), _munsell_code(target),
+            target_de, target_hdist, p[2] if p else -1, p[3] if p else -1
+        ))
 
     for m in merged:
         m.pop("_parsed", None)
@@ -215,7 +238,8 @@ def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
     if merge_events:
         for ev in merge_events:
             sys.stderr.write(
-                f"[MunsellMerge] Merged region {ev[0]} ({ev[2]}) -> anchor {ev[1]} ({ev[3]})\n"
+                f"[MunsellMerge] Merged region {ev[0]} ({ev[2]}) -> anchor {ev[1]} ({ev[3]}) "
+                f"[dE00={ev[4]:.2f} < 2.0, hue_gap={ev[5]:.1f} <= 2.5, val={ev[6]}, chr={ev[7]}]\n"
             )
         sys.stderr.write(
             f"[MunsellMerge] Regions reduced from {len(regions)} to {len(merged)}.\n"
