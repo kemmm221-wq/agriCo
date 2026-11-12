@@ -143,11 +143,11 @@ def build_output(record, result, api_regions: list) -> dict:
     stored_path = _get(record, "file_path", "")
     source_name = _get(record, "source", "")
 
-    munsell_hue = _get(record, "munsell_hue", None)
-    munsell_value = _get(record, "munsell_value", None)
-    munsell_chroma = _get(record, "munsell_chroma", None)
-    munsell_notation = _get(record, "munsell_notation", None)
-    color_delta_e = _get(record, "color_delta_e", None)
+    munsell_hue = getattr(result, "munsell_hue", None) or _get(record, "munsell_hue", None)
+    munsell_value = getattr(result, "munsell_value", None) or _get(record, "munsell_value", None)
+    munsell_chroma = getattr(result, "munsell_chroma", None) or _get(record, "munsell_chroma", None)
+    munsell_notation = getattr(result, "munsell_notation", None) or _get(record, "munsell_notation", None)
+    color_delta_e = getattr(result, "color_delta_e", None) or _get(record, "color_delta_e", None)
 
     rgb = getattr(result, "rgb", (0, 0, 0))
     texture_score = getattr(result, "texture_score", 0.0)

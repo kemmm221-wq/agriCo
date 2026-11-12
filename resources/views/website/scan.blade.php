@@ -6672,6 +6672,18 @@
                 if (left + width > maxRight) width = Math.max(5, maxRight - left);
                 if (left > maxRight - 5) { left = maxRight - 5; width = 5; }
 
+                // Vertical bounds safeguard: ensure box never overflows the bottom or header bar
+                const minTop = topBarPct + 0.5;
+                const maxBottom = 99.0;
+                if (top < minTop) {
+                    const overflowY = minTop - top;
+                    top = minTop;
+                    height = Math.max(5, height - overflowY);
+                }
+                if (top + height > maxBottom) {
+                    height = Math.max(5, maxBottom - top);
+                }
+
                 // Decide label position: default above the box; flip below if that
                 // would collide with an already-placed box's label, or if there's
                 // no room above (box too close to the top of the image).

@@ -489,16 +489,23 @@ export default function ScanSoilScreen({ navigation }) {
         : (r.proportion !== undefined ? Math.round(r.proportion * 100) : null);
 
       // Coordinates for 2-panel composite Before/After comparison image (right 50% pane, with dynamic top bar)
-      const splitLeft = 50.0 + (bData.raw_x * 50.0);
-      const splitTop = barPct + (bData.raw_y * imgHeightPct);
-      const splitWidth = bData.raw_w * 50.0;
-      const splitHeight = bData.raw_h * imgHeightPct;
+      let splitLeft = 50.0 + (bData.raw_x * 50.0);
+      let splitTop = barPct + (bData.raw_y * imgHeightPct);
+      let splitWidth = bData.raw_w * 50.0;
+      let splitHeight = bData.raw_h * imgHeightPct;
+
+      // Safeguard: Clamp composite coordinates so bounding boxes never overflow the frame
+      splitLeft = Math.max(50.5, Math.min(98.0, splitLeft));
+      splitWidth = Math.max(2.0, Math.min(99.0 - splitLeft, splitWidth));
+      const minSplitTop = barPct + 0.5;
+      splitTop = Math.max(minSplitTop, Math.min(98.0, splitTop));
+      splitHeight = Math.max(2.0, Math.min(99.0 - splitTop, splitHeight));
 
       // Coordinates for single panel / simulated split pane (100% of panel width/height)
-      const boxLeft = bData.raw_x * 100.0;
-      const boxTop = bData.raw_y * 100.0;
-      const boxWidth = bData.raw_w * 100.0;
-      const boxHeight = bData.raw_h * 100.0;
+      let boxLeft = Math.max(1.0, Math.min(98.0, bData.raw_x * 100.0));
+      let boxTop = Math.max(1.0, Math.min(98.0, bData.raw_y * 100.0));
+      let boxWidth = Math.max(2.0, Math.min(99.0 - boxLeft, bData.raw_w * 100.0));
+      let boxHeight = Math.max(2.0, Math.min(99.0 - boxTop, bData.raw_h * 100.0));
 
       return {
         // Composite image coordinates

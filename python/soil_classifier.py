@@ -422,6 +422,8 @@ def classify_soil(
     sys.stderr.flush()
 
     # ── Build top-level summary from dominant region ───────────────────────
+    if final_regions:
+        final_regions.sort(key=lambda r: float(r.get("proportion", 0.0)), reverse=True)
     dominant = final_regions[0] if final_regions else None
 
     if dominant:

@@ -22,6 +22,39 @@ from color_detector import locate_color_box, extract_blobs
 import os
 MUNSELL_MAX_VALUE_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_VALUE_GAP", "2.0"))    # Value steps apart allowed (shadow vs light)
 MUNSELL_MAX_CHROMA_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_CHROMA_GAP", "1.0"))   # Chroma steps apart allowed (set 0 for strict)
+MUNSELL_MAX_HUE_GAP = float(os.environ.get("STAGE5_MUNSELL_MAX_HUE_GAP", "2.5"))         # Hue units apart allowed (10R to 2.5YR = 2.5)
+
+_HUE_FAMILY_OFFSET = {
+    "R": 0.0,
+    "YR": 10.0,
+    "Y": 20.0,
+    "GY": 30.0,
+    "G": 40.0,
+    "BG": 50.0,
+    "B": 60.0,
+    "PB": 70.0,
+    "P": 80.0,
+    "RP": 90.0,
+}
+
+
+def munsell_hue_position(hue_num: float, hue_family: str) -> Optional[float]:
+    """Converts (hue_num, hue_family) to a continuous 0-100 coordinate on Munsell circle."""
+    if hue_family not in _HUE_FAMILY_OFFSET:
+        return None
+    return (_HUE_FAMILY_OFFSET[hue_family] + hue_num) % 100.0
+
+
+def hue_distance(p, q) -> float:
+    """Returns angular hue distance in Munsell units (e.g. 10R vs 2.5YR is 2.5)."""
+    if not p or not q:
+        return 999.0
+    pos_p = munsell_hue_position(p[0], p[1])
+    pos_q = munsell_hue_position(q[0], q[1])
+    if pos_p is None or pos_q is None:
+        return 999.0
+    diff = abs(pos_p - pos_q)
+    return min(diff, 100.0 - diff)
 
 _MUNSELL_RE = re.compile(
     r"^\s*(\d+(?:\.\d+)?)\s*([A-Z]{1,2})\s+(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*$"
@@ -111,7 +144,7 @@ def merge_munsell_regions(regions: List[dict], image) -> List[dict]:
         if p:
             for m in merged:
                 q = m["_parsed"]
-                if (q and p[1] == q[1] and p[0] == q[0]
+                if (q and hue_distance(p, q) <= MUNSELL_MAX_HUE_GAP
                         and abs(p[2] - q[2]) <= MUNSELL_MAX_VALUE_GAP
                         and abs(p[3] - q[3]) <= MUNSELL_MAX_CHROMA_GAP):
                     target = m
